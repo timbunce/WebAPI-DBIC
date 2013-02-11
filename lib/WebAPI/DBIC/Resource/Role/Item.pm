@@ -2,7 +2,7 @@ package WebAPI::DBIC::Resource::Role::Item;
 
 use Moo::Role;
 
-#requires 'render_item';
+requires 'render_item';
 requires 'encode_json';
 requires 'decode_json';
 

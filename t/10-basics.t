@@ -5,6 +5,10 @@ use Plack::Test;
 use Test::HTTP::Response;
 use JSON;
 
+use Devel::Dwarn;
+
+my $test_key_string = "clients_dataservice";
+
 my $app = require WebAPI::DBIC::WebApp;
 
 sub dsreq {
@@ -26,21 +30,43 @@ sub dsreq {
     return $req;
 }
 
-sub dsresp_ok {
+sub dsresp_json_data {
     my ($res) = @_;
+    return undef unless $res->header('Content-type') eq 'application/json';
+    my $content = $res->content;
+    return undef unless length $content;
+    return JSON->new->pretty->decode($content)
+}
+
+sub dsresp_ok {
+    my ($res, $expect_status) = @_;
     local $Test::Builder::Level = $Test::Builder::Level + 1;
-    status_matches($res, 200)
+    status_matches($res, $expect_status || 200)
         or diag $res->as_string;
     my $data;
     header_matches($res, 'Content-type', 'application/json')
-        and $data = JSON->new->pretty->decode($res->content);
+        and $data = dsresp_json_data($res);
     return $data;
+}
+
+sub dsresp_created_ok {
+    my ($res) = @_;
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+    status_matches($res, 201)
+        or diag $res->as_string;
+diag $res->as_string;
+    my $location = $res->header('Content-type');
+    ok $location, 'has Location header';
+    my $data = dsresp_json_data($res);
+    return $location unless wantarray;
+    return ($location, $data);
 }
 
 sub is_collection {
     my ($data, $min, $max) = @_;
     local $Test::Builder::Level = $Test::Builder::Level + 1;
-    is ref $data, 'ARRAY', "data isn't an array";
+    is ref $data, 'ARRAY', "data isn't an array"
+        or return;
     cmp_ok scalar @$data, '>=', $min, "collection has less than $min items"
         if defined $min;
     cmp_ok scalar @$data, '<=', $max, "collection has more than $max items"
@@ -56,7 +82,7 @@ sub is_item {
 }
 
 
-#local $SIG{__DIE__} = \&Carp::confess;
+local $SIG{__DIE__} = \&Carp::confess;
 
 
 test_psgi $app, sub {
@@ -84,18 +110,19 @@ test_psgi $app, sub {
 
 my $tmp_obj;
 
-=pod WIP
-
 test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq(
+    my $res = shift->(dsreq(
         POST => "/person_types", [], {
+            name => $test_key_string,
+            description => "dummy description ".localtime(),
         }
-    )));
-    is_item($data);
-    is $data->{id}, 2, 'id';
-    $tmp_obj = $data;
+    ));
+    my ($location, $data) = dsresp_created_ok($res);
+    #is $data->{id}, 2, 'id';
+    #$tmp_obj = $data;
 };
 
+=pod WIP
 test_psgi $app, sub {
     my $data = dsresp_ok(shift->(dsreq(
         PUT => "/person_types"

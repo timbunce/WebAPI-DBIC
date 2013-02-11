@@ -1,4 +1,4 @@
-package WebAPI::DBIC::Resource::PersonType;
+package WebAPI::DBIC::Resource::GenericItemDBIC;
 
 use Moo;
 
