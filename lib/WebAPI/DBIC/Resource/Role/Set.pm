@@ -4,7 +4,7 @@ package WebAPI::DBIC::Resource::Role::Set;
 
 use Moo::Role;
 
-requires 'render_set';
+requires 'render_set_as_plain';
 requires 'decode_json';
 requires 'encode_json';
 
@@ -45,7 +45,7 @@ sub create_path_after_handler { 1 }
 sub content_types_provided { [ {'application/json' => 'to_json'} ] }
 sub content_types_accepted { [ {'application/json' => 'from_json'} ] }
 
-sub to_json { $_[0]->encode_json($_[0]->render_set($_[0]->set)) }
+sub to_json { $_[0]->encode_json($_[0]->render_set_as_plain($_[0]->set)) }
 
 sub from_json {
     my $self = shift;

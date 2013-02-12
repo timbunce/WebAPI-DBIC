@@ -18,7 +18,7 @@ sub dsreq {
     my %headers = @headers;
     push @headers, 'Content-Type' => 'application/json'
         unless $headers{'Content-Type'};
-    push @headers, 'Accept' => 'application/json'
+    push @headers, 'Accept' => 'application/hal+json,application/json'
         unless $headers{'Accept'};
 
     my $content;
@@ -32,7 +32,7 @@ sub dsreq {
 
 sub dsresp_json_data {
     my ($res) = @_;
-    return undef unless $res->header('Content-type') eq 'application/json';
+    return undef unless $res->header('Content-type') =~ qr{^application/(?:hal\+)?json$};
     return undef unless $res->header('Content-Length');
     my $content = $res->content;
     my $data = JSON->new->decode($content);
@@ -48,7 +48,7 @@ sub dsresp_ok {
     status_matches($res, $expect_status || 200)
         or diag $res->as_string;
     my $data;
-    header_matches($res, 'Content-type', 'application/json')
+    header_matches($res, 'Content-type', qr{^application/(?:hal\+)?json$})
         and $data = dsresp_json_data($res);
     return $data;
 }

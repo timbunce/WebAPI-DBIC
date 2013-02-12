@@ -2,7 +2,8 @@ package WebAPI::DBIC::Resource::Role::Item;
 
 use Moo::Role;
 
-requires 'render_item';
+requires 'render_item_as_plain';
+requires 'render_item_as_hal';
 requires 'encode_json';
 requires 'decode_json';
 
@@ -15,10 +16,14 @@ has writable => (
    is => 'ro',
 );
 
-sub content_types_provided { [ {'application/json' => 'to_json'} ] }
+sub content_types_provided { [
+    {'application/json' => 'to_json_as_plain'},
+    {'application/hal+json' => 'to_json_as_hal'},
+] }
 sub content_types_accepted { [ {'application/json' => 'from_json'} ] }
 
-sub to_json { $_[0]->encode_json($_[0]->render_item(($_[0]->item))) }
+sub to_json_as_plain { $_[0]->encode_json($_[0]->render_item_as_plain(($_[0]->item))) }
+sub to_json_as_hal {   $_[0]->encode_json($_[0]->render_item_as_hal(($_[0]->item))) }
 
 sub from_json {
    $_[0]->update_resource(
