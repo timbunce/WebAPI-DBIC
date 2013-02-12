@@ -72,15 +72,16 @@ sub dsresp_created_ok {
 }
 
 sub is_set {
-    my ($data, $min, $max) = @_;
+    my ($data, $key, $min, $max) = @_;
     local $Test::Builder::Level = $Test::Builder::Level + 1;
-    is ref $data, 'ARRAY', "data isn't an array"
-        or return;
-    cmp_ok scalar @$data, '>=', $min, "set has less than $min items"
+    is ref $data->{_embedded}, "HASH", 'has _embedded hash';
+    my $set = $data->{_embedded}{$key};
+    is ref $set, "ARRAY", "_embedded has $key";
+    cmp_ok scalar @$set, '>=', $min, "set has less than $min items"
         if defined $min;
-    cmp_ok scalar @$data, '<=', $max, "set has more than $max items"
+    cmp_ok scalar @$set, '<=', $max, "set has more than $max items"
         if defined $max;
-    return $data;
+    return $set;
 }
 
 sub is_item {

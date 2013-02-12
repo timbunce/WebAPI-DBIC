@@ -21,10 +21,10 @@ my %person_types;
 
 test_psgi $app, sub {
     my $data = dsresp_ok(shift->(dsreq( GET => "/person_types" )));
-    is_set($data, 2);
-    %person_types = map { $_->{id} => $_ } @$data;
+    my $set = is_set($data, "person_types", 2);
+    %person_types = map { $_->{id} => $_ } @$set;
     is ref $person_types{$_}, "HASH", "/person_types includes $_"
-        for (1..5);
+        for (1..3);
     ok $person_types{1}{name}, "/person_types data looks sane";
 };
 
@@ -71,6 +71,7 @@ test_psgi $app, sub {
     is $item->{name}, $test_key_string;
     is $item->{description}, $desc;
 };
+
 
 =pod WIP
 test_psgi $app, sub {

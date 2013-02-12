@@ -14,6 +14,6 @@ has _json_encoder => (
    },
 );
 
-sub _build_json_encoder { JSON::XS->new }
+sub _build_json_encoder { JSON::XS->new->ascii }
 
 1;
