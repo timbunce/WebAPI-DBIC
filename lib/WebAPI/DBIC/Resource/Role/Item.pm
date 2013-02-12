@@ -22,8 +22,8 @@ sub content_types_provided { [
 ] }
 sub content_types_accepted { [ {'application/json' => 'from_json'} ] }
 
-sub to_json_as_plain { $_[0]->encode_json($_[0]->render_item_as_plain(($_[0]->item))) }
-sub to_json_as_hal {   $_[0]->encode_json($_[0]->render_item_as_hal(($_[0]->item))) }
+sub to_json_as_plain { $_[0]->encode_json($_[0]->render_item_as_plain($_[0]->item)) }
+sub to_json_as_hal {   $_[0]->encode_json($_[0]->render_item_as_hal($_[0]->item)) }
 
 sub from_json {
    $_[0]->update_resource(

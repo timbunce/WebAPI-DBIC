@@ -3,10 +3,10 @@
 package WebAPI::DBIC::WebApp;
 
 BEGIN {
-    $ENV{WM_DEBUG} = 0; # verbose
+    $ENV{WM_DEBUG} = 1; # verbose
     $ENV{DBIC_TRACE} = 1;
     $ENV{DBI_TRACE} = 0;
-    $ENV{PATH_ROUTER_DEBUG} = 0;
+    $ENV{PATH_ROUTER_DEBUG} = 1;
 }
 
 use Web::Simple;
@@ -26,7 +26,8 @@ my $schema = WebAPI::Schema::Corp->new_default_connect(
     {},
     # connect to yesterdays snapshot because we make edits to the db
     # XXX should really have a better approach for this!
-    "corp_snapshot_previous"
+    #"corp_snapshot_previous",
+    "corp"
 );
 
 
@@ -81,4 +82,10 @@ while (my $r = shift @routes) {
     );
 };
 
-Plack::App::Path::Router->new( router => $router );
+# XXX should be moved elsewhere, perhaps to a .psgi file
+use Plack::Builder;
+use Plack::App::File;
+builder {
+    mount "/browser" => Plack::App::File->new(root => "hal-browser")->to_app;
+    mount "/" => Plack::App::Path::Router->new( router => $router );
+};
