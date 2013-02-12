@@ -12,14 +12,14 @@ sub render_item {
     my $item_data = { $item->get_inflated_columns }; # XXX ?
     # FKs
     # DateTimes
-    return { data => $item_data };
+    return $item_data;
 }
 
 
 sub render_set {
     my ($self, $set) = @_;
     my $set_data = [ map { $self->render_item($_) } $set->all ];
-    return { data => $set_data };
+    return $set_data;
 }
 
 1;

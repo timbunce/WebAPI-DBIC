@@ -30,17 +30,15 @@ sub dsreq {
     return $req;
 }
 
-sub dsresp_json_parcel {
+sub dsresp_json_data {
     my ($res) = @_;
     return undef unless $res->header('Content-type') eq 'application/json';
     return undef unless $res->header('Content-Length');
     my $content = $res->content;
-    my $parcel = JSON->new->decode($content);
-    is ref $parcel, 'HASH', 'response is a HASH'
+    my $data = JSON->new->decode($content);
+    ok ref $data, 'response is a ref'
         or diag $content;
-    ok ref $parcel->{data}, 'response contains a data element'
-        or diag $content;
-    return $parcel;
+    return $data;
 }
 
 sub dsresp_ok {
@@ -49,10 +47,10 @@ sub dsresp_ok {
     #diag $res->as_string;
     status_matches($res, $expect_status || 200)
         or diag $res->as_string;
-    my $parcel;
+    my $data;
     header_matches($res, 'Content-type', 'application/json')
-        and $parcel = dsresp_json_parcel($res);
-    return $parcel;
+        and $data = dsresp_json_data($res);
+    return $data;
 }
 
 sub dsresp_created_ok {
@@ -63,15 +61,14 @@ sub dsresp_created_ok {
     diag $res->as_string;
     my $location = $res->header('Location');
     ok $location, 'has Location header';
-    my $parcel = dsresp_json_parcel($res);
+    my $data = dsresp_json_data($res);
     return $location unless wantarray;
-    return ($location, $parcel);
+    return ($location, $data);
 }
 
 sub is_set {
-    my ($parcel, $min, $max) = @_;
+    my ($data, $min, $max) = @_;
     local $Test::Builder::Level = $Test::Builder::Level + 1;
-    my $data = $parcel->{data};
     is ref $data, 'ARRAY', "data isn't an array"
         or return;
     cmp_ok scalar @$data, '>=', $min, "set has less than $min items"
@@ -82,20 +79,19 @@ sub is_set {
 }
 
 sub is_item {
-    my ($parcel, $attributes) = @_;
+    my ($data, $attributes) = @_;
     local $Test::Builder::Level = $Test::Builder::Level + 1;
-    my $data = $parcel->{data};
     is ref $data, 'HASH', "data isn't a hash";
     cmp_ok scalar keys %$data, '>=', $attributes, "set has less than $attributes attributes"
         if $attributes;
     return $data;
 }
 
-sub get_parcel {
+sub get_data {
     my ($url) = @_;
-    my $parcel;
-    test_psgi $app, sub { $parcel = dsresp_ok(shift->(dsreq( GET => $url ))) };
-    return $parcel;
+    my $data;
+    test_psgi $app, sub { $data = dsresp_ok(shift->(dsreq( GET => $url ))) };
+    return $data;
 }
 
 
@@ -105,23 +101,23 @@ local $SIG{__DIE__} = \&Carp::confess;
 my %person_types;
 
 test_psgi $app, sub {
-    my $parcel = dsresp_ok(shift->(dsreq( GET => "/person_types" )));
-    my $data = is_set($parcel, 2);
-    %person_types = map { $_->{data}{id} => $_->{data} } @$data;
+    my $data = dsresp_ok(shift->(dsreq( GET => "/person_types" )));
+    is_set($data, 2);
+    %person_types = map { $_->{id} => $_ } @$data;
     is ref $person_types{$_}, "HASH", "/person_types includes $_"
         for (1..5);
     ok $person_types{1}{name}, "/person_types data looks sane";
 };
 
 test_psgi $app, sub {
-    my $parcel = dsresp_ok(shift->(dsreq( GET => "/person_types/1" )));
-    my $data = is_item($parcel, 3);
+    my $data = dsresp_ok(shift->(dsreq( GET => "/person_types/1" )));
+    is_item($data, 3);
     is $data->{id}, 1, 'id';
 };
 
 test_psgi $app, sub {
-    my $parcel = dsresp_ok(shift->(dsreq( GET => "/person_types/2" )));
-    my $data = is_item($parcel);
+    my $data = dsresp_ok(shift->(dsreq( GET => "/person_types/2" )));
+    is_item($data);
     is $data->{id}, 2, 'id';
 };
 
@@ -133,9 +129,11 @@ test_psgi $app, sub {
         name => $test_key_string,
         description => $desc,
     }));
-    my ($location, $parcel) = dsresp_created_ok($res);
-    $item = get_parcel($location)->{data};
-    ok $item->{id}, 'new item has id';
+diag $res->as_string;
+    my ($location, $data) = dsresp_created_ok($res);
+    $item = get_data($location);
+    ok $item->{id}, 'new item has id'
+        or diag $item;
     ok !$person_types{$item->{id}}, 'new item has new id';
     is $item->{name}, $test_key_string;
     is $item->{description}, $desc;
@@ -147,8 +145,8 @@ test_psgi $app, sub {
         name => $test_key_string,
         description => $desc,
     }));
-    my ($location, $parcel) = dsresp_created_ok($res);
-    $item = get_parcel($location)->{data};
+    my ($location, $data) = dsresp_created_ok($res);
+    $item = get_data($location);
     ok $item->{id}, 'new item has id';
     ok !$person_types{$item->{id}}, 'new item has new id';
     is $item->{name}, $test_key_string;

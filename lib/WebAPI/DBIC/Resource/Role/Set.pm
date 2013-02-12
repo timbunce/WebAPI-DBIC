@@ -57,8 +57,8 @@ sub create_resource { $_[0]->set->create($_[1]) }
 sub create_path {
     my $self = shift;
     my $item = $self->item;
-   return sprintf $self->post_redirect_template,
-      map { $item->get_column($_) } $item->result_source->primary_columns
+    return sprintf $self->post_redirect_template,
+        map { $item->get_column($_) } $item->result_source->primary_columns
 }
 
 1;
