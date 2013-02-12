@@ -4,7 +4,7 @@ package WebAPI::DBIC::Resource::Role::Set;
 
 use Moo::Role;
 
-requires 'render_item';
+requires 'render_set';
 requires 'decode_json';
 requires 'encode_json';
 
@@ -42,17 +42,10 @@ sub post_is_create { 1 }
 
 sub create_path_after_handler { 1 }
 
-sub create_path {
-    my $self = shift;
-    my $item = $self->item;
-   return sprintf $self->post_redirect_template,
-      map { $item->get_column($_) } $item->result_source->primary_columns
-}
-
 sub content_types_provided { [ {'application/json' => 'to_json'} ] }
 sub content_types_accepted { [ {'application/json' => 'from_json'} ] }
 
-sub to_json { $_[0]->encode_json([ map $_[0]->render_item($_), $_[0]->set->all ]) }
+sub to_json { $_[0]->encode_json($_[0]->render_set($_[0]->set)) }
 
 sub from_json {
     my $self = shift;
@@ -60,5 +53,12 @@ sub from_json {
 }
 
 sub create_resource { $_[0]->set->create($_[1]) }
+
+sub create_path {
+    my $self = shift;
+    my $item = $self->item;
+   return sprintf $self->post_redirect_template,
+      map { $item->get_column($_) } $item->result_source->primary_columns
+}
 
 1;
