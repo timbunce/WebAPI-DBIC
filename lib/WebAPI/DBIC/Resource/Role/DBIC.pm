@@ -9,18 +9,19 @@ use Moo::Role;
 # https://metacpan.org/module/DBIx::Class::InflateColumn
 sub render_item_as_plain {
     my ($self, $item) = @_;
-    my $item_data = { $item->get_inflated_columns }; # XXX ?
+    my $data = { $item->get_inflated_columns }; # XXX ?
     # FKs
     # DateTimes
-    return $item_data;
+    return $data;
 }
 
 sub render_item_as_hal {
     my ($self, $item) = @_;
-    my $item_data = $self->render_item_as_plain($item);
-    $item_data->{_links} = {
+    my $data = $self->render_item_as_plain($item);
+    $data->{_links} = {
+        self => { href => "/person_types/".$item->id }
     };
-    return $item_data;
+    return $data;
 }
 
 
@@ -28,6 +29,19 @@ sub render_set_as_plain {
     my ($self, $set) = @_;
     my $set_data = [ map { $self->render_item_as_plain($_) } $set->all ];
     return $set_data;
+}
+
+sub render_set_as_hal {
+    my ($self, $set) = @_;
+    my $data = {
+       _embedded => {
+          person_types => [ map { $self->render_item_as_hal($_) } $set->all ],
+      }
+    };
+    $data->{_links} = {
+        self => { href => "/person_types" }
+    };
+    return $data;
 }
 
 1;

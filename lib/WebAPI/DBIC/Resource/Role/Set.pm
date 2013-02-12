@@ -42,10 +42,14 @@ sub post_is_create { 1 }
 
 sub create_path_after_handler { 1 }
 
-sub content_types_provided { [ {'application/json' => 'to_json'} ] }
+sub content_types_provided { [
+    {'application/hal+json' => 'to_json_as_hal'},
+    {'application/json' => 'to_json_as_plain'},
+] } 
 sub content_types_accepted { [ {'application/json' => 'from_json'} ] }
 
-sub to_json { $_[0]->encode_json($_[0]->render_set_as_plain($_[0]->set)) }
+sub to_json_as_plain { $_[0]->encode_json($_[0]->render_set_as_plain($_[0]->set)) }
+sub to_json_as_hal   { $_[0]->encode_json($_[0]->render_set_as_hal($_[0]->set)) }
 
 sub from_json {
     my $self = shift;
