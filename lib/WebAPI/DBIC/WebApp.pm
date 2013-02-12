@@ -30,22 +30,26 @@ my $schema = WebAPI::Schema::Corp->new_default_connect(
 );
 
 
-my $getargs_id_item = sub { my ($request, $rs, $id) = @_; return { item => $rs->find($id) } };
+sub mk_generic_dbic_item_set_route_pair {
+    my ($path, $resultset) = @_;
+    return (
+        "$path" => {
+            resultset => $resultset,
+            resource => 'WebAPI::DBIC::Resource::GenericSetDBIC',
+        },
+        "$path/:id" => {
+            validations => { id => qr/^\d+$/ },
+            resultset => $resultset,
+            resource => 'WebAPI::DBIC::Resource::GenericItemDBIC',
+            getargs => sub { my ($request, $rs, $id) = @_; return { item => $rs->find($id) } },
+        }
+    );
+}
 
-my @routes = (
-    '/person_types' => {
-        resultset => 'PersonType',
-        resource => 'WebAPI::DBIC::Resource::GenericSetDBIC',
-    },
-
-    '/person_types/:id' => {
-        validations => { id => qr/^\d+$/ },
-        resultset => 'PersonType',
-        resource => 'WebAPI::DBIC::Resource::GenericItemDBIC',
-        getargs => $getargs_id_item,
-    }
+my @routes;
+push @routes, mk_generic_dbic_item_set_route_pair(
+    '/person_types' => 'PersonType'
 );
-
 
 
 my $router = Path::Router->new;
