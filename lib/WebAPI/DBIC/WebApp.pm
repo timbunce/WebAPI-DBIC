@@ -61,18 +61,10 @@ sub mk_generic_dbic_item_set_route_pair {
 }
 
 my @routes;
-push @routes, mk_generic_dbic_item_set_route_pair(
-    'person_types' => 'PersonType'
-);
-push @routes, mk_generic_dbic_item_set_route_pair(
-    'persons' => 'People'
-);
-push @routes, mk_generic_dbic_item_set_route_pair(
-    'client_auths' => 'ClientAuth'
-);
-push @routes, mk_generic_dbic_item_set_route_pair(
-    'ecosystems_people' => 'EcosystemsPeople'
-);
+push @routes, mk_generic_dbic_item_set_route_pair( 'person_types' => 'PersonType');
+push @routes, mk_generic_dbic_item_set_route_pair( 'persons' => 'People');
+push @routes, mk_generic_dbic_item_set_route_pair( 'client_auths' => 'ClientAuth');
+push @routes, mk_generic_dbic_item_set_route_pair( 'ecosystems_people' => 'EcosystemsPeople');
 
 
 my $router = Path::Router->new;
@@ -93,6 +85,7 @@ while (my $r = shift @routes) {
             my $args = $getargs ? $getargs->($request, $rs, @_) : {};
 #warn "$r: args @{[%$args]}";
 #$DB::single=1;
+#local $SIG{__DIE__} = \&Carp::confess;
             my $app = WebAPI::DBIC::Machine->new(
                 resource => $resource_class,
                 debris   => {
@@ -102,7 +95,6 @@ while (my $r = shift @routes) {
                 },
                 tracing => !$in_production,
             )->to_app;
-#local $SIG{__DIE__} = \&Carp::confess;
             my $resp = $app->($request->env);
             #Dwarn $resp;
             return $resp;
@@ -110,7 +102,7 @@ while (my $r = shift @routes) {
     );
 };
 
-if (1) {
+if (1) { # root level links to describe/explore the api (eg for the hal-browser)
     my %links = (self => { href => "/" } );
 
     my @resource_links;
@@ -145,11 +137,4 @@ if (1) {
     );
 }
 
-# XXX should be moved elsewhere, perhaps to a .psgi file
-use Plack::Builder;
-use Plack::App::File;
-builder {
-    enable 'SimpleLogger';  # show on STDERR
-    mount "/browser" => Plack::App::File->new(root => "hal-browser")->to_app;
-    mount "/" => Plack::App::Path::Router->new( router => $router );
-};
+Plack::App::Path::Router->new( router => $router ); # return Plack app

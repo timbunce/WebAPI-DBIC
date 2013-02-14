@@ -7,6 +7,11 @@ requires 'render_item_as_hal';
 requires 'encode_json';
 requires 'decode_json';
 
+has set => (
+   is => 'ro',
+   required => 0,
+);
+
 has item => (
    is => 'ro',
    required => 1,
