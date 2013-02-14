@@ -14,12 +14,10 @@ sub connect_schema_as {
     die "assert: set and item have different schema"
         if $alt and $alt != $schema;
 
-    use Devel::Dwarn;
-    Dwarn my $ci = $schema->storage->connect_info;
+    my $ci = $schema->storage->connect_info;
     my ($ci_dsn, $ci_user, $ci_pass, $ci_attr) = @$ci;
     die "assert: expected attr as 3rd element in connect_info"
         unless ref $ci_attr eq 'HASH';
-    #warn "($ci_dsn, $ci_user, $ci_pass, $ci_attr)";
 
     # ok if we're currently using the right auth
     return 1 if $user eq $ci_user and $pass eq $ci_pass;
