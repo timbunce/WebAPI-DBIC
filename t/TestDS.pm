@@ -60,7 +60,8 @@ sub dsresp_ok {
     status_matches($res, $expect_status || 200)
         or diag $res->as_string;
     my $data;
-    header_matches($res, 'Content-type', qr{^application/(?:hal\+)?json$})
+    $res->header('Content-type')
+        and header_matches($res, 'Content-type', qr{^application/(?:hal\+)?json$})
         and $data = dsresp_json_data($res);
     return $data;
 }
@@ -92,6 +93,15 @@ sub is_set {
 }
 
 sub is_item {
+    my ($data, $attributes) = @_;
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+    is ref $data, 'HASH', "data isn't a hash";
+    cmp_ok scalar keys %$data, '>=', $attributes, "set has less than $attributes attributes"
+        if $attributes;
+    return $data;
+}
+
+sub is_error {
     my ($data, $attributes) = @_;
     local $Test::Builder::Level = $Test::Builder::Level + 1;
     is ref $data, 'HASH', "data isn't a hash";

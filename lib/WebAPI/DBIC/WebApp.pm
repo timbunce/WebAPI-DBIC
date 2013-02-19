@@ -32,11 +32,13 @@ my $schema = WebAPI::Schema::Corp->new_default_connect(
 );
 
 
-=head2 Common Parameters
+=head2 Common Parameters for Collection Resources
 
-=head3 page_size (30)
+=head3 page_size
 
-=head3 page (1)
+=head3 page
+
+=head me.*
 
 =cut
 
@@ -46,6 +48,16 @@ sub mk_generic_dbic_item_set_route_pair {
 
     my $rs = $schema->resultset($resultset);
     return (
+
+        # item
+        "$path/:id" => {
+            validations => { id => qr/^\d+$/ },
+            resultset => $rs,
+            getargs => sub { my ($request, $rs, $id) = @_; return { item => $rs->find($id) } },
+            resource => 'WebAPI::DBIC::Resource::GenericItemDBIC',
+        },
+
+        # set (aka collection)
         "$path" => {
             resultset => $rs->search_rs(undef, {
                 # XXX default attributes (see also getargs below)
@@ -53,18 +65,32 @@ sub mk_generic_dbic_item_set_route_pair {
             }),
             getargs => sub {
                 my ($request, $rs, $id) = @_;
+
                 $rs = $rs->page($request->param('page') || 1);
-                $rs->{attrs}{rows} = $request->param('page_size') || 30;
+                # XXX this breaks encapsulation but seems safe enough just after page() above
+                $rs->{attrs}{rows} = $request->param('page_size') || 100;
+
+                my @errors;
+                for my $param (keys %{ $request->parameters }) {
+                    if ($param =~ /^me\.(\w+)/) {
+                        $rs = $rs->search_rs({ $1 => $request->param($param) });
+                    }
+                    elsif ($param =~ /^page(:?_size)$/) {
+                        # handled above
+                    }
+                    else {
+                        push @errors, { $param => "unknown parameter" };
+                    }
+                }
+                # XXX abstract out the creation of error responses
+                return Plack::Response->new(400, [], "")
+                    if @errors;
+
                 return { set => $rs }
             },
             resource => 'WebAPI::DBIC::Resource::GenericSetDBIC',
         },
-        "$path/:id" => {
-            validations => { id => qr/^\d+$/ },
-            resultset => $rs,
-            getargs => sub { my ($request, $rs, $id) = @_; return { item => $rs->find($id) } },
-            resource => 'WebAPI::DBIC::Resource::GenericItemDBIC',
-        }
+
     );
 }
 
@@ -90,7 +116,10 @@ while (my $r = shift @routes) {
         validations => $spec->{validations} || {},
         target => sub {
             my $request = shift; # url args remain in @_
+
             my $args = $getargs ? $getargs->($request, $rs, @_) : {};
+            return $args if UNIVERSAL::can($args, 'finalize');
+
 #warn "$r: args @{[%$args]}";
 #$DB::single=1;
 #local $SIG{__DIE__} = \&Carp::confess;
