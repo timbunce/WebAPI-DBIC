@@ -21,16 +21,6 @@ has writable => (
    is => 'ro',
 );
 
-has post_redirect_template => (
-   is => 'ro',
-   lazy => 1,
-   builder => '_build_post_redirect_template',
-);
-
-sub _build_post_redirect_template {
-   $_[0]->request->request_uri . '/%i'
-}
-
 sub allowed_methods {
    [
       qw(GET HEAD),
@@ -61,8 +51,12 @@ sub create_resource { $_[0]->set->create($_[1]) }
 sub create_path {
     my $self = shift;
     my $item = $self->item;
-    return sprintf $self->post_redirect_template,
-        map { $item->get_column($_) } $item->result_source->primary_columns
+
+    my @pricols = $item->result_source->primary_columns;
+    die "$self has multiple PK columns" if @pricols != 1;
+
+    # XXX we rely on _n11_create_path to prepend the $self->base_uri
+    return $item->get_column(shift @pricols);
 }
 
 1;

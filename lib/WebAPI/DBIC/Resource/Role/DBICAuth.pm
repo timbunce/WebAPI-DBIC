@@ -7,13 +7,19 @@ use WebAPI::DBIC::Util qw(create_header);
 requires 'set';
 requires 'item';
 
-sub connect_schema_as {
-    my ($self, $user, $pass) = @_;
-
+sub _schema {
+    my $self = shift;
     my ($schema, $alt) = map { $_ ? $_->result_source->schema : () } ($self->set, $self->item);
     die "assert: set and item have different schema"
         if $alt and $alt != $schema;
+    return $schema;
+}
 
+
+sub connect_schema_as {
+    my ($self, $user, $pass) = @_;
+
+    my $schema = $self->_schema;
     my $ci = $schema->storage->connect_info;
     my ($ci_dsn, $ci_user, $ci_pass, $ci_attr) = @$ci;
     die "assert: expected attr as 3rd element in connect_info"
@@ -40,7 +46,8 @@ sub is_authorized {
     if ( $auth_header ) {
         return 1 if $self->connect_schema_as($auth_header->username, $auth_header->password);
     }
-    return create_header( 'WWWAuthenticate' => [ 'Basic' => ( realm => 'Webmachine' ) ] );
+    my $auth_realm = $self->_schema->storage->connect_info->[0]; # dsn
+    return create_header( 'WWWAuthenticate' => [ 'Basic' => ( realm => $auth_realm ) ] );
 }
 
 

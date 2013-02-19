@@ -28,8 +28,17 @@ my $schema = WebAPI::Schema::Corp->new_default_connect(
     {},
     # connect to yesterdays snapshot because we make edits to the db
     # XXX should really have a better approach for this!
-    "corp_snapshot_previous",
+    'corp' #"corp_snapshot_previous",
 );
+
+
+=head2 Common Parameters
+
+=head3 page_size (30)
+
+=head3 page (1)
+
+=cut
 
 
 sub mk_generic_dbic_item_set_route_pair {
@@ -39,14 +48,13 @@ sub mk_generic_dbic_item_set_route_pair {
     return (
         "$path" => {
             resultset => $rs->search_rs(undef, {
-                # XXX default attributes
-                rows => 30,
-                page => 1,
+                # XXX default attributes (see also getargs below)
                 order_by => { -asc => [ $rs->result_source->primary_columns ] },
             }),
             getargs => sub {
                 my ($request, $rs, $id) = @_;
                 $rs = $rs->page($request->param('page') || 1);
+                $rs->{attrs}{rows} = $request->param('page_size') || 30;
                 return { set => $rs }
             },
             resource => 'WebAPI::DBIC::Resource::GenericSetDBIC',

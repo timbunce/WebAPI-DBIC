@@ -4,10 +4,11 @@ use Test::Most;
 use Plack::Test;
 use Test::HTTP::Response;
 use JSON;
-
 use Devel::Dwarn;
 
 use parent 'Exporter';
+
+use WebAPI::Config;
 
 our @EXPORT = qw(
     dsreq dsresp_json_data dsresp_ok
@@ -16,22 +17,28 @@ our @EXPORT = qw(
 );
 
 
+sub _get_authorization_user_pass {
+    # XXX TODO we ought to get the db realm name by querying the service
+    our $db = WebAPI::Config->new->dbh('corp');
+    return ($db->{user}, $db->{pass});
+}
+
+
 sub dsreq {
     my ($method, $uri, $headers, $data) = @_;
 
-    my @headers = @{$headers || []};
-    my %headers = @headers;
-    push @headers, 'Content-Type' => 'application/json'
-        unless $headers{'Content-Type'};
-    push @headers, 'Accept' => 'application/hal+json,application/json'
-        unless $headers{'Accept'};
+    $headers = HTTP::Headers->new(@{$headers||[]});
+    $headers->init_header('Content-Type' => 'application/json');
+    $headers->init_header('Accept' => 'application/hal+json,application/json');
+    $headers->authorization_basic(_get_authorization_user_pass())
+        if not $headers->header('Authorization');
 
     my $content;
     if ($data) {
         $content = JSON->new->pretty->encode($data);
     }
     note("$method $uri");
-    my $req = HTTP::Request->new($method => $uri, \@headers, $content);
+    my $req = HTTP::Request->new($method => $uri, $headers, $content);
     return $req;
 }
 
@@ -77,9 +84,9 @@ sub is_set {
     is ref $data->{_embedded}, "HASH", 'has _embedded hash';
     my $set = $data->{_embedded}{$key};
     is ref $set, "ARRAY", "_embedded has $key";
-    cmp_ok scalar @$set, '>=', $min, "set has less than $min items"
+    cmp_ok scalar @$set, '>=', $min, "set has at least $min items"
         if defined $min;
-    cmp_ok scalar @$set, '<=', $max, "set has more than $max items"
+    cmp_ok scalar @$set, '<=', $max, "set has at most $max items"
         if defined $max;
     return $set;
 }
@@ -95,6 +102,7 @@ sub is_item {
 
 sub get_data {
     my ($app, $url) = @_;
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
     my $data;
     test_psgi $app, sub { $data = dsresp_ok(shift->(dsreq( GET => $url ))) };
     return $data;
