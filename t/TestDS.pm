@@ -4,6 +4,7 @@ use Test::Most;
 use Plack::Test;
 use Test::HTTP::Response;
 use JSON;
+use URI;
 use Devel::Dwarn;
 
 use parent 'Exporter';
@@ -11,6 +12,7 @@ use parent 'Exporter';
 use WebAPI::Config;
 
 our @EXPORT = qw(
+    url_query
     dsreq dsresp_json_data dsresp_ok
     is_set is_item
     get_data
@@ -21,6 +23,17 @@ sub _get_authorization_user_pass {
     # XXX TODO we ought to get the db realm name by querying the service
     our $db = WebAPI::Config->new->dbh('corp');
     return ($db->{user}, $db->{pass});
+}
+
+
+sub url_query {
+    my ($url, %params) = @_;
+    $url = URI->new( $url, 'http' );
+    # encode any reference param values as JSON
+    ref $_ and $_ = JSON->new->ascii->encode($_)
+        for values %params;
+    $url->query_form(%params);
+    return $url;
 }
 
 

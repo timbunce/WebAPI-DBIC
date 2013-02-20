@@ -72,8 +72,13 @@ sub mk_generic_dbic_item_set_route_pair {
 
                 my @errors;
                 for my $param (keys %{ $request->parameters }) {
-                    if ($param =~ /^me\.(\w+)/) {
-                        $rs = $rs->search_rs({ $1 => $request->param($param) });
+                    if ($param =~ /^me\.(\w+)$/) {
+                        my $field = $1;
+                        my $val = $request->param($param);
+                        $val = JSON->new->decode($val)
+                            if $val =~ /^\[.*\]$/ or $val =~ /^\{.*\}$/;
+                        Dwarn $val;
+                        $rs = $rs->search_rs({ $field => $val });
                     }
                     elsif ($param =~ /^page(:?_size)$/) {
                         # handled above
@@ -97,7 +102,9 @@ sub mk_generic_dbic_item_set_route_pair {
 my @routes;
 push @routes, mk_generic_dbic_item_set_route_pair( 'person_types' => 'PersonType');
 push @routes, mk_generic_dbic_item_set_route_pair( 'persons' => 'People');
+push @routes, mk_generic_dbic_item_set_route_pair( 'person_emails' => 'Email');
 push @routes, mk_generic_dbic_item_set_route_pair( 'client_auths' => 'ClientAuth');
+push @routes, mk_generic_dbic_item_set_route_pair( 'ecosystems' => 'Ecosystem');
 push @routes, mk_generic_dbic_item_set_route_pair( 'ecosystems_people' => 'EcosystemsPeople');
 
 

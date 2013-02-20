@@ -66,4 +66,38 @@ sub render_set_as_hal {
     return $data;
 }
 
+
+sub finish_request {
+    my ($self, $metadata) = @_;
+
+    my $exception = $metadata->{'exception'};
+    return unless $exception;
+
+    warn sprintf "finish_request %.50s", $exception;
+
+    my $error_data;
+    # ... DBD::Pg::st execute failed: ERROR:  column "nonesuch" does not exist
+    if ($exception =~ m/DBD::Pg.*? failed:.*? column "(.*?)" (.*)/) {
+        $error_data = {
+            status => 400,
+            foo => "$1: $2",
+        };
+    }
+
+    if ($error_data) {
+        $error_data->{exception} = "$exception" # stringify
+            unless $ENV{TL_ENVIRONMENT} eq 'production';
+        $error_data->{status} ||= 500;
+        # create response
+        my $json = JSON->new->ascii->pretty;
+        my $response = $self->response;
+        $response->status($error_data->{status});
+        my $body = $json->encode($error_data);
+        $response->body($body);
+        $response->content_length(length $body);
+        $response->content_type('application/json');
+    }
+}
+
+
 1;

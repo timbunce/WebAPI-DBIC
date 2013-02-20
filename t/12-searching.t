@@ -32,12 +32,28 @@ test_psgi $app, sub {
     dsresp_ok(shift->(dsreq( GET => "/person_types?me.nonesuch=42" )), 400);
 };
 
-for my $id (1,2,3) {
+for my $id (2,3) {
     test_psgi $app, sub {
         my $data = dsresp_ok(shift->(dsreq( GET => "/person_types?me.id=$id" )));
         my $set = is_set($data, "person_types", 1,1);
         eq_or_diff $set->[0], $person_types{$id}, 'record matches';
     };
+};
+
+note "search by json array";
+test_psgi $app, sub {
+    my $data = dsresp_ok(shift->(dsreq( GET => url_query("/person_types", "me.id"=>[1,3]) )));
+    my $set = is_set($data, "person_types", 2,2);
+    eq_or_diff $set->[0], $person_types{1}, 'record matches';
+    eq_or_diff $set->[1], $person_types{3}, 'record matches';
+};
+
+note "search by json hash";
+test_psgi $app, sub {
+    my $data = dsresp_ok(shift->(dsreq( GET => url_query("/person_types", "me.id"=>{ "<=", 2 }) )));
+    my $set = is_set($data, "person_types", 2,2);
+    eq_or_diff $set->[0], $person_types{1}, 'record matches';
+    eq_or_diff $set->[1], $person_types{2}, 'record matches';
 };
 
 
