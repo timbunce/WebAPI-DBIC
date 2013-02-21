@@ -28,18 +28,18 @@ test_psgi $app, sub {
     ok $person_types{1}{name}, "/person_types data looks sane";
 };
 
-for my $page_size (1,2,3) {
+for my $rows_param (1,2,3) {
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/person_types?page_size=$page_size" )));
-        my $set = is_set($data, "person_types", $page_size, $page_size);
+        my $data = dsresp_ok(shift->(dsreq( GET => "/person_types?rows=$rows_param" )));
+        my $set = is_set($data, "person_types", $rows_param, $rows_param);
         eq_or_diff $set->[$_], $person_types{$_+1}, 'record matches'
-            for 0..$page_size-1;
+            for 0..$rows_param-1;
     };
 };
 
 for my $page (1,2,3) {
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/person_types?page_size=2&page=$page" )));
+        my $data = dsresp_ok(shift->(dsreq( GET => "/person_types?rows=2&page=$page" )));
         my $set = is_set($data, "person_types", 2, 2);
         eq_or_diff $set->[$_], $person_types{ (($page-1)*2) + $_ + 1}, 'record matches'
             for 0..1;

@@ -42,7 +42,7 @@ for my $id (2,3) {
 
 note "search by json array";
 test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => url_query("/person_types", "me.id"=>[1,3]) )));
+    my $data = dsresp_ok(shift->(dsreq( GET => url_query("/person_types", "me.id~json"=>[1,3]) )));
     my $set = is_set($data, "person_types", 2,2);
     eq_or_diff $set->[0], $person_types{1}, 'record matches';
     eq_or_diff $set->[1], $person_types{3}, 'record matches';
@@ -50,7 +50,7 @@ test_psgi $app, sub {
 
 note "search by json hash";
 test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => url_query("/person_types", "me.id"=>{ "<=", 2 }) )));
+    my $data = dsresp_ok(shift->(dsreq( GET => url_query("/person_types", "me.id~json"=>{ "<=", 2 }) )));
     my $set = is_set($data, "person_types", 2,2);
     eq_or_diff $set->[0], $person_types{1}, 'record matches';
     eq_or_diff $set->[1], $person_types{2}, 'record matches';

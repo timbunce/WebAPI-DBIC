@@ -42,26 +42,43 @@ sub render_set_as_plain {
 
 
 sub _hal_page_link {
-    my ($set, $base, $dir) = @_;
+    my ($self, $set, $base, $dir, $crnt_items) = @_;
     return () unless $set->is_paged;
-    my $method = ($dir eq 'prev') ? "previous_page" : "next_page";
-    my $page = $set->pager->$method();
-    return () if not defined $page;
-    return ($dir => { href => "$base?page=$page" });
+    # XXX we break encapsulation here, sadly, because calling
+    # $set->pager->current_page triggers a "select count(*)".
+    # XXX When we're using a later version of DBIx::Class we can use this:
+    # https://metacpan.org/source/RIBASUSHI/DBIx-Class-0.08208/lib/DBIx/Class/ResultSet/Pager.pm
+    # and do something like $rs->pager->total_entries(sub { 99999999 })
+    my $page = $set->{attrs}{page} or die "panic: page not set";
+    if ($dir eq 'prev') {
+        return () if $page <= 1;
+        --$page;
+    }
+    else {
+        return () if !$crnt_items;
+        ++$page;
+    }
+    my $rows = $set->{attrs}{rows} or die "panic: rows not set";
+    return ($dir => {
+        href => "$base?rows=$rows&page=$page",
+        title => ucfirst($dir)." $rows",
+    });
 }
 
 sub render_set_as_hal {
     my ($self, $set) = @_;
-    my $data = {
-       _embedded => {
-          person_types => [ map { $self->render_item_as_hal($_) } $set->all ],
-      }
-    };
+    my $set_data = [ map { $self->render_item_as_hal($_) } $set->all ];
+    my $path = $self->request->env->{'plack.router.match'}->{path};
     my $base = $self->base_uri;
-    $data->{_links} = {
-        self => { href => "$base" },
-        _hal_page_link($set, $base, "prev"),
-        _hal_page_link($set, $base, "next"),
+    my $data = {
+        _embedded => {
+            $path => $set_data,
+        },
+        _links => {
+            self => { href => "$base" },
+            $self->_hal_page_link($set, $base, "prev", scalar @$set_data),
+            $self->_hal_page_link($set, $base, "next", scalar @$set_data),
+        }
     };
     return $data;
 }
@@ -73,7 +90,8 @@ sub finish_request {
     my $exception = $metadata->{'exception'};
     return unless $exception;
 
-    warn sprintf "finish_request %.50s", $exception;
+    (my $line1 = $exception) =~ s/\n.*//ms;
+    warn "finish_request - handling exception $line1\n";
 
     my $error_data;
     # ... DBD::Pg::st execute failed: ERROR:  column "nonesuch" does not exist

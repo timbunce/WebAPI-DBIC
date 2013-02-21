@@ -22,13 +22,17 @@ use WebAPI::Schema::Corp;
 use WebAPI::DBIC::Machine;
 
 
+my $in_production = ($ENV{TL_ENVIRONMENT} eq 'production');
+
 my $opt_writable = 1;
+
 
 my $schema = WebAPI::Schema::Corp->new_default_connect(
     {},
     # connect to yesterdays snapshot because we make edits to the db
     # XXX should really have a better approach for this!
-    'corp' #"corp_snapshot_previous",
+    "corp",
+    #"corp_snapshot_previous",
 );
 
 
@@ -68,19 +72,18 @@ sub mk_generic_dbic_item_set_route_pair {
 
                 $rs = $rs->page($request->param('page') || 1);
                 # XXX this breaks encapsulation but seems safe enough just after page() above
-                $rs->{attrs}{rows} = $request->param('page_size') || 100;
+                $rs->{attrs}{rows} = $request->param('rows') || 100;
 
                 my @errors;
                 for my $param (keys %{ $request->parameters }) {
-                    if ($param =~ /^me\.(\w+)$/) {
-                        my $field = $1;
+                    if ($param =~ /^me\.(\w+)(~json)?$/) {
+                        my ($field, $is_json) = ($1, $2);
                         my $val = $request->param($param);
-                        $val = JSON->new->decode($val)
-                            if $val =~ /^\[.*\]$/ or $val =~ /^\{.*\}$/;
-                        Dwarn $val;
+                        # parameters with a ~json suffix are JSON encoded
+                        $val = JSON->new->allow_nonref->decode($val) if $is_json;
                         $rs = $rs->search_rs({ $field => $val });
                     }
-                    elsif ($param =~ /^page(:?_size)$/) {
+                    elsif ($param eq 'page' or $param eq 'rows') {
                         # handled above
                     }
                     else {
@@ -88,7 +91,7 @@ sub mk_generic_dbic_item_set_route_pair {
                     }
                 }
                 # XXX abstract out the creation of error responses
-                return Plack::Response->new(400, [], "")
+                return Plack::Response->new(400, [ 'Content-Type' => 'application/json' ], JSON->new->ascii->pretty->encode(\@errors))
                     if @errors;
 
                 return { set => $rs }
@@ -117,19 +120,22 @@ while (my $r = shift @routes) {
     my $writable = (exists $spec->{writable}) ? $spec->{writable} : $opt_writable;
     my $resource_class = $spec->{resource} or die "panic";
     load $resource_class;
-    my $in_production = ($ENV{TL_ENVIRONMENT} ne 'production');
 
     $router->add_route($r,
         validations => $spec->{validations} || {},
+        defaults => { _rs => $rs },
         target => sub {
             my $request = shift; # url args remain in @_
-
-            my $args = $getargs ? $getargs->($request, $rs, @_) : {};
-            return $args if UNIVERSAL::can($args, 'finalize');
 
 #warn "$r: args @{[%$args]}";
 #$DB::single=1;
 #local $SIG{__DIE__} = \&Carp::confess;
+
+            # perform any required setup for this request
+            # bail-out if a Plack::Response is given, eg an error
+            my $args = $getargs ? $getargs->($request, $rs, @_) : {};
+            return $args if UNIVERSAL::can($args, 'finalize');
+
             my $app = WebAPI::DBIC::Machine->new(
                 resource => $resource_class,
                 debris   => {
@@ -158,8 +164,13 @@ if (1) { # root level links to describe/explore the api (eg for the hal-browser)
                 my $name = $route->get_component_name($c);
                 push @parts, "{/$name}";
                 $attr{templated} = JSON::true;
+                $attr{title} =~ s/ set$/ item/; # XXX hack
+
             } else {
                 push @parts, "/$c";
+                (my $result_class = $route->defaults->{_rs}->result_class) =~ s/.*Result:://;
+                #my $result_class = 'x';
+                $attr{title} .= "$result_class set"; # XXX hack
             }
         }
         my $url = join("", @parts);
@@ -176,7 +187,14 @@ if (1) { # root level links to describe/explore the api (eg for the hal-browser)
     $router->add_route('',
         target => sub {
             my $request = shift;
-            [ 200, [], [ JSON->new->ascii->pretty->encode($root_data) ] ]
+            # if the request for the root url is from a browser
+            # then redirect to the HAL browser interface
+            # (XXX should probably be done in our .psgi file)
+            return [ 302, [ Location => "/browser/hal_browser.html" ], [ ] ]
+                if $request->headers->header('Accept') =~ /html/;
+            return [ 200, [ 'Content-Type' => 'application/json' ],
+                [ JSON->new->ascii->pretty->encode($root_data) ]
+            ]
         },
     );
 }
