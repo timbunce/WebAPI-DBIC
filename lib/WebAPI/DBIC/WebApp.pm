@@ -91,7 +91,7 @@ sub mk_generic_dbic_item_set_route_pair {
                     }
                 }
                 # XXX abstract out the creation of error responses
-                return Plack::Response->new(400, [ 'Content-Type' => 'application/json' ], JSON->new->ascii->pretty->encode(\@errors))
+                return Plack::Response->new(400, [ 'Content-Type' => 'application/hal+json' ], JSON->new->ascii->pretty->encode(\@errors))
                     if @errors;
 
                 return { set => $rs }

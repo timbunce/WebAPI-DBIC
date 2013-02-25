@@ -103,7 +103,7 @@ sub finish_request {
     }
 
     if ($error_data) {
-        $error_data->{exception} = "$exception" # stringify
+        $error_data->{_embedded}{exceptions}[0]{exception} = "$exception" # stringify
             unless $ENV{TL_ENVIRONMENT} eq 'production';
         $error_data->{status} ||= 500;
         # create response
@@ -113,7 +113,7 @@ sub finish_request {
         my $body = $json->encode($error_data);
         $response->body($body);
         $response->content_length(length $body);
-        $response->content_type('application/json');
+        $response->content_type('application/hal+json');
     }
 }
 
