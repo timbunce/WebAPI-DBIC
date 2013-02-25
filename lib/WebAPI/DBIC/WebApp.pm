@@ -14,6 +14,7 @@ use Plack::App::Path::Router;
 use Path::Class::File;
 use Path::Router;
 use Module::Load;
+use Carp;
 use JSON;
 
 use Devel::Dwarn;
@@ -36,6 +37,20 @@ my $schema = WebAPI::Schema::Corp->new_default_connect(
 );
 
 
+
+sub new_plack_error_response {
+    my ($status, %opts) = @_;
+    cluck("bad status") unless $status =~ /^[1-5]\d\d$/;
+    # XXX TODO validations
+    my $data = {
+        errors => $opts{errors},
+    };
+    return Plack::Response->new($status,
+        [ 'Content-Type' => 'application/hal+json' ],
+        JSON->new->ascii->pretty->encode($data)
+    );
+}
+
 =head2 Common Parameters for Collection Resources
 
 =head3 page_size
@@ -57,7 +72,35 @@ sub mk_generic_dbic_item_set_route_pair {
         "$path/:id" => {
             validations => { id => qr/^\d+$/ },
             resultset => $rs,
-            getargs => sub { my ($request, $rs, $id) = @_; return { item => $rs->find($id) } },
+            getargs => sub {
+                my ($request, $rs, $id) = @_;
+                my %args;
+
+                my @prefetch = split(',', $request->param('prefetch')||"");
+                if (@prefetch) {
+                    my $result_class = $rs->result_class;
+                    for my $prefetch (@prefetch) {
+                        my $rel = $result_class->relationship_info($prefetch);
+                        # limit to simple single relationships, e.g., belongs_to
+                        return new_plack_error_response(400, errors => [{
+                                    $prefetch => "not a valid relationship",
+                                    _meta => {
+                                        relationship => $rel,
+                                        relationships => [ $result_class->relationships ]
+                                    }, # XXX
+                                }])
+                            unless $rel
+                                and $rel->{attrs}{accessor} eq 'single'
+                                and $rel->{attrs}{is_foreign_key_constraint};
+                        # XXX hack?: perhaps use {embedded}{$key} = sub { ... };
+                        $args{prefetch}{$prefetch} = { key => $prefetch };
+                    }
+                    $rs = $rs->search_rs(undef, { prefetch => \@prefetch, });
+                }
+
+                $args{item} = $rs->find($id);
+                return \%args;
+            },
             resource => 'WebAPI::DBIC::Resource::GenericItemDBIC',
         },
 
@@ -69,6 +112,8 @@ sub mk_generic_dbic_item_set_route_pair {
             }),
             getargs => sub {
                 my ($request, $rs, $id) = @_;
+
+                # XXX TODO add params hashref to debris, load from query params with validation and defaults
 
                 $rs = $rs->page($request->param('page') || 1);
                 # XXX this breaks encapsulation but seems safe enough just after page() above
@@ -91,7 +136,7 @@ sub mk_generic_dbic_item_set_route_pair {
                     }
                 }
                 # XXX abstract out the creation of error responses
-                return Plack::Response->new(400, [ 'Content-Type' => 'application/hal+json' ], JSON->new->ascii->pretty->encode(\@errors))
+                return new_plack_error_response(400, errors => \@errors)
                     if @errors;
 
                 return { set => $rs }

@@ -21,6 +21,11 @@ has writable => (
    is => 'ro',
 );
 
+has prefetch => (
+   is => 'ro',
+);
+
+
 sub content_types_provided { [
     {'application/hal+json' => 'to_json_as_hal'},
     {'application/json' => 'to_json_as_plain'},

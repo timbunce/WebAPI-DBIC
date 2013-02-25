@@ -2,6 +2,7 @@ package WebAPI::DBIC::Resource::Role::DBIC;
 
 use Moo::Role;
 
+
 # XXX probably shouldn't be a role, just functions, or perhaps a separate rendering object
 
 sub base_uri { # XXX hack - use the router
@@ -30,6 +31,28 @@ sub render_item_as_hal {
     $data->{_links} = {
         self => { href => $base."/".$item->id }
     };
+
+    while (my ($prefetch, $info) = each %{ $self->prefetch || {} }) {
+        my $key = $info->{key} or die "panic";
+        # XXX perhaps render_item_as_hal but requires cloned WM, eg without prefetch
+        $data->{_embedded}{$key} = $self->render_item_as_plain($item->$prefetch);
+    }
+
+    # add links for relationships
+    for my $relname ($item->result_class->relationships) {
+        my $rel = $item->result_class->relationship_info($relname);
+        my $fieldname = $rel->{cond}{"foreign.id"};
+        $fieldname =~ s/^self\.// if $fieldname;
+        next unless $rel->{attrs}{accessor} eq 'single'
+                and $rel->{attrs}{is_foreign_key_constraint}
+                and $fieldname
+                and defined $data->{$fieldname};
+
+        $data->{_links}{"relation:$relname"} = {
+            href => "/$relname/".$data->{$fieldname}
+        };
+    }
+
     return $data;
 }
 

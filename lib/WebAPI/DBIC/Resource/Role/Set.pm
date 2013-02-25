@@ -17,6 +17,10 @@ has item => ( # POST
    is => 'rw',
 );    
 
+has prefetch => (
+   is => 'rw',
+);    
+
 has writable => (
    is => 'ro',
 );

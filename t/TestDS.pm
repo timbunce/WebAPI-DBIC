@@ -114,6 +114,19 @@ sub is_item {
     return $data;
 }
 
+sub has_embedded {
+    my ($data, $min, $max) = @_;
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+    is ref $data, 'HASH', "data isn't a hash";
+    is ref $data->{_embedded}, 'HASH', "_embedded isn't hash" or diag $data;
+    my $e = $data->{_embedded};
+    cmp_ok scalar keys %$e, '>=', $min, "set has less than $min attributes"
+        if $min;
+    cmp_ok scalar keys %$e, '<=', $max, "set has more than $max attributes"
+        if $max;
+    return $e;
+}
+
 sub is_error {
     my ($data, $attributes) = @_;
     local $Test::Builder::Level = $Test::Builder::Level + 1;
