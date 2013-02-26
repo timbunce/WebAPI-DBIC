@@ -8,7 +8,8 @@ my $app = require WebAPI::DBIC::WebApp;
 
 builder {
     enable 'SimpleLogger';  # show on STDERR
-    enable "StackTrace", force => 0;
+    enable "StackTrace", force => 1;
+    enable "HTTPExceptions", rethrow => 1;
     mount "/browser" => Plack::App::File->new(root => "hal-browser")->to_app;
     mount "/" => $app;
 };
