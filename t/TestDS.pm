@@ -14,7 +14,7 @@ use WebAPI::Config;
 our @EXPORT = qw(
     url_query
     dsreq dsresp_json_data dsresp_ok
-    is_set is_item
+    is_set_with_embedded_key is_item
     get_data
 );
 
@@ -92,7 +92,7 @@ sub dsresp_created_ok {
     return ($location, $data);
 }
 
-sub is_set {
+sub is_set_with_embedded_key {
     my ($data, $key, $min, $max) = @_;
     local $Test::Builder::Level = $Test::Builder::Level + 1;
     is ref $data->{_embedded}, "HASH", 'has _embedded hash';

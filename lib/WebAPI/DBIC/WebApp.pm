@@ -3,14 +3,15 @@
 package WebAPI::DBIC::WebApp;
 
 BEGIN {
-    $ENV{WM_DEBUG} = 0; # verbose
-    $ENV{DBIC_TRACE} = 1;
-    $ENV{DBI_TRACE} = 0;
-    $ENV{PATH_ROUTER_DEBUG} = 0;
+    $ENV{WM_DEBUG} ||= 0; # verbose
+    $ENV{DBIC_TRACE} ||= 1;
+    $ENV{DBI_TRACE} ||= 0;
+    $ENV{PATH_ROUTER_DEBUG} ||= 0;
 }
 
 use Web::Simple;
 use Plack::App::Path::Router;
+use HTTP::Throwable::Factory;
 use Path::Class::File;
 use Path::Router;
 use Module::Load;
@@ -38,17 +39,54 @@ my $schema = WebAPI::Schema::Corp->new_default_connect(
 
 
 
-sub new_plack_error_response {
+sub throw_bad_request {
     my ($status, %opts) = @_;
-    cluck("bad status") unless $status =~ /^[1-5]\d\d$/;
+    cluck("bad status") unless $status =~ /^4\d\d$/;
+
     # XXX TODO validations
     my $data = {
         errors => $opts{errors},
     };
-    return Plack::Response->new($status,
-        [ 'Content-Type' => 'application/hal+json' ],
-        JSON->new->ascii->pretty->encode($data)
-    );
+    my $json_body = JSON->new->ascii->pretty->encode($data);
+warn "throw_bad_request $json_body";
+    # [ 'Content-Type' => 'application/hal+json' ],
+    HTTP::Throwable::Factory->throw({
+        status_code => $status,
+        reason => 'Bad request',
+        text_body => $json_body,
+    });
+}
+
+
+sub _handle_prefetch_param {
+    my ($rs, $args, $prefetch_param) = @_;
+
+    if (my @prefetch = split(',', $prefetch_param||"")) {
+        my $result_class = $rs->result_class;
+        for my $prefetch (@prefetch) {
+            my $rel = $result_class->relationship_info($prefetch);
+
+            # limit to simple single relationships, e.g., belongs_to
+            throw_bad_request(400, errors => [{
+                        $prefetch => "not a valid relationship",
+                        _meta => {
+                            relationship => $rel,
+                            relationships => [ $result_class->relationships ]
+                        }, # XXX
+                    }])
+                unless $rel
+                    and $rel->{attrs}{accessor} eq 'single'       # sanity
+                    and $rel->{attrs}{is_foreign_key_constraint}; # safety/speed
+
+            # XXX hack?: perhaps use {embedded}{$key} = sub { ... };
+            # see lib/WebAPI/DBIC/Resource/Role/DBIC.pm
+            $args->{prefetch}{$prefetch} = { key => $prefetch };
+        }
+
+        $rs = $rs->search_rs(undef, { prefetch => \@prefetch, });
+    }
+
+    return $rs;
 }
 
 =head2 Common Parameters for Collection Resources
@@ -76,27 +114,8 @@ sub mk_generic_dbic_item_set_route_pair {
                 my ($request, $rs, $id) = @_;
                 my %args;
 
-                my @prefetch = split(',', $request->param('prefetch')||"");
-                if (@prefetch) {
-                    my $result_class = $rs->result_class;
-                    for my $prefetch (@prefetch) {
-                        my $rel = $result_class->relationship_info($prefetch);
-                        # limit to simple single relationships, e.g., belongs_to
-                        return new_plack_error_response(400, errors => [{
-                                    $prefetch => "not a valid relationship",
-                                    _meta => {
-                                        relationship => $rel,
-                                        relationships => [ $result_class->relationships ]
-                                    }, # XXX
-                                }])
-                            unless $rel
-                                and $rel->{attrs}{accessor} eq 'single'
-                                and $rel->{attrs}{is_foreign_key_constraint};
-                        # XXX hack?: perhaps use {embedded}{$key} = sub { ... };
-                        $args{prefetch}{$prefetch} = { key => $prefetch };
-                    }
-                    $rs = $rs->search_rs(undef, { prefetch => \@prefetch, });
-                }
+                $rs = _handle_prefetch_param($rs, \%args, $request->param('prefetch'))
+                    if $request->param('prefetch');
 
                 $args{item} = $rs->find($id);
                 return \%args;
@@ -108,16 +127,20 @@ sub mk_generic_dbic_item_set_route_pair {
         "$path" => {
             resultset => $rs->search_rs(undef, {
                 # XXX default attributes (see also getargs below)
-                order_by => { -asc => [ $rs->result_source->primary_columns ] },
+                order_by => { -asc => [ map { "me.$_" } $rs->result_source->primary_columns ] },
             }),
             getargs => sub {
                 my ($request, $rs, $id) = @_;
+                my %args;
 
                 # XXX TODO add params hashref to debris, load from query params with validation and defaults
 
                 $rs = $rs->page($request->param('page') || 1);
                 # XXX this breaks encapsulation but seems safe enough just after page() above
                 $rs->{attrs}{rows} = $request->param('rows') || 100;
+
+                $rs = _handle_prefetch_param($rs, \%args, $request->param('prefetch'))
+                    if $request->param('prefetch');
 
                 my @errors;
                 for my $param (keys %{ $request->parameters }) {
@@ -128,7 +151,7 @@ sub mk_generic_dbic_item_set_route_pair {
                         $val = JSON->new->allow_nonref->decode($val) if $is_json;
                         $rs = $rs->search_rs({ $field => $val });
                     }
-                    elsif ($param eq 'page' or $param eq 'rows') {
+                    elsif ($param eq 'page' or $param eq 'rows' or $param eq 'prefetch') {
                         # handled above
                     }
                     else {
@@ -136,10 +159,11 @@ sub mk_generic_dbic_item_set_route_pair {
                     }
                 }
                 # XXX abstract out the creation of error responses
-                return new_plack_error_response(400, errors => \@errors)
+                throw_bad_request(400, errors => \@errors)
                     if @errors;
 
-                return { set => $rs }
+                $args{set} = $rs;
+                return \%args;
             },
             resource => 'WebAPI::DBIC::Resource::GenericSetDBIC',
         },
@@ -181,6 +205,7 @@ while (my $r = shift @routes) {
             my $args = $getargs ? $getargs->($request, $rs, @_) : {};
             return $args if UNIVERSAL::can($args, 'finalize');
 
+            warn "Running machine for $resource_class (with @{[ keys %$args ]})\n";
             my $app = WebAPI::DBIC::Machine->new(
                 resource => $resource_class,
                 debris   => {

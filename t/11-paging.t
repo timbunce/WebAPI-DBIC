@@ -21,7 +21,7 @@ my %person_types;
 
 test_psgi $app, sub {
     my $data = dsresp_ok(shift->(dsreq( GET => "/person_types" )));
-    my $set = is_set($data, "person_types", 2);
+    my $set = is_set_with_embedded_key($data, "person_types", 2);
     %person_types = map { $_->{id} => $_ } @$set;
     is ref $person_types{$_}, "HASH", "/person_types includes $_"
         for (1..3);
@@ -31,7 +31,7 @@ test_psgi $app, sub {
 for my $rows_param (1,2,3) {
     test_psgi $app, sub {
         my $data = dsresp_ok(shift->(dsreq( GET => "/person_types?rows=$rows_param" )));
-        my $set = is_set($data, "person_types", $rows_param, $rows_param);
+        my $set = is_set_with_embedded_key($data, "person_types", $rows_param, $rows_param);
         eq_or_diff $set->[$_], $person_types{$_+1}, 'record matches'
             for 0..$rows_param-1;
     };
@@ -40,7 +40,7 @@ for my $rows_param (1,2,3) {
 for my $page (1,2,3) {
     test_psgi $app, sub {
         my $data = dsresp_ok(shift->(dsreq( GET => "/person_types?rows=2&page=$page" )));
-        my $set = is_set($data, "person_types", 2, 2);
+        my $set = is_set_with_embedded_key($data, "person_types", 2, 2);
         eq_or_diff $set->[$_], $person_types{ (($page-1)*2) + $_ + 1}, 'record matches'
             for 0..1;
     };
