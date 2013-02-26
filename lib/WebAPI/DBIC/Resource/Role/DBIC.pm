@@ -107,7 +107,6 @@ sub render_set_as_hal {
     }
 
     my $data = {
-        _meta: { count => $total_items }, # null
         _embedded => {
             $path => $set_data,
         },
@@ -116,6 +115,9 @@ sub render_set_as_hal {
             $self->_hal_page_links($set, $base, scalar @$set_data, $total_items),
         }
     };
+    $data->{_meta}{count} = $total_items
+        if defined $total_items;
+
     return $data;
 }
 

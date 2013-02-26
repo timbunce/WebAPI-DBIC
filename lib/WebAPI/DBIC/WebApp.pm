@@ -144,17 +144,35 @@ sub mk_generic_dbic_item_set_route_pair {
 
                 my @errors;
                 for my $param (keys %{ $request->parameters }) {
-                    if ($param =~ /^me\.(\w+)(~json)?$/) {
-                        my ($field, $is_json) = ($1, $2);
-                        my $val = $request->param($param);
-                        # parameters with a ~json suffix are JSON encoded
-                        $val = JSON->new->allow_nonref->decode($val) if $is_json;
-                        $rs = $rs->search_rs({ $field => $val });
+                    my $val = $request->param($param);
+
+                    # parameter names with a ~json suffix have JSON encoded values
+                    my $is_json = ($param =~ s/~json$//);
+                    $val = JSON->new->allow_nonref->decode($val) if $is_json;
+
+                    if ($param =~ /^me\.(\w+)$/) {
+                        $rs = $rs->search_rs({ $1 => $val });
                     }
                     elsif ($param eq 'page' or $param eq 'rows' or $param eq 'prefetch') {
                         # handled above
                     }
-                    elsif ($param eq 'with') { # XXX
+                    elsif ($param eq 'with') { # XXX with=count - generalize
+                        my ($field, $is_json) = ($1, $2);
+                        my $val = $request->param($param);
+                    }
+                    elsif ($param eq 'order') {
+                        # we take care to avoid injection risks
+                        my @order_spec;
+                        for my $clause (split /\s*,\s*/, $val) {
+                            my ($field, $dir) = ($clause =~ /^([a-z0-9\.]*)\b(?:\s+(asc|desc))?\s*$/i);
+                            unless (defined $field) {
+                                push @errors, { $param => "invalid order clause" };
+                                next;
+                            }
+                            $dir ||= 'asc';
+                            push @order_spec, { "-$dir" => $field };
+                        }
+                        $rs = $rs->search_rs(undef, { order_by => \@order_spec });
                     }
                     else {
                         push @errors, { $param => "unknown parameter" };
