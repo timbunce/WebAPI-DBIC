@@ -154,6 +154,8 @@ sub mk_generic_dbic_item_set_route_pair {
                     elsif ($param eq 'page' or $param eq 'rows' or $param eq 'prefetch') {
                         # handled above
                     }
+                    elsif ($param eq 'with') { # XXX
+                    }
                     else {
                         push @errors, { $param => "unknown parameter" };
                     }

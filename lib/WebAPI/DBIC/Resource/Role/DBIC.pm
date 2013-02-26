@@ -63,29 +63,36 @@ sub render_set_as_plain {
     return $set_data;
 }
 
+sub _hal_page_link_data {
+    my ($self, $set, $base, $page) = @_;
+    my $rows = $set->{attrs}{rows} or die "panic: rows not set";
+    return {
+        href => "$base?rows=$rows&page=$page",
+    };
+}
 
-sub _hal_page_link {
-    my ($self, $set, $base, $dir, $crnt_items) = @_;
+sub _hal_page_links {
+    my ($self, $set, $base, $page_items, $total_items) = @_;
     return () unless $set->is_paged;
+
     # XXX we break encapsulation here, sadly, because calling
     # $set->pager->current_page triggers a "select count(*)".
     # XXX When we're using a later version of DBIx::Class we can use this:
     # https://metacpan.org/source/RIBASUSHI/DBIx-Class-0.08208/lib/DBIx/Class/ResultSet/Pager.pm
     # and do something like $rs->pager->total_entries(sub { 99999999 })
-    my $page = $set->{attrs}{page} or die "panic: page not set";
-    if ($dir eq 'prev') {
-        return () if $page <= 1;
-        --$page;
-    }
-    else {
-        return () if !$crnt_items;
-        ++$page;
-    }
     my $rows = $set->{attrs}{rows} or die "panic: rows not set";
-    return ($dir => {
-        href => "$base?rows=$rows&page=$page",
-        title => ucfirst($dir)." $rows",
-    });
+    my $page = $set->{attrs}{page} or die "panic: page not set";
+
+    my @link_kvs;
+    push @link_kvs, next => $self->_hal_page_link_data($set, $base, $page+1)
+        if $page_items == $rows;
+    push @link_kvs, prev => $self->_hal_page_link_data($set, $base, $page-1)
+        if $page > 1;
+    push @link_kvs, first => $self->_hal_page_link_data($set, $base, 1)
+        if $page > 1;
+    push @link_kvs, last => $self->_hal_page_link_data($set, $base, $set->pager->last_page)
+        if $total_items and $page != $set->pager->last_page;
+    return @link_kvs;
 }
 
 sub render_set_as_hal {
@@ -93,14 +100,20 @@ sub render_set_as_hal {
     my $set_data = [ map { $self->render_item_as_hal($_) } $set->all ];
     my $path = $self->request->env->{'plack.router.match'}->{path};
     my $base = $self->base_uri;
+
+    my $total_items;
+    if (($self->request->param('with')||'') =~ /count/) { # XXX
+        $total_items = $set->pager->total_entries;
+    }
+
     my $data = {
+        _meta: { count => $total_items }, # null
         _embedded => {
             $path => $set_data,
         },
         _links => {
             self => { href => "$base" },
-            $self->_hal_page_link($set, $base, "prev", scalar @$set_data),
-            $self->_hal_page_link($set, $base, "next", scalar @$set_data),
+            $self->_hal_page_links($set, $base, scalar @$set_data, $total_items),
         }
     };
     return $data;
