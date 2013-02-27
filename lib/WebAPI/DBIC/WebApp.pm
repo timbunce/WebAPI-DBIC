@@ -137,7 +137,7 @@ sub mk_generic_dbic_item_set_route_pair {
 
                 $rs = $rs->page($request->param('page') || 1);
                 # XXX this breaks encapsulation but seems safe enough just after page() above
-                $rs->{attrs}{rows} = $request->param('rows') || 100;
+                $rs->{attrs}{rows} = $request->param('rows') || 30;
 
                 $rs = _handle_prefetch_param($rs, \%args, $request->param('prefetch'))
                     if $request->param('prefetch');
@@ -164,7 +164,7 @@ sub mk_generic_dbic_item_set_route_pair {
                         # we take care to avoid injection risks
                         my @order_spec;
                         for my $clause (split /\s*,\s*/, $val) {
-                            my ($field, $dir) = ($clause =~ /^([a-z0-9\.]*)\b(?:\s+(asc|desc))?\s*$/i);
+                            my ($field, $dir) = ($clause =~ /^([a-z0-9_\.]*)\b(?:\s+(asc|desc))?\s*$/i);
                             unless (defined $field) {
                                 push @errors, { $param => "invalid order clause" };
                                 next;
@@ -235,8 +235,9 @@ while (my $r = shift @routes) {
                 },
                 tracing => !$in_production,
             )->to_app;
-            my $resp = $app->($request->env);
+            my $resp = eval { $app->($request->env) };
             #Dwarn $resp;
+            if ($@) { Dwarn $@; die $@ } # report and rethrow
             return $resp;
         },
     );
