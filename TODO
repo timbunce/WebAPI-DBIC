@@ -1,0 +1,19 @@
+add/fix relation naming to path naming
+add/fix parameter handling and pass-thru eg self link
+error reporting (in HAL format)
+validation / db constraints
+
+add partial response support (eg esp for sets with prefetch which get big_
+use curie prefix in link keys
+
+check out https://metacpan.org/module/Catalyst::Controller::DBIC::API
+
+Digest auth http://en.wikipedia.org/wiki/Digest_access_authentication
+http://search.cpan.org/perldoc?Plack%3A%3AMiddleware%3A%3AAuth%3A%3ADigest
+(Current Basic auth leaves db password in browsers auth cache or keychain)
+
+Also http://stackoverflow.com/questions/319530/restful-authentication
+
+Varnish ESI:
+http://odino.org/some-common-questions-about-edge-side-includes/
+http://stackoverflow.com/questions/11781576/most-secure-javascript-json-inline-technique
