@@ -46,4 +46,9 @@ test_psgi $app, sub {
     }
 };
 
+note "prefetch on invalid name";
+test_psgi $app, sub {
+    my $data = dsresp_ok(shift->(dsreq( GET => "/ecosystems_people/1?prefetch=nonesuch" )), 400);
+};
+
 done_testing();

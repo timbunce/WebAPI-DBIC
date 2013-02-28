@@ -132,7 +132,7 @@ sub is_error {
     local $Test::Builder::Level = $Test::Builder::Level + 1;
     is ref $data, 'HASH', "data isn't a hash";
     cmp_ok scalar keys %$data, '>=', $attributes, "set has less than $attributes attributes"
-        if $attributes;
+        if defined $attributes;
     return $data;
 }
 

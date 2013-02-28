@@ -37,7 +37,11 @@ my $schema = WebAPI::Schema::Corp->new_default_connect(
     #"corp_snapshot_previous",
 );
 
-
+{
+    package My::HTTP::Throwable::Factory;
+    use parent 'HTTP::Throwable::Factory';
+    sub extra_roles { 'HTTP::Throwable::Role::JSONBody' } # remove HTTP::Throwable::Role::TextBody
+}
 
 sub throw_bad_request {
     my ($status, %opts) = @_;
@@ -48,12 +52,10 @@ sub throw_bad_request {
         errors => $opts{errors},
     };
     my $json_body = JSON->new->ascii->pretty->encode($data);
-warn "throw_bad_request $json_body";
     # [ 'Content-Type' => 'application/hal+json' ],
-    HTTP::Throwable::Factory->throw({
+    My::HTTP::Throwable::Factory->throw( BadRequest => {
         status_code => $status,
-        reason => 'Bad request',
-        text_body => $json_body,
+        message => $json_body,
     });
 }
 
