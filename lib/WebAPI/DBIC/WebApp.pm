@@ -61,9 +61,9 @@ sub throw_bad_request {
 
 
 sub _handle_prefetch_param {
-    my ($rs, $args, $prefetch_param) = @_;
+    my ($rs, $args, $param) = @_;
 
-    if (my @prefetch = split(',', $prefetch_param||"")) {
+    if (my @prefetch = split(',', $param||"")) {
         my $result_class = $rs->result_class;
         for my $prefetch (@prefetch) {
             my $rel = $result_class->relationship_info($prefetch);
@@ -91,115 +91,136 @@ sub _handle_prefetch_param {
     return $rs;
 }
 
-=head2 Common Parameters for Collection Resources
 
-=head3 page_size
+sub _handle_order_param {
+    my ($rs, $args, $param) = @_;
+    my @order_spec;
 
-=head3 page
+    for my $clause (split /\s*,\s*/, $param) {
+        # we take care to avoid injection risks
+        my ($field, $dir) = ($clause =~ /^([a-z0-9_\.]*)\b(?:\s+(asc|desc))?\s*$/i);
+        unless (defined $field) {
+            throw_bad_request(400, errors => [{
+                parameter => "invalid order clause",
+                _meta => { order => $clause, }, # XXX
+            }]);
+        }
+        $dir ||= 'asc';
+        push @order_spec, { "-$dir" => $field };
+    }
 
-=head me.*
+    $rs = $rs->search_rs(undef, { order_by => \@order_spec })
+        if @order_spec;
 
-=cut
+    return $rs;
+}
 
 
-sub mk_generic_dbic_item_set_route_pair {
+
+sub mk_generic_dbic_item_set_routes {
     my ($path, $resultset) = @_;
+    my @routes;
 
     my $rs = $schema->resultset($resultset);
-    return (
 
-        # item
-        "$path/:id" => {
-            validations => { id => qr/^\d+$/ },
-            resultset => $rs,
-            getargs => sub {
-                my ($request, $rs, $id) = @_;
-                my %args;
+    push @routes, "$path" => { # set (aka collection)
 
-                $rs = _handle_prefetch_param($rs, \%args, $request->param('prefetch'))
-                    if $request->param('prefetch');
+        resource => 'WebAPI::DBIC::Resource::GenericSetDBIC',
 
-                $args{item} = $rs->find($id);
-                return \%args;
-            },
-            resource => 'WebAPI::DBIC::Resource::GenericItemDBIC',
-        },
+        resultset => $rs->search_rs(undef, {
+            # XXX default attributes (see also getargs below)
+            order_by => { -asc => [ map { "me.$_" } $rs->result_source->primary_columns ] },
+        }),
 
-        # set (aka collection)
-        "$path" => {
-            resultset => $rs->search_rs(undef, {
-                # XXX default attributes (see also getargs below)
-                order_by => { -asc => [ map { "me.$_" } $rs->result_source->primary_columns ] },
-            }),
-            getargs => sub {
-                my ($request, $rs, $id) = @_;
-                my %args;
+        getargs => sub {
+            my ($request, $rs, $id) = @_;
+            my %args;
 
-                # XXX TODO add params hashref to debris, load from query params with validation and defaults
+            # XXX TODO add params hashref to debris, load from query params with validation and defaults
 
-                $rs = $rs->page($request->param('page') || 1);
-                # XXX this breaks encapsulation but seems safe enough just after page() above
-                $rs->{attrs}{rows} = $request->param('rows') || 30;
+            $rs = $rs->page($request->param('page') || 1);
+            # XXX this breaks encapsulation but seems safe enough just after page() above
+            $rs->{attrs}{rows} = $request->param('rows') || 30;
 
-                $rs = _handle_prefetch_param($rs, \%args, $request->param('prefetch'))
-                    if $request->param('prefetch');
+            $rs = _handle_prefetch_param($rs, \%args, $request->param('prefetch'))
+                if $request->param('prefetch');
+            $rs = _handle_order_param($rs, \%args, $request->param('order'))
+                if $request->param('order');
 
-                my @errors;
-                for my $param (keys %{ $request->parameters }) {
-                    my $val = $request->param($param);
+            my @errors;
+            for my $param (keys %{ $request->parameters }) {
+                my $val = $request->param($param);
 
-                    # parameter names with a ~json suffix have JSON encoded values
-                    my $is_json = ($param =~ s/~json$//);
-                    $val = JSON->new->allow_nonref->decode($val) if $is_json;
+                # parameter names with a ~json suffix have JSON encoded values
+                my $is_json = ($param =~ s/~json$//);
+                $val = JSON->new->allow_nonref->decode($val) if $is_json;
 
-                    if ($param =~ /^me\.(\w+)$/) {
-                        $rs = $rs->search_rs({ $1 => $val });
-                    }
-                    elsif ($param eq 'page' or $param eq 'rows' or $param eq 'prefetch') {
-                        # handled above
-                    }
-                    elsif ($param eq 'with') { # XXX with=count - generalize
-                        my ($field, $is_json) = ($1, $2);
-                        my $val = $request->param($param);
-                    }
-                    elsif ($param eq 'order') {
-                        # we take care to avoid injection risks
-                        my @order_spec;
-                        for my $clause (split /\s*,\s*/, $val) {
-                            my ($field, $dir) = ($clause =~ /^([a-z0-9_\.]*)\b(?:\s+(asc|desc))?\s*$/i);
-                            unless (defined $field) {
-                                push @errors, { $param => "invalid order clause" };
-                                next;
-                            }
-                            $dir ||= 'asc';
-                            push @order_spec, { "-$dir" => $field };
-                        }
-                        $rs = $rs->search_rs(undef, { order_by => \@order_spec });
-                    }
-                    else {
-                        push @errors, { $param => "unknown parameter" };
-                    }
+                if ($param =~ /^me\.(\w+)$/) {
+                    $rs = $rs->search_rs({ $1 => $val });
                 }
-                # XXX abstract out the creation of error responses
-                throw_bad_request(400, errors => \@errors)
-                    if @errors;
+                elsif ($param eq 'page' or $param eq 'rows' or $param eq 'prefetch' or $param eq 'order') {
+                    # handled above
+                }
+                elsif ($param eq 'with') { # XXX with=count - generalize
+                    # handled in lib/WebAPI/DBIC/Resource/Role/DBIC.pm
+                }
+                else {
+                    push @errors, { $param => "unknown parameter" };
+                }
+            }
+            # XXX abstract out the creation of error responses
+            throw_bad_request(400, errors => \@errors)
+                if @errors;
 
-                $args{set} = $rs;
-                return \%args;
-            },
-            resource => 'WebAPI::DBIC::Resource::GenericSetDBIC',
+            $args{set} = $rs;
+            return \%args;
         },
+    };
 
-    );
+    push @routes, "$path/:id" => { # item
+        validations => { id => qr/^\d+$/ },
+        resource => 'WebAPI::DBIC::Resource::GenericSetDBIC',
+        resultset => $rs,
+        getargs => sub {
+            my ($request, $rs, $id) = @_;
+            my %args;
+
+            $rs = _handle_prefetch_param($rs, \%args, $request->param('prefetch'))
+                if $request->param('prefetch');
+
+            $args{item} = $rs->find($id);
+            return \%args;
+        },
+        resource => 'WebAPI::DBIC::Resource::GenericItemDBIC',
+    };
+
+    return @routes;
 }
 
 my @routes;
-push @routes, mk_generic_dbic_item_set_route_pair( 'person_types' => 'PersonType');
-push @routes, mk_generic_dbic_item_set_route_pair( 'persons' => 'People');
-push @routes, mk_generic_dbic_item_set_route_pair( 'person_emails' => 'Email');
-push @routes, mk_generic_dbic_item_set_route_pair( 'client_auths' => 'ClientAuth');
-push @routes, mk_generic_dbic_item_set_route_pair( 'ecosystems' => 'Ecosystem');
-push @routes, mk_generic_dbic_item_set_route_pair( 'ecosystems_people' => 'EcosystemsPeople');
+
+if (0) { # all!
+    my %source_names = map { $_ => 1 } $schema->sources;
+    for my $source_names ($schema->sources) {
+        my $result_source = $schema->source($source_names);
+        next unless $result_source->name =~ /^[\w\.]+$/;
+        my %relationships;
+        for my $rel_name ($result_source->relationships) {
+            my $rel = $result_source->relationship_info($rel_name);
+        }
+        #push @routes, mk_generic_dbic_item_set_routes( $result_source->name => $result_source->source_name);
+    }
+}
+else {
+
+    push @routes, mk_generic_dbic_item_set_routes( 'person_types' => 'PersonType');
+    push @routes, mk_generic_dbic_item_set_routes( 'persons' => 'People');
+    push @routes, mk_generic_dbic_item_set_routes( 'person_emails' => 'Email');
+    push @routes, mk_generic_dbic_item_set_routes( 'client_auths' => 'ClientAuth');
+    push @routes, mk_generic_dbic_item_set_routes( 'ecosystems' => 'Ecosystem');
+    push @routes, mk_generic_dbic_item_set_routes( 'ecosystems_people' => 'EcosystemsPeople');
+
+}
 
 
 my $router = Path::Router->new;
@@ -214,7 +235,10 @@ while (my $r = shift @routes) {
 
     $router->add_route($r,
         validations => $spec->{validations} || {},
-        defaults => { _rs => $rs },
+        defaults => {
+            _rs => $rs,
+            result_class => $rs->result_class,
+        },
         target => sub {
             my $request = shift; # url args remain in @_
 

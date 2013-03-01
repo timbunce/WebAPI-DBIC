@@ -2,12 +2,12 @@ package WebAPI::DBIC::Resource::Role::DBIC;
 
 use Moo::Role;
 
+use Devel::Dwarn;
 
 # XXX probably shouldn't be a role, just functions, or perhaps a separate rendering object
 
 sub base_uri { # XXX hack - use the router
     my ($self) = @_;
-    use Devel::Dwarn;
     my $base = $self->request->env->{PATH_INFO};
     $base =~ s:^(/\w+).*:$1:;
     return $base;
@@ -39,6 +39,7 @@ sub render_item_as_hal {
     }
 
     # add links for relationships
+    # XXX much of this could be cached
     for my $relname ($item->result_class->relationships) {
         my $rel = $item->result_class->relationship_info($relname);
         my $fieldname = $rel->{cond}{"foreign.id"};
@@ -48,14 +49,26 @@ sub render_item_as_hal {
                 and $fieldname
                 and defined $data->{$fieldname};
 
+        my $uri = $self->router->uri_for(
+            result_class => $rel->{source},
+            id           => $data->{$fieldname},
+        );
+        if (not $uri) {
+            warn "No path for $relname ($rel->{source})"
+                unless our $warn_once->{"$relname $rel->{source}"}++;
+            next;
+        }
         $data->{_links}{"relation:$relname"} = {
-            href => "/$relname/".$data->{$fieldname}
+            href => "/$uri"
         };
     }
 
     return $data;
 }
 
+sub router {
+    return shift->request->env->{'plack.router'};
+}
 
 sub render_set_as_plain {
     my ($self, $set) = @_;
