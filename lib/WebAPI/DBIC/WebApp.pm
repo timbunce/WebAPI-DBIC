@@ -155,7 +155,8 @@ sub mk_generic_dbic_item_set_routes {
                 my $is_json = ($param =~ s/~json$//);
                 $val = JSON->new->allow_nonref->decode($val) if $is_json;
 
-                if ($param =~ /^me\.(\w+)$/) {
+                if ($param =~ /^me\.(\w+(?:\.\w+)*)$/) {
+                    # use me.relation.field=... to refer to relations
                     $rs = $rs->search_rs({ $1 => $val });
                 }
                 elsif ($param eq 'page' or $param eq 'rows' or $param eq 'prefetch' or $param eq 'order') {
