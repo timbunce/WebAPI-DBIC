@@ -26,10 +26,14 @@ sub render_item_as_plain {
 
 sub render_item_as_hal {
     my ($self, $item) = @_;
+
     my $base = $self->base_uri;
     my $data = $self->render_item_as_plain($item);
+
     $data->{_links} = {
-        self => { href => $base."/".$item->id }
+        self => {
+            href => $self->mk_link_url($base."/".$item->id, {}, {})->as_string,
+        }
     };
 
     while (my ($prefetch, $info) = each %{ $self->prefetch || {} }) {
@@ -39,9 +43,14 @@ sub render_item_as_hal {
     }
 
     # add links for relationships
-    # XXX much of this could be cached
+    # XXX much of this should be cached
     for my $relname ($item->result_class->relationships) {
         my $rel = $item->result_class->relationship_info($relname);
+
+        # XXX support other types of relationships
+        # specifically multi's that would map to collection urls
+        # with me.foo=X query parameters
+        # see also https://example.com/default.asp?23010
         my $fieldname = $rel->{cond}{"foreign.id"};
         $fieldname =~ s/^self\.// if $fieldname;
         next unless $rel->{attrs}{accessor} eq 'single'
@@ -49,22 +58,17 @@ sub render_item_as_hal {
                 and $fieldname
                 and defined $data->{$fieldname};
 
-        my $uri = $self->router->uri_for(
+        my $linkurl = $self->router->uri_for(
             result_class => $rel->{source},
             id           => $data->{$fieldname},
         );
-        if (not $uri) {
+        if (not $linkurl) {
             warn "No path for $relname ($rel->{source})"
                 unless our $warn_once->{"$relname $rel->{source}"}++;
             next;
         }
-        # param pas-thru
-        # rows  - yes for all
-        # me.*  - yes for links to the same resource, eg first/prev/next/last
-        # with  - yes for all
-        #
         $data->{_links}{"relation:$relname"} = {
-            href => "/$uri"
+            href => $self->mk_link_url("/$linkurl", {}, {})->as_string
         };
     }
 
@@ -82,6 +86,32 @@ sub render_set_as_plain {
 }
 
 
+sub mk_link_url {
+    my ($self, $base, $passthru_params, $override_params) = @_;
+    $base ||= $self->base_uri;
+
+    my $req_params = $self->request->query_parameters;
+    my @params = (%$override_params);
+
+    # turns 'foo~json' into 'foo', and 'me.bar' into 'me'.
+    my %override_param_basenames = map { (split(/\W/,$_,2))[0] => 1 } keys %$override_params;
+
+    # TODO this logic should live elsewhere
+    for my $param (sort keys %$req_params) {
+
+        # ignore request params that we have an override for
+        my $param_basename = (split(/\W/,$param,2))[0];
+        next if defined $override_param_basenames{$param_basename};
+
+        next unless $passthru_params->{$param_basename};
+
+        push @params, $param => $req_params->get($param);
+    }
+    my $uri = URI->new($base);
+    $uri->query_form(@params);
+    return $uri;
+}
+
 sub _hal_page_links {
     my ($self, $set, $base, $page_items, $total_items) = @_;
     return () unless $set->is_paged;
@@ -94,16 +124,8 @@ sub _hal_page_links {
     my $rows = $set->{attrs}{rows} or die "panic: rows not set";
     my $page = $set->{attrs}{page} or die "panic: page not set";
 
-    my $req_params = $self->request->query_parameters;
-    my @params = (rows => $rows);
-    # TODO this logic should live elsewhere
-    for my $param (sort keys %$req_params) {
-        next unless $param =~ /^(?:me|with)\b/; # allow me.foo and bar~json etc
-        push @params, $param => $req_params->get($param);
-    }
-    my $uri = URI->new($base);
-    $uri->query_form(@params);
-    my $linkurl = $uri->as_string;
+    my $url = $self->mk_link_url($base, { with=>1, me=>1 }, { rows => $rows });
+    my $linkurl = $url->as_string;
     $linkurl .= "&page="; # hack to optimize appending page 5 times below
 
     my @link_kvs;

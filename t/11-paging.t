@@ -4,6 +4,8 @@ use Test::Most;
 use Plack::Test;
 use Test::HTTP::Response;
 use JSON;
+use URI;
+use URI::QueryParam;
 
 use Devel::Dwarn;
 
@@ -87,6 +89,14 @@ for my $with_count (0, 1) {
     };
 };
 
-# test with=count
+note "me.* param pass-thru";
+test_psgi $app, sub {
+    my $data = dsresp_ok(shift->(dsreq( GET => "/person_types?me.id=1" )));
+    my $set = is_set_with_embedded_key($data, "person_types", 1);
+    ok $data->{_links}{self}{href}, 'has $data->{_links}{self}{href}';
+    my $uri = URI->new($data->{_links}{self}{href});
+    is $uri->query_param('me.id'), 1, 'me.id param passed through'
+        or Dwarn $data;
+};
 
 done_testing();
