@@ -45,12 +45,20 @@ for my $rows_param (1,2,3) {
     };
 };
 
+sub _url_edit {
+    my ($url, $param, $value) = @_;
+    # we do this the hacky way to keep the order of params
+    $url =~ s/(\?|&)$param=(?:.*?)(&|$)/$1$param=$value$2/;
+    return $url;
+}
+
 for my $with_count (0, 1) {
     for my $page (1,2,3) {
         note "page $page, with small rows param".($with_count ? " with count" : "");
         test_psgi $app, sub {
-            my $url = "/person_types?rows=2&page=$page";
+            my $url = "/person_types?rows=2";
             $url .= "&with=count" if $with_count;
+            $url .= "&page=$page";
 
             my $data = dsresp_ok(shift->(dsreq( GET => $url )));
             my $set = is_set_with_embedded_key($data, "person_types", 2, 2);
@@ -59,20 +67,21 @@ for my $with_count (0, 1) {
                 for 0..1;
 
             is ref(my $links = $data->{_links}), 'HASH', "has _links hashref";
-            is $links->{next}{href}, "/person_types?rows=2&page=".($page+1), 'next link';
+            is $links->{next}{href}, _url_edit($url, page => $page+1), "next link of $url";
             if ($page == 1) {
                 is $links->{prev},  undef, 'should not have prev link';
                 is $links->{first}, undef, 'should not have first link';
             }
             else {
-                is $links->{prev}{href},  "/person_types?rows=2&page=".($page-1), 'prev link';
-                is $links->{first}{href}, "/person_types?rows=2&page=1", 'first link';
+                is $links->{prev}{href},  _url_edit($url, page=>$page-1), "prev link of $url";
+                is $links->{first}{href}, _url_edit($url, page=>1), "first link of $url";
             }
             if ($with_count) {
-                like $links->{last}{href}, qr{/person_types\?rows=2&page=\d+}, 'should have last link';
+                my $urlregex = quotemeta(_url_edit($url, page=>'')).'\d+';
+                like $links->{last}{href}, qr{$urlregex}, "should have last link of $url";
             }
             else {
-                is $links->{last}{href},  undef, 'should not have last link';
+                is $links->{last}{href},  undef, "should not have last link of $url";
             }
         };
     };

@@ -1,10 +1,13 @@
-add/fix relation naming to path naming
 add/fix parameter handling and pass-thru eg self link
 error reporting (in HAL format)
 validation / db constraints
 
-add partial response support (eg esp for sets with prefetch which get big_
+add partial response support (eg esp for sets with prefetch which get big)
 use curie prefix in link keys
+
+limit fields returned by default - add to the code on demand, so we know the
+fields are actually being used and the inverse, that we can remove/change a
+field that's not being exposed and know that no users of the api will be affected.
 
 check out https://metacpan.org/module/Catalyst::Controller::DBIC::API
 

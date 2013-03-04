@@ -58,6 +58,11 @@ sub render_item_as_hal {
                 unless our $warn_once->{"$relname $rel->{source}"}++;
             next;
         }
+        # param pas-thru
+        # rows  - yes for all
+        # me.*  - yes for links to the same resource, eg first/prev/next/last
+        # with  - yes for all
+        #
         $data->{_links}{"relation:$relname"} = {
             href => "/$uri"
         };
@@ -76,13 +81,6 @@ sub render_set_as_plain {
     return $set_data;
 }
 
-sub _hal_page_link_data {
-    my ($self, $set, $base, $page) = @_;
-    my $rows = $set->{attrs}{rows} or die "panic: rows not set";
-    return {
-        href => "$base?rows=$rows&page=$page",
-    };
-}
 
 sub _hal_page_links {
     my ($self, $set, $base, $page_items, $total_items) = @_;
@@ -96,15 +94,29 @@ sub _hal_page_links {
     my $rows = $set->{attrs}{rows} or die "panic: rows not set";
     my $page = $set->{attrs}{page} or die "panic: page not set";
 
+    my $req_params = $self->request->query_parameters;
+    my @params = (rows => $rows);
+    # TODO this logic should live elsewhere
+    for my $param (sort keys %$req_params) {
+        next unless $param =~ /^(?:me|with)\b/; # allow me.foo and bar~json etc
+        push @params, $param => $req_params->get($param);
+    }
+    my $uri = URI->new($base);
+    $uri->query_form(@params);
+    my $linkurl = $uri->as_string;
+    $linkurl .= "&page="; # hack to optimize appending page 5 times below
+
     my @link_kvs;
-    push @link_kvs, next => $self->_hal_page_link_data($set, $base, $page+1)
+    push @link_kvs, self  => { href => $linkurl.($page) };
+    push @link_kvs, next  => { href => $linkurl.($page+1) }
         if $page_items == $rows;
-    push @link_kvs, prev => $self->_hal_page_link_data($set, $base, $page-1)
+    push @link_kvs, prev  => { href => $linkurl.($page-1) }
         if $page > 1;
-    push @link_kvs, first => $self->_hal_page_link_data($set, $base, 1)
+    push @link_kvs, first => { href => $linkurl.1 }
         if $page > 1;
-    push @link_kvs, last => $self->_hal_page_link_data($set, $base, $set->pager->last_page)
+    push @link_kvs, last  => { href => $linkurl.$set->pager->last_page }
         if $total_items and $page != $set->pager->last_page;
+
     return @link_kvs;
 }
 
@@ -124,7 +136,6 @@ sub render_set_as_hal {
             $path => $set_data,
         },
         _links => {
-            self => { href => "$base" },
             $self->_hal_page_links($set, $base, scalar @$set_data, $total_items),
         }
     };
