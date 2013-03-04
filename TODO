@@ -1,4 +1,5 @@
-add/fix parameter handling and pass-thru eg self link
+implement nested inserts
+implement returning new resource after insert/update, via ?prefetch=self ?
 error reporting (in HAL format)
 validation / db constraints
 
