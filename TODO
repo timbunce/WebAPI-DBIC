@@ -3,6 +3,8 @@ implement returning new resource after insert/update, via ?prefetch=self ?
 error reporting (in HAL format)
 validation / db constraints
 
+look for business logic in stripes
+
 add partial response support (eg esp for sets with prefetch which get big)
 use curie prefix in link keys
 

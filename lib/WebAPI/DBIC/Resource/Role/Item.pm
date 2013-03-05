@@ -23,6 +23,7 @@ has writable => (
 
 has prefetch => (
    is => 'ro',
+   default => sub { { } },
 );
 
 
@@ -36,11 +37,14 @@ sub to_json_as_plain { $_[0]->encode_json($_[0]->render_item_as_plain($_[0]->ite
 sub to_json_as_hal {   $_[0]->encode_json($_[0]->render_item_as_hal($_[0]->item)) }
 
 sub from_json {
-   $_[0]->update_resource(
-      $_[0]->decode_json(
-         $_[0]->request->content
-      )
-   )
+    my $self = shift;
+    $self->update_resource(
+        $self->decode_json(
+            $self->request->content
+        )
+    );
+    $self->response->body( $self->to_json_as_hal )
+        if $self->prefetch->{self};
 }
 
 sub resource_exists { !! $_[0]->item }

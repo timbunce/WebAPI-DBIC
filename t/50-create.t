@@ -70,6 +70,29 @@ test_psgi $app, sub {
 
 note "===== Update - PUT =====";
 
+
+note "put without prefetch=self";
+test_psgi $app, sub {
+    my $desc = "foo";
+    my $data = dsresp_ok(shift->(dsreq( PUT => "/person_types/$item->{id}", [], {
+        description => $desc,
+    })), 204);
+    is $data, undef, 'no response body';
+    $item = get_data($app, "/person_types/$item->{id}");
+    is $item->{description}, $desc;
+};
+
+note "put with prefetch=self";
+test_psgi $app, sub {
+    my $desc = "bar";
+    my $data = dsresp_ok(shift->(dsreq( PUT => "/person_types/$item->{id}?prefetch=self", [], {
+        description => $desc,
+    })), 200);
+    is ref $data, 'HASH', 'has response body';
+    $item = get_data($app, "/person_types/$item->{id}");
+    eq_or_diff $data, $item, 'returned prefetch matches item at location';
+};
+
 =pod WIP
 test_psgi $app, sub {
     my $data = dsresp_ok(shift->(dsreq(

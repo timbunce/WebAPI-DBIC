@@ -58,7 +58,25 @@ sub from_hal_json {
 }
 
 sub create_resource {
-    $_[0]->set->create($_[1])
+    my ($self, $data) = @_;
+    my $item = $self->set->create($data);
+    # call render_item_into_body here because create_path is too late
+    $self->render_item_into_body($item) if $self->prefetch->{self};
+    return $item;
+}
+
+sub render_item_into_body {
+    my ($self, $item) = @_;
+    # XXX ought to be a dummy request?
+    my $item_request = $self->request;
+    # XXX shouldn't hard-code GenericItemDBIC here
+    my $item_resource = WebAPI::DBIC::Resource::GenericItemDBIC->new(
+        request => $item_request, response => $item_request->new_response,
+        set => $self->set, item => $item,
+    );
+    $self->response->body( $item_resource->to_json_as_hal );
+
+    return;
 }
 
 sub create_resources_from_hal {
@@ -88,18 +106,6 @@ sub create_resources_from_hal {
 
 sub create_path {
     my $self = shift;
-
-    if ($self->prefetch->{self}) {
-        # XXX ought to be a dummy request?
-        my $item_request = $self->request;
-        # XXX shouldn't hard-code GenericItemDBIC here
-        my $item_resource = WebAPI::DBIC::Resource::GenericItemDBIC->new(
-            request => $item_request, response => $item_request->new_response,
-            set => $self->set, item => $self->item,
-        );
-        $self->response->body( $item_resource->to_json_as_hal );
-    }
-
     return $self->path_for_item($self->item);
 }
 

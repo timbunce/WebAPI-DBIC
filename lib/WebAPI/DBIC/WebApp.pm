@@ -88,6 +88,7 @@ sub _handle_prefetch_param {
                     and $rel->{attrs}{is_foreign_key_constraint}; # safety/speed
         }
 
+        @prefetch = grep { $_ ne 'self' } @prefetch;
         $rs = $rs->search_rs(undef, { prefetch => \@prefetch, })
             if @prefetch;
     }
