@@ -5,6 +5,12 @@ use Moo::Role;
 use Carp;
 use Devel::Dwarn;
 
+has prefetch => (
+    is => 'rw',
+    default => sub { {} },
+);
+
+
 # XXX probably shouldn't be a role, just functions, or perhaps a separate rendering object
 
 # default render for DBIx::Class item

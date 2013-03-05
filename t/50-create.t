@@ -16,11 +16,12 @@ my $app = require 'clients_dsapi.psgi'; # WebAPI::DBIC::WebApp;
 
 local $SIG{__DIE__} = \&Carp::confess;
 
-note "===== Create =====";
+note "===== Create - POST =====";
 
 my $item;
 
 my %person_types;
+my $new_desc = "dummy desc ".time();
 
 test_psgi $app, sub {
     my $data = dsresp_ok(shift->(dsreq( GET => "/person_types" )));
@@ -29,15 +30,17 @@ test_psgi $app, sub {
     is ref $person_types{$_}, "HASH", "/person_types includes $_"
         for (1..3);
     ok $person_types{1}{name}, "/person_types data looks sane";
-};  
+};
 
+note "plain post";
 test_psgi $app, sub {
-    my $desc = "dummy 1 description ".localtime();
+    my $desc = "1 $new_desc";
     my $res = shift->(dsreq( POST => "/person_types", [], {
         name => $test_key_string,
         description => $desc,
     }));
     my ($location, $data) = dsresp_created_ok($res);
+    is $data, undef, 'no data returned without prefetch';
     $item = get_data($app, $location);
     ok $item->{id}, 'new item has id'
         or diag $item;
@@ -46,20 +49,26 @@ test_psgi $app, sub {
     is $item->{description}, $desc;
 };
 
+note "post with prefetch=self";
 test_psgi $app, sub {
-    my $desc = "dummy 2 description ".localtime();
-    my $res = shift->(dsreq( POST => "/person_types", [], {
+    my $desc = "2 $new_desc";
+    my $res = shift->(dsreq( POST => "/person_types?prefetch=self", [], {
         name => $test_key_string,
         description => $desc,
     }));
     my ($location, $data) = dsresp_created_ok($res);
+
     $item = get_data($app, $location);
     ok $item->{id}, 'new item has id';
     ok !$person_types{$item->{id}}, 'new item has new id';
     is $item->{name}, $test_key_string;
     is $item->{description}, $desc;
+
+    eq_or_diff $data, $item, 'returned prefetch matches item at location';
 };
 
+
+note "===== Update - PUT =====";
 
 =pod WIP
 test_psgi $app, sub {
@@ -70,5 +79,8 @@ test_psgi $app, sub {
     is $data->{id}, 2, 'id';
 };
 =cut
+
+note "===== Delete - DELETE =====";
+
 
 done_testing();

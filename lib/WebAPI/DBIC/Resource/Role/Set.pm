@@ -4,6 +4,8 @@ package WebAPI::DBIC::Resource::Role::Set;
 
 use Moo::Role;
 
+use Devel::Dwarn;
+
 requires 'render_set_as_plain';
 requires 'decode_json';
 requires 'encode_json';
@@ -14,10 +16,6 @@ has set => (
 );
 
 has item => ( # POST
-   is => 'rw',
-);    
-
-has prefetch => (
    is => 'rw',
 );    
 
@@ -37,31 +35,72 @@ sub post_is_create { 1 }
 sub create_path_after_handler { 1 }
 
 sub content_types_provided { [
-    {'application/hal+json' => 'to_json_as_hal'},
-    {'application/json' => 'to_json_as_plain'},
+    {'application/hal+json' => 'to_hal_json'},
+    {'application/json'     => 'to_plain_json'},
 ] } 
-sub content_types_accepted { [ {'application/json' => 'from_json'} ] }
 
-sub to_json_as_plain { $_[0]->encode_json($_[0]->render_set_as_plain($_[0]->set)) }
-sub to_json_as_hal   { $_[0]->encode_json($_[0]->render_set_as_hal($_[0]->set)) }
+sub content_types_accepted { [
+    {'application/hal+json' => 'from_hal_json'},
+    {'application/json'     => 'from_plain_json'}
+] }
 
-sub from_json {
+sub to_plain_json { $_[0]->encode_json($_[0]->render_set_as_plain($_[0]->set)) }
+sub to_hal_json   { $_[0]->encode_json($_[0]->render_set_as_hal(  $_[0]->set)) }
+
+sub from_plain_json {
     my $self = shift;
     $self->item($self->create_resource($self->decode_json($self->request->content)));
 }
 
-sub create_resource { $_[0]->set->create($_[1]) }
+sub from_hal_json {
+    my $self = shift;
+    $self->item($self->create_resources_from_hal($self->decode_json($self->request->content)));
+}
+
+sub create_resource {
+    $_[0]->set->create($_[1])
+}
+
+sub create_resources_from_hal {
+    my ($self, $hal) = @_;
+    my $links    = delete $hal->{_links};
+    my $meta     = delete $hal->{_meta};
+    my $embedded = delete $hal->{_embedded} || {};
+    my $item;
+
+    if (1) {
+        for my $rel (keys %$embedded) {
+            my $rel_obj = $embedded->{$rel};
+            # XXX this ought to recurse - we'd need to create temp WMs for each (via path router)
+            warn "create_resources_from_hal $rel";
+            # lookup relation and check its supported (single etc)
+            # find rel key field(s) and check embedded data and $hal don't define key value
+            # create the rel object in the db
+            # set the corresponding $hal fields for the created key
+        }
+
+        # finally create the primary resource
+        $item = $self->create_resource($hal);
+    }
+
+    return $item;
+}
 
 sub create_path {
     my $self = shift;
-    my $item = $self->item;
-    return $self->path_for_item($item);
 
-    my @pricols = $item->result_source->primary_columns;
-    die "$self has multiple PK columns" if @pricols != 1;
+    if ($self->prefetch->{self}) {
+        # XXX ought to be a dummy request?
+        my $item_request = $self->request;
+        # XXX shouldn't hard-code GenericItemDBIC here
+        my $item_resource = WebAPI::DBIC::Resource::GenericItemDBIC->new(
+            request => $item_request, response => $item_request->new_response,
+            set => $self->set, item => $self->item,
+        );
+        $self->response->body( $item_resource->to_json_as_hal );
+    }
 
-    # XXX we rely on _n11_create_path to prepend the $self->base_uri
-    return $item->get_column(shift @pricols);
+    return $self->path_for_item($self->item);
 }
 
 1;

@@ -67,6 +67,12 @@ sub _handle_prefetch_param {
     if (my @prefetch = split(',', $param||"")) {
         my $result_class = $rs->result_class;
         for my $prefetch (@prefetch) {
+            # XXX hack?: perhaps use {embedded}{$key} = sub { ... };
+            # see lib/WebAPI/DBIC/Resource/Role/DBIC.pm
+            $args->{prefetch}{$prefetch} = { key => $prefetch };
+
+            next if $prefetch eq 'self'; # used in POST/PUT handling
+
             my $rel = $result_class->relationship_info($prefetch);
 
             # limit to simple single relationships, e.g., belongs_to
@@ -80,13 +86,10 @@ sub _handle_prefetch_param {
                 unless $rel
                     and $rel->{attrs}{accessor} eq 'single'       # sanity
                     and $rel->{attrs}{is_foreign_key_constraint}; # safety/speed
-
-            # XXX hack?: perhaps use {embedded}{$key} = sub { ... };
-            # see lib/WebAPI/DBIC/Resource/Role/DBIC.pm
-            $args->{prefetch}{$prefetch} = { key => $prefetch };
         }
 
-        $rs = $rs->search_rs(undef, { prefetch => \@prefetch, });
+        $rs = $rs->search_rs(undef, { prefetch => \@prefetch, })
+            if @prefetch;
     }
 
     return $rs;
