@@ -64,34 +64,36 @@ sub throw_bad_request {
 sub _handle_prefetch_param {
     my ($rs, $args, $param) = @_;
 
-    if (my @prefetch = split(',', $param||"")) {
-        my $result_class = $rs->result_class;
-        for my $prefetch (@prefetch) {
-            # XXX hack?: perhaps use {embedded}{$key} = sub { ... };
-            # see lib/WebAPI/DBIC/Resource/Role/DBIC.pm
-            $args->{prefetch}{$prefetch} = { key => $prefetch };
+    my %prefetch = map { $_ => {} } split(',', $param||"");
+    return $rs unless %prefetch;
 
-            next if $prefetch eq 'self'; # used in POST/PUT handling
+    my $result_class = $rs->result_class;
+    for my $prefetch (keys %prefetch) {
 
-            my $rel = $result_class->relationship_info($prefetch);
+        next if $prefetch eq 'self'; # used in POST/PUT handling
 
-            # limit to simple single relationships, e.g., belongs_to
-            throw_bad_request(400, errors => [{
-                        $prefetch => "not a valid relationship",
-                        _meta => {
-                            relationship => $rel,
-                            relationships => [ $result_class->relationships ]
-                        }, # XXX
-                    }])
-                unless $rel
-                    and $rel->{attrs}{accessor} eq 'single'       # sanity
-                    and $rel->{attrs}{is_foreign_key_constraint}; # safety/speed
-        }
+        my $rel = $result_class->relationship_info($prefetch);
 
-        @prefetch = grep { $_ ne 'self' } @prefetch;
-        $rs = $rs->search_rs(undef, { prefetch => \@prefetch, })
-            if @prefetch;
+        # limit to simple single relationships, e.g., belongs_to
+        throw_bad_request(400, errors => [{
+                    $prefetch => "not a valid relationship",
+                    _meta => {
+                        relationship => $rel,
+                        relationships => [ $result_class->relationships ]
+                    }, # XXX
+                }])
+            unless $rel
+                and $rel->{attrs}{accessor} eq 'single'       # sanity
+                and $rel->{attrs}{is_foreign_key_constraint}; # safety/speed
     }
+
+    # XXX hack?: perhaps use {embedded}{$key} = sub { ... };
+    # see lib/WebAPI/DBIC/Resource/Role/DBIC.pm
+    $args->{prefetch} = { %prefetch };
+
+    delete $prefetch{self};
+    $rs = $rs->search_rs(undef, { prefetch => [ keys %prefetch ] })
+        if %prefetch;
 
     return $rs;
 }
