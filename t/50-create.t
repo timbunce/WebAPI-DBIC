@@ -32,13 +32,11 @@ test_psgi $app, sub {
 };  
 
 test_psgi $app, sub {
-#local $ENV{WM_DEBUG} = 1;
     my $desc = "dummy 1 description ".localtime();
     my $res = shift->(dsreq( POST => "/person_types", [], {
         name => $test_key_string,
         description => $desc,
     }));
-diag $res->as_string;
     my ($location, $data) = dsresp_created_ok($res);
     $item = get_data($app, $location);
     ok $item->{id}, 'new item has id'

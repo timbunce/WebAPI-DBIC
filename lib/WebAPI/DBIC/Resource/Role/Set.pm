@@ -55,6 +55,7 @@ sub create_resource { $_[0]->set->create($_[1]) }
 sub create_path {
     my $self = shift;
     my $item = $self->item;
+    return $self->path_for_item($item);
 
     my @pricols = $item->result_source->primary_columns;
     die "$self has multiple PK columns" if @pricols != 1;

@@ -32,14 +32,14 @@ test_psgi $app, sub {
     my $data = dsresp_ok(shift->(dsreq( GET => "/person_types/1" )));
     is_item($data, 3);
     is $data->{id}, 1, 'id';
-    is_deeply $data, $person_types{$data->{id}}, 'data matches';
+    eq_or_diff $data, $person_types{$data->{id}}, 'data matches';
 };
 
 test_psgi $app, sub {
     my $data = dsresp_ok(shift->(dsreq( GET => "/person_types/2" )));
     is_item($data, 3);
     is $data->{id}, 2, 'id';
-    is_deeply $data, $person_types{$data->{id}}, 'data matches';
+    eq_or_diff $data, $person_types{$data->{id}}, 'data matches';
 };
 
 done_testing();

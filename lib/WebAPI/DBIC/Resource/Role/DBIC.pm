@@ -2,16 +2,10 @@ package WebAPI::DBIC::Resource::Role::DBIC;
 
 use Moo::Role;
 
+use Carp;
 use Devel::Dwarn;
 
 # XXX probably shouldn't be a role, just functions, or perhaps a separate rendering object
-
-sub base_uri { # XXX hack - use the router
-    my ($self) = @_;
-    my $base = $self->request->env->{PATH_INFO};
-    $base =~ s:^(/\w+).*:$1:;
-    return $base;
-}
 
 # default render for DBIx::Class item
 # https://metacpan.org/module/DBIx::Class::Manual::ResultClass
@@ -19,21 +13,32 @@ sub base_uri { # XXX hack - use the router
 sub render_item_as_plain {
     my ($self, $item) = @_;
     my $data = { $item->get_columns }; # XXX ?
-    # FKs
     # DateTimes
     return $data;
 }
 
+
+sub path_for_item {
+    my ($self, $item) = @_;
+
+    my $data = $self->render_item_as_plain($item);
+    my %pk = map { $_ => $item->get_column($_) } $item->result_source->primary_columns;
+    my $itemurl = $self->router->uri_for(
+        %pk, result_class => $item->result_source->result_class,
+    ) or die "panic: no route to @{[ %pk ]} ".$item->result_source->result_class;
+
+    return $itemurl;
+}
+
+
 sub render_item_as_hal {
     my ($self, $item) = @_;
 
-    my $base = $self->base_uri;
     my $data = $self->render_item_as_plain($item);
+    my $itemurl = $self->path_for_item($item);
 
-    $data->{_links} = {
-        self => {
-            href => $self->mk_link_url($base."/".$item->id, {}, {})->as_string,
-        }
+    $data->{_links}{self} = {
+        href => $self->mk_link_url("/$itemurl", {}, {})->as_string,
     };
 
     while (my ($prefetch, $info) = each %{ $self->prefetch || {} }) {
@@ -88,7 +93,7 @@ sub render_set_as_plain {
 
 sub mk_link_url {
     my ($self, $base, $passthru_params, $override_params) = @_;
-    $base ||= $self->base_uri;
+    $base || croak "no base";
 
     my $req_params = $self->request->query_parameters;
     my @params = (%$override_params);
@@ -146,7 +151,6 @@ sub render_set_as_hal {
     my ($self, $set) = @_;
     my $set_data = [ map { $self->render_item_as_hal($_) } $set->all ];
     my $path = $self->request->env->{'plack.router.match'}->{path};
-    my $base = $self->base_uri;
 
     my $total_items;
     if (($self->request->param('with')||'') =~ /count/) { # XXX
@@ -158,7 +162,7 @@ sub render_set_as_hal {
             $path => $set_data,
         },
         _links => {
-            $self->_hal_page_links($set, $base, scalar @$set_data, $total_items),
+            $self->_hal_page_links($set, "/$path", scalar @$set_data, $total_items),
         }
     };
     $data->{_meta}{count} = $total_items

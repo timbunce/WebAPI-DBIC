@@ -32,11 +32,12 @@ sub is_ordered {
 
 note "===== Ordering =====";
 
+my $base = "/person_types?rows=1000"; # rows must include all for tests to pass
 my %person_types;
 my @person_types;
 
 test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "/person_types?order=me.id" )));
+    my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.id" )));
     my $set = is_set_with_embedded_key($data, "person_types", 2);
     @person_types = @$set;
     %person_types = map { $_->{id} => $_ } @person_types;
@@ -46,14 +47,14 @@ test_psgi $app, sub {
 };
 
 test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "/person_types?order=me.id%20desc" )));
+    my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.id%20desc" )));
     my $set = is_set_with_embedded_key($data, "person_types", 2);
     is_deeply $set, [ reverse @person_types], 'reversed';
     is_ordered($set, sub { $_->{id} }, '-int');
 };
 
 test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "/person_types?order=me.name%20desc,id%20desc" )));
+    my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.name%20desc,id%20desc" )));
     my $set = is_set_with_embedded_key($data, "person_types", 2);
     cmp_deeply $set, bag(@person_types), 'same set of rows';
     ok not eq_deeply $set, \@person_types, 'order has changed';
@@ -61,7 +62,7 @@ test_psgi $app, sub {
 };
 
 test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "/person_types?order=me.name,id%20asc" )));
+    my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.name,id%20asc" )));
     my $set = is_set_with_embedded_key($data, "person_types", 2);
     cmp_deeply $set, bag(@person_types), 'same set of rows';
     ok not eq_deeply $set, \@person_types, 'order has changed';

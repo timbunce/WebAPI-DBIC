@@ -7,6 +7,7 @@ BEGIN {
     $ENV{DBIC_TRACE} ||= 1;
     $ENV{DBI_TRACE} ||= 0;
     $ENV{PATH_ROUTER_DEBUG} ||= 0;
+    $|++;
 }
 
 use Web::Simple;
