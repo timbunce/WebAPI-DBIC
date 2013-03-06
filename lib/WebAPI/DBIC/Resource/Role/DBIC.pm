@@ -45,7 +45,9 @@ sub render_item_as_hal {
 
     $data->{_links}{self} = {
         href => $self->mk_link_url("/$itemurl", {}, {})->as_string,
-    };
+    }
+        # some params mean we're not returning actual entities
+        unless $self->request->param('distinct');
 
     while (my ($prefetch, $info) = each %{ $self->prefetch || {} }) {
         next if $prefetch eq 'self';
@@ -135,7 +137,9 @@ sub _hal_page_links {
     my $rows = $set->{attrs}{rows} or die "panic: rows not set";
     my $page = $set->{attrs}{page} or die "panic: page not set";
 
-    my $url = $self->mk_link_url($base, { with=>1, me=>1 }, { rows => $rows });
+    # XXX this self link this should probably be subtractive, ie include all
+    # params by default except any known to cause problems
+    my $url = $self->mk_link_url($base, { distinct=>1, with=>1, me=>1 }, { rows => $rows });
     my $linkurl = $url->as_string;
     $linkurl .= "&page="; # hack to optimize appending page 5 times below
 

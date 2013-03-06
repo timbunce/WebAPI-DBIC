@@ -177,7 +177,8 @@ sub mk_generic_dbic_item_set_routes {
             # XXX this breaks encapsulation but seems safe enough just after page() above
             $args->{set}->{attrs}{rows} = $request->param('rows') || 30;
 
-            my @errors;
+            # normalize params, eg handle ~json
+            my %params;
             for my $param (keys %{ $request->parameters }) {
                 my $val = $request->param($param);
 
@@ -185,9 +186,26 @@ sub mk_generic_dbic_item_set_routes {
                 my $is_json = ($param =~ s/~json$//);
                 $val = JSON->new->allow_nonref->decode($val) if $is_json;
 
+                $params{$param} = $val;
+            }
+
+            my @errors;
+            for my $param (keys %params) {
+                my $val = $params{$param};
+
                 if ($param =~ /^me\.(\w+(?:\.\w+)*)$/) {
                     # use me.relation.field=... to refer to relations
                     $args->{set} = $args->{set}->search_rs({ $1 => $val });
+                }
+                elsif ($param eq 'distinct') {
+                    $args->{set} = $args->{set}->search_rs(undef, { distinct => $val });
+                    # these restrictions avoid edge cases we don't want to deal with yet
+                    push @errors, "distinct param requires order param"
+                        unless $params{order};
+                    push @errors, "distinct param requires fields param"
+                        unless $params{fields};
+                    push @errors, "distinct param requires fields and orders params to have same value"
+                        unless $params{fields} eq $params{order};
                 }
                 elsif ($param eq 'prefetch') {
                      _handle_prefetch_param($args, $val);
