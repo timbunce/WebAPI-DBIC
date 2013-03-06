@@ -62,12 +62,12 @@ sub throw_bad_request {
 
 
 sub _handle_prefetch_param {
-    my ($rs, $args, $param) = @_;
+    my ($args, $param) = @_;
 
     my %prefetch = map { $_ => {} } split(',', $param||"");
-    return $rs unless %prefetch;
+    return unless %prefetch;
 
-    my $result_class = $rs->result_class;
+    my $result_class = $args->{set}->result_class;
     for my $prefetch (keys %prefetch) {
 
         next if $prefetch eq 'self'; # used in POST/PUT handling
@@ -92,15 +92,13 @@ sub _handle_prefetch_param {
     $args->{prefetch} = { %prefetch };
 
     delete $prefetch{self};
-    $rs = $rs->search_rs(undef, { prefetch => [ keys %prefetch ] })
+    $args->{set} = $args->{set}->search_rs(undef, { prefetch => [ keys %prefetch ] })
         if %prefetch;
-
-    return $rs;
 }
 
 
 sub _handle_order_param {
-    my ($rs, $args, $param) = @_;
+    my ($args, $param) = @_;
     my @order_spec;
 
     for my $clause (split /\s*,\s*/, $param) {
@@ -116,10 +114,40 @@ sub _handle_order_param {
         push @order_spec, { "-$dir" => $field };
     }
 
-    $rs = $rs->search_rs(undef, { order_by => \@order_spec })
+    $args->{set} = $args->{set}->search_rs(undef, { order_by => \@order_spec })
         if @order_spec;
+}
 
-    return $rs;
+
+sub _handle_fields_param {
+    my ($args, $param) = @_;
+    my @columns;
+
+    if (ref $param eq 'ARRAY') {
+        @columns = @$param;
+    }
+    else {
+        @columns = split /\s*,\s*/, $param;
+        for my $clause (@columns) {
+            # we take care to avoid injection risks
+            my ($field) = ($clause =~ /^([a-z0-9_\.]*)$/);
+            throw_bad_request(400, errors => [{
+                parameter => "invalid fields clause",
+                _meta => { fields => $field, }, # XXX
+            }]) if not defined $field;
+            # sadly columns=>[...] doesn't work to limit the fields of prefetch relations
+            # so we disallow that for now. It's possible we could achieve the same effect
+            # using explicit join's for non-has-many rels, or perhaps using
+            # as_subselect_rs
+            throw_bad_request(400, errors => [{
+                parameter => "invalid fields clause - can't refer to prefetch relations at the moment",
+                _meta => { fields => $field, }, # XXX
+            }]) if $field =~ m/\./;
+        }
+    }
+
+    $args->{set} = $args->{set}->search_rs(undef, { columns => \@columns })
+        if @columns;
 }
 
 
@@ -140,19 +168,14 @@ sub mk_generic_dbic_item_set_routes {
         }),
 
         getargs => sub {
-            my ($request, $rs, $id) = @_;
-            my %args;
+            my ($request, $_rs, $id) = @_;
+            my $args = { set => $_rs };
 
             # XXX TODO add params hashref to debris, load from query params with validation and defaults
 
-            $rs = $rs->page($request->param('page') || 1);
+            $args->{set} = $args->{set}->page($request->param('page') || 1);
             # XXX this breaks encapsulation but seems safe enough just after page() above
-            $rs->{attrs}{rows} = $request->param('rows') || 30;
-
-            $rs = _handle_prefetch_param($rs, \%args, $request->param('prefetch'))
-                if $request->param('prefetch');
-            $rs = _handle_order_param($rs, \%args, $request->param('order'))
-                if $request->param('order');
+            $args->{set}->{attrs}{rows} = $request->param('rows') || 30;
 
             my @errors;
             for my $param (keys %{ $request->parameters }) {
@@ -164,9 +187,18 @@ sub mk_generic_dbic_item_set_routes {
 
                 if ($param =~ /^me\.(\w+(?:\.\w+)*)$/) {
                     # use me.relation.field=... to refer to relations
-                    $rs = $rs->search_rs({ $1 => $val });
+                    $args->{set} = $args->{set}->search_rs({ $1 => $val });
                 }
-                elsif ($param eq 'page' or $param eq 'rows' or $param eq 'prefetch' or $param eq 'order') {
+                elsif ($param eq 'prefetch') {
+                     _handle_prefetch_param($args, $val);
+                }
+                elsif ($param eq 'order') {
+                    _handle_order_param($args, $val);
+                }
+                elsif ($param eq 'fields') {
+                    _handle_fields_param($args, $val);
+                }
+                elsif ($param eq 'page' or $param eq 'rows') {
                     # handled above
                 }
                 elsif ($param eq 'with') { # XXX with=count - generalize
@@ -180,8 +212,7 @@ sub mk_generic_dbic_item_set_routes {
             throw_bad_request(400, errors => \@errors)
                 if @errors;
 
-            $args{set} = $rs;
-            return \%args;
+            return $args;
         },
     };
 
@@ -191,12 +222,14 @@ sub mk_generic_dbic_item_set_routes {
         resultset => $rs,
         getargs => sub {
             my ($request, $rs, $id) = @_;
-            my %args;
+            my %args = (set => $rs);
 
-            $rs = _handle_prefetch_param($rs, \%args, $request->param('prefetch'))
+            _handle_prefetch_param(\%args, $request->param('prefetch'))
                 if $request->param('prefetch');
+            _handle_fields_param(\%args, $request->param('fields'))
+                if $request->param('fields');
 
-            $args{item} = $rs->find($id);
+            $args{item} = $args{set}->find($id);
             return \%args;
         },
         resource => 'WebAPI::DBIC::Resource::GenericItemDBIC',
