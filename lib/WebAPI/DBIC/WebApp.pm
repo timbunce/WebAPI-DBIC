@@ -193,9 +193,12 @@ sub mk_generic_dbic_item_set_routes {
             for my $param (keys %params) {
                 my $val = $params{$param};
 
-                if ($param =~ /^me\.(\w+(?:\.\w+)*)$/) {
-                    # use me.relation.field=... to refer to relations
-                    $args->{set} = $args->{set}->search_rs({ $1 => $val });
+                if ($param =~ /^me\.\w+(?:\.\w+)*$/) {
+                    # we use me.relation.field=... to refer to relations via this param
+                    # so the param can be recognized by the leading 'me.'
+                    # but we strip off the leading 'me.' if there's a me.foo.bar
+                    $param =~ s/^me\.// if $param =~ m/^me\.\w+\.\w+/;
+                    $args->{set} = $args->{set}->search_rs({ $param => $val });
                 }
                 elsif ($param eq 'distinct') {
                     $args->{set} = $args->{set}->search_rs(undef, { distinct => $val });

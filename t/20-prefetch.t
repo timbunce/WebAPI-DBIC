@@ -20,8 +20,6 @@ note "===== Prefetch =====";
 # here we ask to prefetch items that have a belongs_to relationship with the resource
 # they get returned as _embedded objects. (Also they may be stale.)
 
-local $SIG{USR2} = \&Carp::cluck;
-
 note "prefetch on item";
 test_psgi $app, sub {
     my $data = dsresp_ok(shift->(dsreq( GET => "/ecosystems_people/1?prefetch=person,client_auth" )));
@@ -44,6 +42,12 @@ test_psgi $app, sub {
         is ref $embedded->{person}, 'HASH', "has embedded person_id";
         is $embedded->{person}{id}, $item->{person_id}, 'person_id matches';
     }
+};
+
+note "prefetch with query on ambiguous field";
+# just check that a 'person_id is ambiguous' error isn't generated
+test_psgi $app, sub {
+    dsresp_ok(shift->(dsreq( GET => "/ecosystems_people?me.person_id=490748&prefetch=ecosystem" )));
 };
 
 note "prefetch on invalid name";
