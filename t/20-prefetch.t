@@ -13,7 +13,6 @@ use TestDS;
 
 my $app = require 'clients_dsapi.psgi'; # WebAPI::DBIC::WebApp;
 
-local $SIG{__DIE__} = \&Carp::confess;
 
 note "===== Prefetch =====";
 
@@ -89,6 +88,6 @@ test_psgi $app, sub {
     }
 };
 
-}
+} # end TODO
 
 done_testing();

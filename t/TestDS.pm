@@ -97,11 +97,12 @@ sub is_set_with_embedded_key {
     local $Test::Builder::Level = $Test::Builder::Level + 1;
     is ref $data->{_embedded}, "HASH", 'has _embedded hash';
     my $set = $data->{_embedded}{$key};
-    is ref $set, "ARRAY", "_embedded has $key";
-    cmp_ok scalar @$set, '>=', $min, "set has at least $min items"
-        if defined $min;
-    cmp_ok scalar @$set, '<=', $max, "set has at most $max items"
-        if defined $max;
+    if (is ref $set, "ARRAY", "_embedded has $key") {
+        cmp_ok scalar @$set, '>=', $min, "set has at least $min items"
+            if defined $min;
+        cmp_ok scalar @$set, '<=', $max, "set has at most $max items"
+            if defined $max;
+    }
     return $set;
 }
 
