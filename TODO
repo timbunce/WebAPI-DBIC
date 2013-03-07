@@ -23,3 +23,6 @@ Also http://stackoverflow.com/questions/319530/restful-authentication
 Varnish ESI:
 http://odino.org/some-common-questions-about-edge-side-includes/
 http://stackoverflow.com/questions/11781576/most-secure-javascript-json-inline-technique
+
+To update HAL browser
+git subtree pull --squash --prefix hal-browser git@github.com:mikekelly/hal-browser.git master
