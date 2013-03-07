@@ -189,16 +189,17 @@ sub finish_request {
     return unless $exception;
 
     (my $line1 = $exception) =~ s/\n.*//ms;
-    warn "finish_request - handling exception $line1\n";
 
     my $error_data;
     # ... DBD::Pg::st execute failed: ERROR:  column "nonesuch" does not exist
-    if ($exception =~ m/DBD::Pg.*? failed:.*? column "(.*?)" (.*)/) {
+    if ($exception =~ m/DBD::Pg.*? failed:.*? column "?(.*?)"? (.*)/) {
         $error_data = {
             status => 400,
             foo => "$1: $2",
         };
     }
+
+    warn "finish_request - handling exception '$line1' (@{[ %{ $error_data||{} } ]})\n";
 
     if ($error_data) {
         $error_data->{_embedded}{exceptions}[0]{exception} = "$exception" # stringify

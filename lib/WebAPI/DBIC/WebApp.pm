@@ -314,7 +314,8 @@ while (my $r = shift @routes) {
             my $args = $getargs ? $getargs->($request, $rs, @_) : {};
             return $args if UNIVERSAL::can($args, 'finalize');
 
-            warn "Running machine for $resource_class (with @{[ keys %$args ]})\n";
+            warn "Running machine for $resource_class (with @{[ keys %$args ]})\n"
+                if $ENV{TL_ENVIRONMENT} eq 'development';
             my $app = WebAPI::DBIC::Machine->new(
                 resource => $resource_class,
                 debris   => {
@@ -326,7 +327,7 @@ while (my $r = shift @routes) {
             )->to_app;
             my $resp = eval { $app->($request->env) };
             #Dwarn $resp;
-            if ($@) { Dwarn $@; die $@ } # report and rethrow
+            if ($@) { Dwarn [ "EXCEPTION from app: $@" ]; die $@ } # report and rethrow
             return $resp;
         },
     );
