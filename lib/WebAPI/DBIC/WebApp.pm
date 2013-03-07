@@ -297,6 +297,7 @@ while (my $r = shift @routes) {
         defaults => {
             _rs => $rs,
             result_class => $rs->result_class,
+            _title => $rs->result_class,
         },
         target => sub {
             my $request = shift; # url args remain in @_
@@ -334,19 +335,15 @@ if (1) { # root level links to describe/explore the api (eg for the hal-browser)
     my @resource_links;
     foreach my $route (@{$router->routes})  {
         my @parts;
-        my %attr;
+        my %attr = ( title => $route->defaults->{_title}||"" );
         for my $c (@{ $route->components }) {
             if ($route->is_component_variable($c)) {
                 my $name = $route->get_component_name($c);
                 push @parts, "{/$name}";
                 $attr{templated} = JSON::true;
-                $attr{title} =~ s/ set$/ item/; # XXX hack
 
             } else {
                 push @parts, "/$c";
-                (my $result_class = $route->defaults->{_rs}->result_class) =~ s/.*Result:://;
-                #my $result_class = 'x';
-                $attr{title} .= "$result_class set"; # XXX hack
             }
         }
         my $url = join("", @parts);
