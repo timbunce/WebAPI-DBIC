@@ -142,7 +142,10 @@ sub _hal_page_links {
     $linkurl .= "&page="; # hack to optimize appending page 5 times below
 
     my @link_kvs;
-    push @link_kvs, self  => { href => $linkurl.($page) };
+    push @link_kvs, self  => {
+        href => $linkurl.($page),
+        title => $set->result_source->resultset_class,
+    };
     push @link_kvs, next  => { href => $linkurl.($page+1) }
         if $page_items == $rows;
     push @link_kvs, prev  => { href => $linkurl.($page-1) }

@@ -41,7 +41,7 @@ sub dsreq {
     my ($method, $uri, $headers, $data) = @_;
 
     $headers = HTTP::Headers->new(@{$headers||[]});
-    $headers->init_header('Content-Type' => 'application/json');
+    $headers->init_header('Content-Type' => 'application/hal+json');
     $headers->init_header('Accept' => 'application/hal+json,application/json');
     $headers->authorization_basic(_get_authorization_user_pass())
         if not $headers->header('Authorization');

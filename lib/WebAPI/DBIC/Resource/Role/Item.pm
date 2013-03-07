@@ -27,22 +27,25 @@ has prefetch => (
 );
 
 
+sub content_types_accepted { [
+    {'application/hal+json' => 'from_plain_json'},
+    {'application/json'     => 'from_plain_json'}
+] }
 sub content_types_provided { [
     {'application/hal+json' => 'to_json_as_hal'},
-    {'application/json' => 'to_json_as_plain'},
+    {'application/json'     => 'to_json_as_plain'},
 ] }
-sub content_types_accepted { [ {'application/json' => 'from_json'} ] }
 
 sub to_json_as_plain { $_[0]->encode_json($_[0]->render_item_as_plain($_[0]->item)) }
 sub to_json_as_hal {   $_[0]->encode_json($_[0]->render_item_as_hal($_[0]->item)) }
 
-sub from_json {
+sub from_plain_json { # used for hal too
     my $self = shift;
-    $self->update_resource(
-        $self->decode_json(
-            $self->request->content
-        )
-    );
+    my $data = $self->decode_json( $self->request->content );
+    # discard hal attributes
+    delete $data->{_links};
+    delete $data->{_embedded};
+    $self->update_resource($data);
     $self->response->body( $self->to_json_as_hal )
         if $self->prefetch->{self};
 }

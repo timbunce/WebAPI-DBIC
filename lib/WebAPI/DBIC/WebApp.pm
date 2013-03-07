@@ -222,6 +222,9 @@ sub mk_generic_dbic_item_set_routes {
                 elsif ($param eq 'with') { # XXX with=count - generalize
                     # handled in lib/WebAPI/DBIC/Resource/Role/DBIC.pm
                 }
+                elsif ($param eq 'rollback') {
+                    # handled in lib/WebAPI/DBIC/Resource/Role/Set.pm currently
+                }
                 else {
                     push @errors, { $param => "unknown parameter" };
                 }

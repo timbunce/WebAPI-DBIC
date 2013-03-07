@@ -86,8 +86,9 @@ sub create_resources_from_hal {
     my $embedded = delete $hal->{_embedded} || {};
     my $item;
 
-    my $schema = $self->set->schema;
+    my $schema = $self->set->result_source->schema;
     # XXX perhaps the transaction wrapper belongs higher in the stack
+    # but it has to be below the auth layer which switches schemas
     $schema->txn_do(sub {
 
         for my $rel (keys %$embedded) {
