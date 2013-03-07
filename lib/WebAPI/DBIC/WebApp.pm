@@ -162,10 +162,7 @@ sub mk_generic_dbic_item_set_routes {
 
         resource => 'WebAPI::DBIC::Resource::GenericSetDBIC',
 
-        resultset => $rs->search_rs(undef, {
-            # XXX default attributes (see also getargs below)
-            order_by => { -asc => [ map { "me.$_" } $rs->result_source->primary_columns ] },
-        }),
+        resultset => $rs,
 
         getargs => sub {
             my ($request, $_rs, $id) = @_;
@@ -232,6 +229,12 @@ sub mk_generic_dbic_item_set_routes {
             # XXX abstract out the creation of error responses
             throw_bad_request(400, errors => \@errors)
                 if @errors;
+
+            # set a default order-by if one hasn't been specified
+            $args->{set} = $args->{set}->search_rs(undef, {
+                order_by => { -asc => [ map { "me.$_" } $rs->result_source->primary_columns ] },
+            }) if not $args->{set}->is_ordered
+                  and $args->{set}->is_paged;
 
             return $args;
         },

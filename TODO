@@ -1,16 +1,18 @@
 implement nested inserts
-implement returning new resource after insert/update, via ?prefetch=self ?
+
 error reporting (in HAL format)
 validation / db constraints
-
 look for business logic in stripes
 
-add partial response support (eg esp for sets with prefetch which get big)
+improve partial response support for prefetch
 use curie prefix in link keys
 
 limit fields returned by default - add to the code on demand, so we know the
 fields are actually being used and the inverse, that we can remove/change a
 field that's not being exposed and know that no users of the api will be affected.
+
+Refactor param handling to abstract ~json both for requests and constructing
+link urls (where json data isn't fully handled at the moment, other than pass-thru).
 
 check out https://metacpan.org/module/Catalyst::Controller::DBIC::API
 
@@ -23,6 +25,7 @@ Also http://stackoverflow.com/questions/319530/restful-authentication
 Varnish ESI:
 http://odino.org/some-common-questions-about-edge-side-includes/
 http://stackoverflow.com/questions/11781576/most-secure-javascript-json-inline-technique
+look into "Surrogate-Capability & Surrogate- Control headers for ESI based block caching"
 
 To update HAL browser
 git subtree pull --squash --prefix hal-browser git@github.com:mikekelly/hal-browser.git master

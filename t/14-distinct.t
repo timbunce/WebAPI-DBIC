@@ -18,7 +18,7 @@ note "===== GET distinct =====";
 
 
 test_psgi $app, sub {
-    Dwarn my $data = dsresp_ok(shift->(dsreq( GET => "/ecosystems?fields=status&order=status&distinct=1" )));
+    my $data = dsresp_ok(shift->(dsreq( GET => "/ecosystems?fields=status&order=status&distinct=1" )));
     my $set = is_set_with_embedded_key($data, "ecosystems", 3,20);
     for my $item (@$set) {
         is keys %$item, 1, 'has one element';

@@ -86,7 +86,10 @@ sub create_resources_from_hal {
     my $embedded = delete $hal->{_embedded} || {};
     my $item;
 
-    if (1) {
+    my $schema = $self->set->schema;
+    # XXX perhaps the transaction wrapper belongs higher in the stack
+    $schema->txn_do(sub {
+
         for my $rel (keys %$embedded) {
             my $rel_obj = $embedded->{$rel};
             # XXX this ought to recurse - we'd need to create temp WMs for each (via path router)
@@ -99,7 +102,9 @@ sub create_resources_from_hal {
 
         # finally create the primary resource
         $item = $self->create_resource($hal);
-    }
+
+        $schema->txn_rollback if $self->request->param('rollback'); # XXX
+    });
 
     return $item;
 }

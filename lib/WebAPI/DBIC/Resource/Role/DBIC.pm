@@ -41,13 +41,11 @@ sub render_item_as_hal {
     my ($self, $item) = @_;
 
     my $data = $self->render_item_as_plain($item);
-    my $itemurl = $self->path_for_item($item);
 
+    my $itemurl = $self->path_for_item($item);
     $data->{_links}{self} = {
         href => $self->mk_link_url("/$itemurl", {}, {})->as_string,
-    }
-        # some params mean we're not returning actual entities
-        unless $self->request->param('distinct');
+    };
 
     while (my ($prefetch, $info) = each %{ $self->prefetch || {} }) {
         next if $prefetch eq 'self';
@@ -159,14 +157,20 @@ sub _hal_page_links {
 
 sub render_set_as_hal {
     my ($self, $set) = @_;
-    my $set_data = [ map { $self->render_item_as_hal($_) } $set->all ];
-    my $path = $self->request->env->{'plack.router.match'}->{path};
+
+    # some params mean we're not returning resource representations
+    # so render the contents of the _embedded set as plain JSON
+    my $render_meth = ($self->request->param('distinct'))
+        ? 'render_item_as_plain'
+        : 'render_item_as_hal';
+    my $set_data = [ map { $self->$render_meth($_) } $set->all ];
 
     my $total_items;
     if (($self->request->param('with')||'') =~ /count/) { # XXX
         $total_items = $set->pager->total_entries;
     }
 
+    my $path = $self->request->env->{'plack.router.match'}->{path};
     my $data = {
         _embedded => {
             $path => $set_data,
