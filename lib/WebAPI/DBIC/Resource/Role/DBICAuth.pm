@@ -7,10 +7,17 @@ use WebAPI::DBIC::Util qw(create_header);
 requires 'set';
 requires 'item';
 
+sub _fmt_schema {
+    my $schema = shift;
+    no warnings;
+    join ", ", map { "$_ => $schema->{$_}" } sort keys %$schema;
+}
+
 sub _schema {
     my $self = shift;
     my ($schema, $alt) = map { $_ ? $_->result_source->schema : () } ($self->set, $self->item);
-    die "assert: set and item have different schema"
+    die sprintf "assert: set and item have different schema\n%s\n%s",
+            _fmt_schema($schema), _fmt_schema($alt)
         if $alt and $alt != $schema;
     return $schema;
 }
@@ -18,6 +25,7 @@ sub _schema {
 
 sub connect_schema_as {
     my ($self, $user, $pass) = @_;
+    $_[2] = '...'; # hide password from stack trace
 
     my $schema = $self->_schema;
     my $ci = $schema->storage->connect_info;
