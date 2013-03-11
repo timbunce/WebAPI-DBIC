@@ -6,6 +6,7 @@ use Test::HTTP::Response;
 use JSON;
 use URI;
 use Devel::Dwarn;
+use Carp;
 
 use parent 'Exporter';
 
@@ -18,6 +19,7 @@ our @EXPORT = qw(
     get_data
 );
 
+$Carp::Verbose = 1;
 
 sub _get_authorization_user_pass {
     # XXX TODO we ought to get the db realm name by querying the service

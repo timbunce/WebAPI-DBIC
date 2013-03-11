@@ -67,13 +67,15 @@ sub create_resource {
 
 sub render_item_into_body {
     my ($self, $item) = @_;
-    # XXX ought to be a dummy request?
+    # XXX ought to be a cloned request, with tweaked url/params? 
     my $item_request = $self->request;
     # XXX shouldn't hard-code GenericItemDBIC here
     my $item_resource = WebAPI::DBIC::Resource::GenericItemDBIC->new(
         request => $item_request, response => $item_request->new_response,
         set => $self->set, item => $item,
-    );
+        prefetch => $self->prefetch,
+        #  XXX others?
+    ); 
     $self->response->body( $item_resource->to_json_as_hal );
 
     return;
@@ -118,6 +120,7 @@ sub _create_embedded_resources {
         my $subitem = $self->_create_embedded_resources($rel_obj, $rel_info->{source});
 
         # copy the keys of the subitem up to the item we're about to create
+        warn "$class $rel: propagating keys: @{[ %fk_map ]}\n";
         while ( my ($ourfield, $subfield) = each %fk_map) {
             $hal->{$ourfield} = $subitem->$subfield();
         }
@@ -138,11 +141,13 @@ sub create_resources_from_hal {
 
         $item = $self->_create_embedded_resources($hal, $self->set->result_class);
 
+        # called here because create_path() is too late for WM
+        # and we need it to happen inside the transaction for rollback=1 to work
+        $self->render_item_into_body($item)
+            if $item && $self->prefetch->{self};
+
         $schema->txn_rollback if $self->request->param('rollback'); # XXX
     });
-
-    # called here because create_path() is too late for WM
-    $self->render_item_into_body($item) if $self->prefetch->{self};
 
     return $item;
 }

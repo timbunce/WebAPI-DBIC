@@ -313,7 +313,7 @@ while (my $r = shift @routes) {
 
 #warn "$r: args @{[%$args]}";
 #$DB::single=1;
-#local $SIG{__DIE__} = \&Carp::confess;
+local $SIG{__DIE__} = \&Carp::confess;
 
             # perform any required setup for this request
             # bail-out if a Plack::Response is given, eg an error

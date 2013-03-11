@@ -39,7 +39,7 @@ sub content_types_provided { [
 sub to_json_as_plain { $_[0]->encode_json($_[0]->render_item_as_plain($_[0]->item)) }
 sub to_json_as_hal {   $_[0]->encode_json($_[0]->render_item_as_hal($_[0]->item)) }
 
-sub from_plain_json { # used for hal too
+sub from_plain_json { # XXX currently used for hal too
     my $self = shift;
     my $data = $self->decode_json( $self->request->content );
     # discard hal attributes

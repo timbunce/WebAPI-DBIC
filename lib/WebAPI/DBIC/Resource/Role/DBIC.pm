@@ -49,8 +49,9 @@ sub render_item_as_hal {
 
     while (my ($prefetch, $info) = each %{ $self->prefetch || {} }) {
         next if $prefetch eq 'self';
+        my $subitem = $item->$prefetch();
         # XXX perhaps render_item_as_hal but requires cloned WM, eg without prefetch
-        $data->{_embedded}{$prefetch} = $self->render_item_as_plain($item->$prefetch);
+        $data->{_embedded}{$prefetch} = $self->render_item_as_plain($subitem);
     }
 
     # add links for relationships

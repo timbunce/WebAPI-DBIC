@@ -55,7 +55,7 @@ sub _url_edit {
 }
 
 for my $with_count (0, 1) {
-    for my $page (1,2,3) {
+    for my $page (1,2) {
         note "page $page, with small rows param".($with_count ? " with count" : "");
         test_psgi $app, sub {
             my $url = "/person_types?rows=2";
