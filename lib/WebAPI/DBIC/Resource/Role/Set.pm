@@ -65,28 +65,12 @@ sub create_resource {
     return $item;
 }
 
-sub render_item_into_body {
-    my ($self, $item) = @_;
-    # XXX ought to be a cloned request, with tweaked url/params? 
-    my $item_request = $self->request;
-    # XXX shouldn't hard-code GenericItemDBIC here
-    my $item_resource = WebAPI::DBIC::Resource::GenericItemDBIC->new(
-        request => $item_request, response => $item_request->new_response,
-        set => $self->set, item => $item,
-        prefetch => $self->prefetch,
-        #  XXX others?
-    ); 
-    $self->response->body( $item_resource->to_json_as_hal );
-
-    return;
-}
-
 
 # recurse to create resources in $hal->{_embedded}
 #   and update coresponding attributes in $hal
 # then create $hal itself
 sub _create_embedded_resources {
-    my ($self, $hal, $class) = @_;
+    my ($self, $hal, $result_class) = @_;
 
     my $links    = delete $hal->{_links};
     my $meta     = delete $hal->{_meta};
@@ -94,14 +78,14 @@ sub _create_embedded_resources {
 
     for my $rel (keys %$embedded) {
 
-        my $rel_info = $class->relationship_info($rel)
-            or die "$class doesn't have a '$rel' relation";
-        die "$class $rel isn't a single"
+        my $rel_info = $result_class->relationship_info($rel)
+            or die "$result_class doesn't have a '$rel' relation";
+        die "$result_class $rel isn't a single"
             if $rel_info->{attrs}{accessor} ne 'single';
 
-        my $rel_obj = $embedded->{$rel};
+        my $rel_hal = $embedded->{$rel};
         die "$rel data is not a hash"
-            if ref $rel_obj ne 'HASH';
+            if ref $rel_hal ne 'HASH';
 
         # work out what keys to copy from the subitem we're about to create
         my %fk_map;
@@ -112,21 +96,21 @@ sub _create_embedded_resources {
             $sub_field =~ s/^foreign\.// or die "panic $rel $sub_field";
             $fk_map{$our_field} = $sub_field;
 
-            die "$class already contains a value for '$our_field'\n"
+            die "$result_class already contains a value for '$our_field'\n"
                 if defined $hal->{$our_field}; # null is ok
         }
 
         # create this subitem (and any resources embedded in it)
-        my $subitem = $self->_create_embedded_resources($rel_obj, $rel_info->{source});
+        my $subitem = $self->_create_embedded_resources($rel_hal, $rel_info->{source});
 
         # copy the keys of the subitem up to the item we're about to create
-        warn "$class $rel: propagating keys: @{[ %fk_map ]}\n";
+        warn "$result_class $rel: propagating keys: @{[ %fk_map ]}\n";
         while ( my ($ourfield, $subfield) = each %fk_map) {
             $hal->{$ourfield} = $subitem->$subfield();
         }
     }
 
-    return $self->set->result_source->schema->resultset($class)->create($hal);
+    return $self->set->result_source->schema->resultset($result_class)->create($hal);
 }
 
 

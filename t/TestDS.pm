@@ -76,7 +76,6 @@ sub dsresp_ok {
         or diag $res->as_string;
     my $data;
     $res->header('Content-type')
-        and header_matches($res, 'Content-type', qr{^application/(?:hal\+)?json$})
         and $data = dsresp_json_data($res);
     return $data;
 }

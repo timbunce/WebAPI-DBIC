@@ -21,6 +21,7 @@ note "===== Create - POST =====";
 my $item;
 
 my %person_types;
+my @new_ids;
 my $new_desc = "dummy desc ".time();
 
 test_psgi $app, sub {
@@ -41,12 +42,15 @@ test_psgi $app, sub {
     }));
     my ($location, $data) = dsresp_created_ok($res);
     is $data, undef, 'no data returned without prefetch';
+
     $item = get_data($app, $location);
     ok $item->{id}, 'new item has id'
         or diag $item;
     ok !$person_types{$item->{id}}, 'new item has new id';
     is $item->{name}, $test_key_string;
     is $item->{description}, $desc;
+
+    push @new_ids, $item->{id};
 };
 
 note "post with prefetch=self";
@@ -65,16 +69,18 @@ test_psgi $app, sub {
     is $item->{description}, $desc;
 
     eq_or_diff $data, $item, 'returned prefetch matches item at location';
+    push @new_ids, $item->{id};
 };
 
 
-note "===== Update - PUT =====";
-
+note "===== Update - PUT ====="; # uses previous $item
 
 note "put without prefetch=self";
 test_psgi $app, sub {
     my $desc = "foo";
     my $data = dsresp_ok(shift->(dsreq( PUT => "/person_types/$item->{id}", [], {
+        id => $item->{id},
+        name => $test_key_string,
         description => $desc,
     })), 204);
     is $data, undef, 'no response body';
@@ -85,25 +91,32 @@ test_psgi $app, sub {
 note "put with prefetch=self";
 test_psgi $app, sub {
     my $desc = "bar";
-    my $data = dsresp_ok(shift->(dsreq( PUT => "/person_types/$item->{id}?prefetch=self", [], {
+    Dwarn my $data = dsresp_ok(shift->(dsreq( PUT => "/person_types/$item->{id}?prefetch=self", [], {
+        id => $item->{id},
+        name => $test_key_string,
         description => $desc,
     })), 200);
     is ref $data, 'HASH', 'has response body';
+    is $data->{description}, $desc, 'prefetch response has updated description';
+
     $item = get_data($app, "/person_types/$item->{id}");
+    $data->{id} += 0; # XXX hack to normalize JSON serialization
     eq_or_diff $data, $item, 'returned prefetch matches item at location';
 };
 
-=pod WIP
-test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq(
-        PUT => "/person_types"
-    )));
-    is_item($data);
-    is $data->{id}, 2, 'id';
-};
-=cut
 
 note "===== Delete - DELETE =====";
 
+note "delete";
+
+for my $id (@new_ids) {
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq( DELETE => "/person_types/$id", [], {})), 204);
+        is $data, undef, 'no response body';
+    };
+    test_psgi $app, sub {
+        dsresp_ok(shift->(dsreq( GET => "/person_types/$id", [], {})), 404);
+    };
+}
 
 done_testing();

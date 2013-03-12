@@ -37,6 +37,24 @@ sub path_for_item {
 }
 
 
+sub render_item_into_body {
+    my ($self, $item) = @_;
+    # XXX ought to be a cloned request, with tweaked url/params?
+    my $item_request = $self->request;
+    # XXX shouldn't hard-code GenericItemDBIC here
+    my $item_resource = WebAPI::DBIC::Resource::GenericItemDBIC->new(
+        request => $item_request, response => $item_request->new_response,
+        set => $self->set, item => $item,
+        prefetch => $self->prefetch,
+        #  XXX others?
+    );
+    Dwarn { B => { $item->get_inflated_columns }};
+    $self->response->body( $item_resource->to_json_as_hal );
+
+    return;
+}
+
+
 sub render_item_as_hal {
     my ($self, $item) = @_;
 

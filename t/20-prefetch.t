@@ -60,7 +60,7 @@ local $TODO = "partial response of prefetched items is not implemented yet";
 
 note "prefetch on item with partial response of prefetched item";
 test_psgi $app, sub {
-   Dwarn  my $data = dsresp_ok(shift->(dsreq( GET => "/ecosystems_people/1?prefetch=person,client_auth&fields=id,client_auth.id,person.id" )));
+    my $data = dsresp_ok(shift->(dsreq( GET => "/ecosystems_people/1?prefetch=person,client_auth&fields=id,client_auth.id,person.id" )));
     my $item = is_item($data, 1,1);
     my $embedded = has_embedded($data, 2,2);
     is ref $embedded->{client_auth}, 'HASH', "has embedded client_auth_id";
@@ -74,7 +74,7 @@ test_psgi $app, sub {
 
 note "prefetch on set with partial response of prefetched items";
 test_psgi $app, sub {
-    Dwarn my $data = dsresp_ok(shift->(dsreq( GET => "/ecosystems_people?rows=2&page=3&prefetch=person,client_auth&fields=id,client_auth.id,person.id" )));
+    my $data = dsresp_ok(shift->(dsreq( GET => "/ecosystems_people?rows=2&page=3&prefetch=person,client_auth&fields=id,client_auth.id,person.id" )));
     my $set = is_set_with_embedded_key($data, "ecosystems_people", 2,2);
     for my $item (@$set) {
         my $embedded = has_embedded($item, 2,2);

@@ -50,7 +50,6 @@ test_psgi $app, sub {
     my ($location, $data) = dsresp_created_ok($res);
     like $location, qr{^/persons/\d+$}, 'returns reasonable Location';
 
-    Dwarn $data;
     is ref $data, 'HASH', 'return data';
     is $data->{full_name}, "$test_key_string test deleteme", 'has full_name';
     ok $data->{deleted_at}, 'has deleted_at';

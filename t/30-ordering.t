@@ -20,7 +20,7 @@ sub is_ordered {
     my ($got, $value_sub, @types) = @_;
 
     my $sorter = multikeysorter($value_sub, @types);
-    Dwarn my @ordered = $sorter->(@$got);
+    my @ordered = $sorter->(@$got);
 
     my @got_view = map { join "+", $value_sub->($_) } @$got;
     my @ord_view = map { join "+", $value_sub->($_) } @ordered;
