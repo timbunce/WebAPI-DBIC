@@ -283,6 +283,7 @@ else {
 
     push @routes, mk_generic_dbic_item_set_routes( 'person_types' => 'PersonType');
     push @routes, mk_generic_dbic_item_set_routes( 'persons' => 'People');
+    push @routes, mk_generic_dbic_item_set_routes( 'phones' => 'Phone');
     push @routes, mk_generic_dbic_item_set_routes( 'person_emails' => 'Email');
     push @routes, mk_generic_dbic_item_set_routes( 'client_auths' => 'ClientAuth');
     push @routes, mk_generic_dbic_item_set_routes( 'ecosystems' => 'Ecosystem');
