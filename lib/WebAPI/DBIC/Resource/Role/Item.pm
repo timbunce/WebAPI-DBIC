@@ -45,7 +45,7 @@ sub to_json_as_hal {   $_[0]->encode_json($_[0]->render_item_as_hal($_[0]->item)
 sub from_plain_json { # XXX currently used for hal too
     my $self = shift;
     my $data = $self->decode_json( $self->request->content );
-    $self->update_resource($data, is_put_replace => 1);
+    $self->update_resource($data, is_put_replace => 0);
     #$self->response->body( $self->to_json_as_hal ) if $self->prefetch->{self};
 }
 
@@ -54,7 +54,7 @@ sub resource_exists { !! $_[0]->item }
 sub allowed_methods {
    [
       qw(GET HEAD),
-      ( $_[0]->writable || 1 ) ? (qw(PUT POST DELETE)) : ()
+      ( $_[0]->writable || 1 ) ? (qw(PUT DELETE)) : ()
    ]
 }
 
@@ -127,15 +127,15 @@ sub update_resource {
         if ($is_put_replace) {
             # PUT == http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.6
 
-            my $links    = delete $hal->{_links};
-            my $meta     = delete $hal->{_meta};
-            my $embedded = delete $hal->{_embedded} && die "_embedded not supported here (yet?)\n";
-
             # Using delete() followed by create() is a strict implementation
             # of treating PUT on an item as a REPLACE, but it might not be ideal.
             # Specifically it requires any FKs to be DEFERRED and it'll less
-            # efficient than a simple UPDATE.
-            # So this could me made optional on a per-resource-class basis.
+            # efficient than a simple UPDATE. There's also a concern that if
+            # the REST API only has a partial view of the resource, ie not all
+            # columns, then do we want the original deleted if the 'hidden'
+            # fields can't be set?
+            # So this could me made optional on a per-resource-class basis,
+            # and/or via a request parameter.
 
             # we require PK fields to at least be defined
             # XXX we ought to check that they match the URL since a PUT is
@@ -147,8 +147,11 @@ sub update_resource {
             my $old_item = $self->item; # XXX might already be gone since the find()
             $old_item->delete if $old_item; # XXX might already be gone since the find()
 
+            my $links    = delete $hal->{_links};
+            my $meta     = delete $hal->{_meta};
+            my $embedded = delete $hal->{_embedded} && die "_embedded not supported here (yet?)\n";
+
             $item = $self->set->create($hal);
-Dwarn { A => { $item->get_inflated_columns }};
 
             $self->response->header('Location' => $self->path_for_item($item))
                 unless $old_item; # set Location and thus 201 if Created not modified

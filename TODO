@@ -1,5 +1,3 @@
-implement nested inserts
-
 error reporting (in HAL format)
 validation / db constraints
 look for business logic in stripes

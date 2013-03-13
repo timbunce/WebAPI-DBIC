@@ -48,7 +48,6 @@ sub render_item_into_body {
         prefetch => $self->prefetch,
         #  XXX others?
     );
-    Dwarn { B => { $item->get_inflated_columns }};
     $self->response->body( $item_resource->to_json_as_hal );
 
     return;

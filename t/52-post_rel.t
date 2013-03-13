@@ -14,7 +14,7 @@ my $test_key_string = "clients_dataservice";
 
 my $app = require 'clients_dsapi.psgi'; # WebAPI::DBIC::WebApp;
 
-note "===== Create - POST =====";
+note "===== Create item, with embedded items, by POST to set =====";
 
 my $item;
 

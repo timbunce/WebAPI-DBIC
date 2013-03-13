@@ -79,8 +79,6 @@ note "put without prefetch=self";
 test_psgi $app, sub {
     my $desc = "foo";
     my $data = dsresp_ok(shift->(dsreq( PUT => "/person_types/$item->{id}", [], {
-        id => $item->{id},
-        name => $test_key_string,
         description => $desc,
     })), 204);
     is $data, undef, 'no response body';
@@ -92,22 +90,17 @@ note "put with prefetch=self";
 test_psgi $app, sub {
     my $desc = "bar";
     Dwarn my $data = dsresp_ok(shift->(dsreq( PUT => "/person_types/$item->{id}?prefetch=self", [], {
-        id => $item->{id},
-        name => $test_key_string,
         description => $desc,
     })), 200);
     is ref $data, 'HASH', 'has response body';
     is $data->{description}, $desc, 'prefetch response has updated description';
 
     $item = get_data($app, "/person_types/$item->{id}");
-    $data->{id} += 0; # XXX hack to normalize JSON serialization
     eq_or_diff $data, $item, 'returned prefetch matches item at location';
 };
 
 
 note "===== Delete - DELETE =====";
-
-note "delete";
 
 for my $id (@new_ids) {
     test_psgi $app, sub {
