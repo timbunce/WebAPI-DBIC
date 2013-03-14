@@ -67,7 +67,7 @@ test_psgi $app, sub {
 };
 
 test_psgi $app, sub {
-    dsresp_ok(shift->(dsreq( DELETE => "/persons/$orig_item->{id}")));
+    dsresp_ok(shift->(dsreq( DELETE => "/persons/$orig_item->{id}")), 204);
 };
 
 done_testing();
