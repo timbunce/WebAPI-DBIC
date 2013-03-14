@@ -16,9 +16,13 @@ sub _fmt_schema {
 sub _schema {
     my $self = shift;
     my ($schema, $alt) = map { $_ ? $_->result_source->schema : () } ($self->set, $self->item);
-    die sprintf "assert: set and item have different schema\n%s\n%s",
-            _fmt_schema($schema), _fmt_schema($alt)
-        if $alt and $alt != $schema;
+    if ($alt and $alt != $schema) {
+        $self->request->env->{'psgix.harakiri.commit'} = 1;
+        warn $schema->storage->dbh;
+        warn $alt->storage->dbh;
+        die sprintf "$$ assert: set and item have different schema\n%s\n%s",
+            _fmt_schema($schema), _fmt_schema($alt);
+    }
     return $schema;
 }
 

@@ -5,7 +5,7 @@ package WebAPI::DBIC::WebApp;
 BEGIN {
     $ENV{WM_DEBUG} ||= 0; # verbose
     $ENV{DBIC_TRACE} ||= 1;
-    $ENV{DBI_TRACE} ||= 0;
+    $ENV{DBI_TRACE} ||= 0 || ($ENV{TL_ENVIRONMENT} eq 'staging' ? 1 : 0);
     $ENV{PATH_ROUTER_DEBUG} ||= 0;
     $|++;
 }
@@ -383,4 +383,4 @@ if (1) { # root level links to describe/explore the api (eg for the hal-browser)
     );
 }
 
-Plack::App::Path::Router->new( router => $router ); # return Plack app
+Plack::App::Path::Router->new( router => $router )->to_app; # return Plack app
