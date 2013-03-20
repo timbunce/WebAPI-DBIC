@@ -44,7 +44,8 @@ sub render_item_into_body {
     # XXX shouldn't hard-code GenericItemDBIC here
     my $item_resource = WebAPI::DBIC::Resource::GenericItemDBIC->new(
         request => $item_request, response => $item_request->new_response,
-        set => $self->set, item => $item,
+        set => $self->set,
+        item => $item, id => undef, # XXX dummy id
         prefetch => $self->prefetch,
         #  XXX others?
     );

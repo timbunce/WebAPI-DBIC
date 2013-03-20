@@ -15,6 +15,9 @@ sub _fmt_schema {
 
 sub _schema {
     my $self = shift;
+    # new way, now item() is lazily created from set later in the flow
+    return $self->set->result_source->schema;
+    # XXX old
     my ($schema, $alt) = map { $_ ? $_->result_source->schema : () } ($self->set, $self->item);
     if ($alt and $alt != $schema) {
         $self->request->env->{'psgix.harakiri.commit'} = 1;

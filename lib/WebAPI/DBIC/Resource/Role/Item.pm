@@ -12,12 +12,18 @@ requires 'decode_json';
 
 has set => (
    is => 'ro',
-   required => 0,
+   required => 1,
+);
+
+has id => (
+   is => 'ro',
+   required => 1,
 );
 
 has item => (
    is => 'ro',
-   required => 1,
+   lazy => 1,
+   builder => '_build_item'
 );
 
 has writable => (
@@ -28,6 +34,11 @@ has prefetch => (
    is => 'ro',
    default => sub { { } },
 );
+
+sub _build_item {
+    my $self = shift;
+    $self->set->find($self->id);
+}
 
 
 sub content_types_accepted { [

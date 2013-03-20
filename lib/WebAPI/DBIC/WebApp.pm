@@ -256,7 +256,8 @@ sub mk_generic_dbic_item_set_routes {
             _handle_fields_param(\%args, $request->param('fields'))
                 if $request->param('fields');
 
-            $args{item} = $args{set}->find($id);
+            #$args{item} = $args{set}->find($id);
+            $args{id} = $id;
             return \%args;
         },
         resource => 'WebAPI::DBIC::Resource::GenericItemDBIC',
