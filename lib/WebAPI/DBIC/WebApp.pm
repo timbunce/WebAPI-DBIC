@@ -41,114 +41,33 @@ my $schema = WebAPI::Schema::Corp->new_default_connect(
 {
     package My::HTTP::Throwable::Factory;
     use parent 'HTTP::Throwable::Factory';
-    sub extra_roles { 'HTTP::Throwable::Role::JSONBody' } # remove HTTP::Throwable::Role::TextBody
-}
+    use Carp qw(cluck);
+    use JSON;
 
-sub throw_bad_request {
-    my ($status, %opts) = @_;
-    cluck("bad status") unless $status =~ /^4\d\d$/;
-
-    # XXX TODO validations
-    my $data = {
-        errors => $opts{errors},
-    };
-    my $json_body = JSON->new->ascii->pretty->encode($data);
-    # [ 'Content-Type' => 'application/hal+json' ],
-    My::HTTP::Throwable::Factory->throw( BadRequest => {
-        status_code => $status,
-        message => $json_body,
-    });
-}
-
-
-sub _handle_prefetch_param {
-    my ($args, $param) = @_;
-
-    my %prefetch = map { $_ => {} } split(',', $param||"");
-    return unless %prefetch;
-
-    my $result_class = $args->{set}->result_class;
-    for my $prefetch (keys %prefetch) {
-
-        next if $prefetch eq 'self'; # used in POST/PUT handling
-
-        my $rel = $result_class->relationship_info($prefetch);
-
-        # limit to simple single relationships, e.g., belongs_to
-        throw_bad_request(400, errors => [{
-                    $prefetch => "not a valid relationship",
-                    _meta => {
-                        relationship => $rel,
-                        relationships => [ $result_class->relationships ]
-                    }, # XXX
-                }])
-            unless $rel
-                and $rel->{attrs}{accessor} eq 'single'       # sanity
-                and $rel->{attrs}{is_foreign_key_constraint}; # safety/speed
+    sub extra_roles {
+        'HTTP::Throwable::Role::JSONBody', # remove HTTP::Throwable::Role::TextBody
+        'StackTrace::Auto',
     }
 
-    # XXX hack?: perhaps use {embedded}{$key} = sub { ... };
-    # see lib/WebAPI/DBIC/Resource/Role/DBIC.pm
-    $args->{prefetch} = { %prefetch };
+    sub throw_bad_request {
+        my ($class, $status, %opts) = @_;
+        cluck("bad status") unless $status =~ /^4\d\d$/;
+        cluck("throw_bad_request @_");
 
-    delete $prefetch{self};
-    $args->{set} = $args->{set}->search_rs(undef, { prefetch => [ keys %prefetch ] })
-        if %prefetch;
-}
-
-
-sub _handle_order_param {
-    my ($args, $param) = @_;
-    my @order_spec;
-
-    for my $clause (split /\s*,\s*/, $param) {
-        # we take care to avoid injection risks
-        my ($field, $dir) = ($clause =~ /^([a-z0-9_\.]*)\b(?:\s+(asc|desc))?\s*$/i);
-        unless (defined $field) {
-            throw_bad_request(400, errors => [{
-                parameter => "invalid order clause",
-                _meta => { order => $clause, }, # XXX
-            }]);
-        }
-        $dir ||= 'asc';
-        push @order_spec, { "-$dir" => $field };
+        # XXX TODO validations
+        my $data = {
+            errors => $opts{errors},
+        };
+        my $json_body = JSON->new->ascii->pretty->encode($data);
+        # [ 'Content-Type' => 'application/hal+json' ],
+        $class->throw( BadRequest => {
+            status_code => $status,
+            message => $json_body,
+        });
     }
 
-    $args->{set} = $args->{set}->search_rs(undef, { order_by => \@order_spec })
-        if @order_spec;
 }
 
-
-sub _handle_fields_param {
-    my ($args, $param) = @_;
-    my @columns;
-
-    if (ref $param eq 'ARRAY') {
-        @columns = @$param;
-    }
-    else {
-        @columns = split /\s*,\s*/, $param;
-        for my $clause (@columns) {
-            # we take care to avoid injection risks
-            my ($field) = ($clause =~ /^([a-z0-9_\.]*)$/);
-            throw_bad_request(400, errors => [{
-                parameter => "invalid fields clause",
-                _meta => { fields => $field, }, # XXX
-            }]) if not defined $field;
-            # sadly columns=>[...] doesn't work to limit the fields of prefetch relations
-            # so we disallow that for now. It's possible we could achieve the same effect
-            # using explicit join's for non-has-many rels, or perhaps using
-            # as_subselect_rs
-            throw_bad_request(400, errors => [{
-                parameter => "invalid fields clause - can't refer to prefetch relations at the moment",
-                _meta => { fields => $field, }, # XXX
-            }]) if $field =~ m/\./;
-        }
-    }
-
-    $args->{set} = $args->{set}->search_rs(undef, { columns => \@columns })
-        if @columns;
-}
 
 
 
@@ -208,13 +127,10 @@ sub mk_generic_dbic_item_set_routes {
                         unless $params{fields} eq $params{order};
                 }
                 elsif ($param eq 'prefetch') {
-                     _handle_prefetch_param($args, $val);
                 }
                 elsif ($param eq 'order') {
-                    _handle_order_param($args, $val);
                 }
                 elsif ($param eq 'fields') {
-                    _handle_fields_param($args, $val);
                 }
                 elsif ($param eq 'page' or $param eq 'rows') {
                     # handled above
@@ -230,7 +146,7 @@ sub mk_generic_dbic_item_set_routes {
                 }
             }
             # XXX abstract out the creation of error responses
-            throw_bad_request(400, errors => \@errors)
+            My::HTTP::Throwable::Factory->throw_bad_request(400, errors => \@errors)
                 if @errors;
 
             # set a default order-by if one hasn't been specified
@@ -251,10 +167,8 @@ sub mk_generic_dbic_item_set_routes {
             my ($request, $rs, $id) = @_;
             my %args = (set => $rs);
 
-            _handle_prefetch_param(\%args, $request->param('prefetch'))
-                if $request->param('prefetch');
-            _handle_fields_param(\%args, $request->param('fields'))
-                if $request->param('fields');
+            #_handle_prefetch_param(\%args, $request->param('prefetch')) if $request->param('prefetch');
+            #_handle_fields_param(\%args, $request->param('fields')) if $request->param('fields');
 
             #$args{item} = $args{set}->find($id);
             $args{id} = $id;
@@ -329,6 +243,7 @@ local $SIG{__DIE__} = \&Carp::confess;
                 debris   => {
                     set => $rs,
                     writable => $writable,
+                    throwable => 'My::HTTP::Throwable::Factory',
                     %$args
                 },
                 tracing => !$in_production,

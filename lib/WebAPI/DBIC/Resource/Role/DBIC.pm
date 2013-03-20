@@ -10,6 +10,11 @@ has prefetch => (
     default => sub { {} },
 );
 
+has throwable => (
+    is => 'rw',
+    required => 1,
+);
+
 
 # XXX probably shouldn't be a role, just functions, or perhaps a separate rendering object
 
@@ -47,6 +52,7 @@ sub render_item_into_body {
         set => $self->set,
         item => $item, id => undef, # XXX dummy id
         prefetch => $self->prefetch,
+        throwable => $self->throwable,
         #  XXX others?
     );
     $self->response->body( $item_resource->to_json_as_hal );
@@ -214,6 +220,19 @@ sub finish_request {
     my $exception = $metadata->{'exception'};
     return unless $exception;
 
+    if (ref $exception && $exception->can('as_psgi')) {
+        Dwarn $exception->as_psgi;
+        my ($status, $headers, $body) = @{ $exception->as_psgi };
+        $self->response->status($status);
+        $self->response->headers($headers);
+        $self->response->body($body);
+        Dwarn $self->response;
+        return;
+    }
+
+    #$exception->rethrow if ref $exception and $exception->can('rethrow');
+    #die $exception if ref $exception;
+
     (my $line1 = $exception) =~ s/\n.*//ms;
 
     my $error_data;
@@ -265,8 +284,16 @@ sub _handle_page_param {
 }
 
 sub _handle_with_param { }
-sub _handle_me_param { }
 sub _handle_rollback_param { }
+
+sub _handle_me_param {
+    my ($self, $value, $param) = @_;
+    # we use me.relation.field=... to refer to relations via this param
+    # so the param can be recognized by the leading 'me.'
+    # but we strip off the leading 'me.' if there's a me.foo.bar
+    $param =~ s/^me\.// if $param =~ m/^me\.\w+\.\w+/;
+    $self->set( $self->set->search_rs({ $param => $value }) );
+}
 
 sub _handle_prefetch_param {
     my ($self, $value) = @_;
@@ -282,7 +309,7 @@ sub _handle_prefetch_param {
         my $rel = $result_class->relationship_info($prefetch);
 
         # limit to simple single relationships, e.g., belongs_to
-        throw_bad_request(400, errors => [{
+        $self->throwable->throw_bad_request(400, errors => [{
                     $prefetch => "not a valid relationship",
                     _meta => {
                         relationship => $rel,
@@ -316,7 +343,7 @@ sub _handle_fields_param {
         for my $clause (@columns) {
             # we take care to avoid injection risks
             my ($field) = ($clause =~ /^([a-z0-9_\.]*)$/);
-            throw_bad_request(400, errors => [{
+            $self->throwable->throw_bad_request(400, errors => [{
                 parameter => "invalid fields clause",
                 _meta => { fields => $field, }, # XXX
             }]) if not defined $field;
@@ -324,7 +351,7 @@ sub _handle_fields_param {
             # so we disallow that for now. It's possible we could achieve the same effect
             # using explicit join's for non-has-many rels, or perhaps using
             # as_subselect_rs
-            throw_bad_request(400, errors => [{
+            $self->throwable->throw_bad_request(400, errors => [{
                 parameter => "invalid fields clause - can't refer to prefetch relations at the moment",
                 _meta => { fields => $field, }, # XXX
             }]) if $field =~ m/\./;
@@ -344,7 +371,7 @@ sub _handle_order_param {
         # we take care to avoid injection risks
         my ($field, $dir) = ($clause =~ /^([a-z0-9_\.]*)\b(?:\s+(asc|desc))?\s*$/i);
         unless (defined $field) {
-            throw_bad_request(400, errors => [{
+            $self->throwable->throw_bad_request(400, errors => [{
                 parameter => "invalid order clause",
                 _meta => { order => $clause, }, # XXX
             }]);
@@ -389,7 +416,7 @@ sub handle_request_params {
         my $method = "_handle_${tag}_param";
         die "The $param parameter is not supported by the $self resources"
             unless $self->can($method);
-        $self->$method($v[0]);
+        $self->$method($v[0], $param);
     }
 
     return 0;
