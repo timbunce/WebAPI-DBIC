@@ -243,4 +243,157 @@ sub finish_request {
 }
 
 
+# ===== move elsewhere? =====
+
+
+sub malformed_request {
+    my $self = shift;
+
+    $self->handle_request_params;
+    return 0;
+}
+
+
+sub _handle_rows_param {
+    my ($self, $value) = @_;
+    $self->set( $self->set->search_rs(undef, { rows => $value }) );
+}
+
+sub _handle_page_param {
+    my ($self, $value) = @_;
+    $self->set( $self->set->search_rs(undef, { page => $value }) );
+}
+
+sub _handle_with_param { }
+sub _handle_me_param { }
+sub _handle_rollback_param { }
+
+sub _handle_prefetch_param {
+    my ($self, $value) = @_;
+
+    my %prefetch = map { $_ => {} } split(',', $value||"");
+    return unless %prefetch;
+
+    my $result_class = $self->set->result_class;
+    for my $prefetch (keys %prefetch) {
+
+        next if $prefetch eq 'self'; # used in POST/PUT handling
+
+        my $rel = $result_class->relationship_info($prefetch);
+
+        # limit to simple single relationships, e.g., belongs_to
+        throw_bad_request(400, errors => [{
+                    $prefetch => "not a valid relationship",
+                    _meta => {
+                        relationship => $rel,
+                        relationships => [ $result_class->relationships ]
+                    }, # XXX
+                }])
+            unless $rel
+                and $rel->{attrs}{accessor} eq 'single'       # sanity
+                and $rel->{attrs}{is_foreign_key_constraint}; # safety/speed
+    }
+
+    # XXX hack?: perhaps use {embedded}{$key} = sub { ... };
+    # see lib/WebAPI/DBIC/Resource/Role/DBIC.pm
+    $self->prefetch({ %prefetch });
+
+    delete $prefetch{self};
+    $self->set( $self->set->search_rs(undef, { prefetch => [ keys %prefetch ] }))
+        if %prefetch;
+}
+
+
+sub _handle_fields_param {
+    my ($self, $value) = @_;
+    my @columns;
+
+    if (ref $value eq 'ARRAY') {
+        @columns = @$value;
+    }
+    else {
+        @columns = split /\s*,\s*/, $value;
+        for my $clause (@columns) {
+            # we take care to avoid injection risks
+            my ($field) = ($clause =~ /^([a-z0-9_\.]*)$/);
+            throw_bad_request(400, errors => [{
+                parameter => "invalid fields clause",
+                _meta => { fields => $field, }, # XXX
+            }]) if not defined $field;
+            # sadly columns=>[...] doesn't work to limit the fields of prefetch relations
+            # so we disallow that for now. It's possible we could achieve the same effect
+            # using explicit join's for non-has-many rels, or perhaps using
+            # as_subselect_rs
+            throw_bad_request(400, errors => [{
+                parameter => "invalid fields clause - can't refer to prefetch relations at the moment",
+                _meta => { fields => $field, }, # XXX
+            }]) if $field =~ m/\./;
+        }
+    }
+
+    $self->set( $self->set->search_rs(undef, { columns => \@columns }) )
+        if @columns;
+}
+
+
+sub _handle_order_param {
+    my ($self, $value) = @_;
+    my @order_spec;
+
+    for my $clause (split /\s*,\s*/, $value) {
+        # we take care to avoid injection risks
+        my ($field, $dir) = ($clause =~ /^([a-z0-9_\.]*)\b(?:\s+(asc|desc))?\s*$/i);
+        unless (defined $field) {
+            throw_bad_request(400, errors => [{
+                parameter => "invalid order clause",
+                _meta => { order => $clause, }, # XXX
+            }]);
+        }
+        $dir ||= 'asc';
+        push @order_spec, { "-$dir" => $field };
+    }
+
+    $self->set( $self->set->search_rs(undef, { order_by => \@order_spec }) )
+        if @order_spec;
+}
+
+
+sub _handle_distinct_param {
+    my ($self, $value) = @_;
+    my @errors;
+
+    # these restrictions avoid edge cases we don't want to deal with yet
+    push @errors, "distinct param requires order param"
+        unless $self->params->{order};
+    push @errors, "distinct param requires fields param"
+        unless $self->params->{fields};
+    push @errors, "distinct param requires fields and orders params to have same value"
+        unless $self->params->{fields} eq $self->params->{order};
+    die join(", ", @errors) if @errors; # XXX throw
+
+    $self->set( $self->set->search_rs(undef, { distinct => $value }) );
+}
+
+
+
+sub handle_request_params {
+    my $self = shift;
+
+    for my $param (keys %{ $self->params }) {
+
+        # XXX we don't handle multiple params with same name
+        my @v = $self->params->get_all($param);
+        die "multiple $param parameters supplied" if @v > 1;
+
+        (my $tag = $param) =~ s/\..*//; # 'me.id' => 'me'
+        my $method = "_handle_${tag}_param";
+        die "The $param parameter is not supported by the $self resources"
+            unless $self->can($method);
+        $self->$method($self->params->{$param});
+    }
+
+    return 0;
+}
+
+
 1;

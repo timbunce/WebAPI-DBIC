@@ -11,7 +11,7 @@ requires 'decode_json';
 requires 'encode_json';
 
 has set => (
-   is => 'ro',
+   is => 'rw',
    required => 1,
 );
 
