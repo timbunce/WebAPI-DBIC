@@ -177,7 +177,7 @@ sub update_resource {
         $self->render_item_into_body($item)
             if $item && $self->prefetch->{self};
 
-        $schema->txn_rollback if $self->request->param('rollback'); # XXX
+        $schema->txn_rollback if $self->param('rollback'); # XXX
     });
 }
 

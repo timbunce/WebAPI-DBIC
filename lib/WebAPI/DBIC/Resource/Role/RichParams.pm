@@ -6,11 +6,22 @@ use Carp qw(croak);
 use Devel::Dwarn;
 use JSON;
 
-has params => (
+has parameters => (
     is => 'rw',
     lazy => 1,
     builder => '_build_params',
 );
+
+
+sub param {
+    my $self = shift;
+
+    return keys %{ $self->parameters } if @_ == 0;
+
+    my $key = shift;
+    return $self->parameters->{$key} unless wantarray;
+    return $self->parameters->get_all($key);
+}
 
 
 sub _build_params {

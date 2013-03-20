@@ -182,13 +182,13 @@ sub render_set_as_hal {
 
     # some params mean we're not returning resource representations
     # so render the contents of the _embedded set as plain JSON
-    my $render_meth = ($self->request->param('distinct'))
+    my $render_meth = ($self->param('distinct'))
         ? 'render_item_as_plain'
         : 'render_item_as_hal';
     my $set_data = [ map { $self->$render_meth($_) } $set->all ];
 
     my $total_items;
-    if (($self->request->param('with')||'') =~ /count/) { # XXX
+    if (($self->param('with')||'') =~ /count/) { # XXX
         $total_items = $set->pager->total_entries;
     }
 
@@ -364,11 +364,11 @@ sub _handle_distinct_param {
 
     # these restrictions avoid edge cases we don't want to deal with yet
     push @errors, "distinct param requires order param"
-        unless $self->params->{order};
+        unless $self->param('order');
     push @errors, "distinct param requires fields param"
-        unless $self->params->{fields};
-    push @errors, "distinct param requires fields and orders params to have same value"
-        unless $self->params->{fields} eq $self->params->{order};
+        unless $self->param('fields');
+    push @errors, "distinct param requires fields and orders parameters to have same value"
+        unless $self->param('fields') eq $self->param('order');
     die join(", ", @errors) if @errors; # XXX throw
 
     $self->set( $self->set->search_rs(undef, { distinct => $value }) );
@@ -379,17 +379,17 @@ sub _handle_distinct_param {
 sub handle_request_params {
     my $self = shift;
 
-    for my $param (keys %{ $self->params }) {
+    for my $param ($self->param) {
 
         # XXX we don't handle multiple params with same name
-        my @v = $self->params->get_all($param);
+        my @v = $self->param($param);
         die "multiple $param parameters supplied" if @v > 1;
 
         (my $tag = $param) =~ s/\..*//; # 'me.id' => 'me'
         my $method = "_handle_${tag}_param";
         die "The $param parameter is not supported by the $self resources"
             unless $self->can($method);
-        $self->$method($self->params->{$param});
+        $self->$method($v[0]);
     }
 
     return 0;
