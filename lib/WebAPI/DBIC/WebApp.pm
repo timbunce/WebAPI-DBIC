@@ -70,7 +70,6 @@ my $schema = WebAPI::Schema::Corp->new_default_connect(
 
 
 
-
 sub mk_generic_dbic_item_set_routes {
     my ($path, $resultset) = @_;
     my @routes;
@@ -78,103 +77,21 @@ sub mk_generic_dbic_item_set_routes {
     my $rs = $schema->resultset($resultset);
 
     push @routes, "$path" => { # set (aka collection)
-
         resource => 'WebAPI::DBIC::Resource::GenericSetDBIC',
-
         resultset => $rs,
-
         getargs => sub {
-            my ($request, $_rs, $id) = @_;
-            my $args = { set => $_rs };
-
-            # XXX TODO add params hashref to debris, load from query params with validation and defaults
-
-            $args->{set} = $args->{set}->page($request->param('page') || 1);
-            # XXX this breaks encapsulation but seems safe enough just after page() above
-            $args->{set}->{attrs}{rows} = $request->param('rows') || 30;
-
-            # normalize params, eg handle ~json
-            my %params;
-            for my $param (keys %{ $request->parameters }) {
-                my $val = $request->param($param);
-
-                # parameter names with a ~json suffix have JSON encoded values
-                my $is_json = ($param =~ s/~json$//);
-                $val = JSON->new->allow_nonref->decode($val) if $is_json;
-
-                $params{$param} = $val;
-            }
-
-            my @errors;
-            for my $param (keys %params) {
-                my $val = $params{$param};
-
-                if ($param =~ /^me\.\w+(?:\.\w+)*$/) {
-                    # we use me.relation.field=... to refer to relations via this param
-                    # so the param can be recognized by the leading 'me.'
-                    # but we strip off the leading 'me.' if there's a me.foo.bar
-                    $param =~ s/^me\.// if $param =~ m/^me\.\w+\.\w+/;
-                    $args->{set} = $args->{set}->search_rs({ $param => $val });
-                }
-                elsif ($param eq 'distinct') {
-                    $args->{set} = $args->{set}->search_rs(undef, { distinct => $val });
-                    # these restrictions avoid edge cases we don't want to deal with yet
-                    push @errors, "distinct param requires order param"
-                        unless $params{order};
-                    push @errors, "distinct param requires fields param"
-                        unless $params{fields};
-                    push @errors, "distinct param requires fields and orders params to have same value"
-                        unless $params{fields} eq $params{order};
-                }
-                elsif ($param eq 'prefetch') {
-                }
-                elsif ($param eq 'order') {
-                }
-                elsif ($param eq 'fields') {
-                }
-                elsif ($param eq 'page' or $param eq 'rows') {
-                    # handled above
-                }
-                elsif ($param eq 'with') { # XXX with=count - generalize
-                    # handled in lib/WebAPI/DBIC/Resource/Role/DBIC.pm
-                }
-                elsif ($param eq 'rollback') {
-                    # handled in lib/WebAPI/DBIC/Resource/Role/Set.pm currently
-                }
-                else {
-                    push @errors, { $param => "unknown parameter" };
-                }
-            }
-            # XXX abstract out the creation of error responses
-            My::HTTP::Throwable::Factory->throw_bad_request(400, errors => \@errors)
-                if @errors;
-
-            # set a default order-by if one hasn't been specified
-            $args->{set} = $args->{set}->search_rs(undef, {
-                order_by => { -asc => [ map { "me.$_" } $rs->result_source->primary_columns ] },
-            }) if not $args->{set}->is_ordered
-                  and $args->{set}->is_paged;
-
-            return $args;
+            my ($request, $args) = @_;
         },
     };
 
     push @routes, "$path/:id" => { # item
         validations => { id => qr/^\d+$/ },
-        resource => 'WebAPI::DBIC::Resource::GenericSetDBIC',
+        resource => 'WebAPI::DBIC::Resource::GenericItemDBIC',
         resultset => $rs,
         getargs => sub {
-            my ($request, $rs, $id) = @_;
-            my %args = (set => $rs);
-
-            #_handle_prefetch_param(\%args, $request->param('prefetch')) if $request->param('prefetch');
-            #_handle_fields_param(\%args, $request->param('fields')) if $request->param('fields');
-
-            #$args{item} = $args{set}->find($id);
-            $args{id} = $id;
-            return \%args;
+            my ($request, $args, $id) = @_;
+            $args->{id} = $id;
         },
-        resource => 'WebAPI::DBIC::Resource::GenericItemDBIC',
     };
 
     return @routes;
@@ -233,19 +150,18 @@ local $SIG{__DIE__} = \&Carp::confess;
 
             # perform any required setup for this request
             # bail-out if a Plack::Response is given, eg an error
-            my $args = $getargs ? $getargs->($request, $rs, @_) : {};
-            return $args if UNIVERSAL::can($args, 'finalize');
+            my %debris = (
+                set => $rs,
+                writable => $writable,
+                throwable => 'My::HTTP::Throwable::Factory',
+            );
+            $getargs->($request, \%debris, @_) if $getargs;
 
-            warn "Running machine for $resource_class (with @{[ keys %$args ]})\n"
+            warn "Running machine for $resource_class (with @{[ keys %debris ]})\n"
                 if $ENV{TL_ENVIRONMENT} eq 'development';
             my $app = WebAPI::DBIC::Machine->new(
                 resource => $resource_class,
-                debris   => {
-                    set => $rs,
-                    writable => $writable,
-                    throwable => 'My::HTTP::Throwable::Factory',
-                    %$args
-                },
+                debris   => \%debris,
                 tracing => !$in_production,
             )->to_app;
             my $resp = eval { $app->($request->env) };

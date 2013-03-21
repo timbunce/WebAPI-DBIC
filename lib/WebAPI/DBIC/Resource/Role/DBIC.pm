@@ -3,6 +3,7 @@ package WebAPI::DBIC::Resource::Role::DBIC;
 use Moo::Role;
 
 use Carp;
+use Scalar::Util qw(blessed);
 use Devel::Dwarn;
 
 has prefetch => (
@@ -220,13 +221,11 @@ sub finish_request {
     my $exception = $metadata->{'exception'};
     return unless $exception;
 
-    if (ref $exception && $exception->can('as_psgi')) {
-        Dwarn $exception->as_psgi;
+    if (blessed($exception) && $exception->can('as_psgi')) {
         my ($status, $headers, $body) = @{ $exception->as_psgi };
         $self->response->status($status);
         $self->response->headers($headers);
         $self->response->body($body);
-        Dwarn $self->response;
         return;
     }
 
@@ -275,11 +274,13 @@ sub malformed_request {
 
 sub _handle_rows_param {
     my ($self, $value) = @_;
+    $value = 30 unless defined $value;
     $self->set( $self->set->search_rs(undef, { rows => $value }) );
 }
 
 sub _handle_page_param {
     my ($self, $value) = @_;
+    $value = 1 unless defined $value;
     $self->set( $self->set->search_rs(undef, { page => $value }) );
 }
 
@@ -367,6 +368,10 @@ sub _handle_order_param {
     my ($self, $value) = @_;
     my @order_spec;
 
+    if (not defined $value) {
+        $value = (join ",", map { "me.$_" } $self->set->result_source->primary_columns);
+    }
+
     for my $clause (split /\s*,\s*/, $value) {
         # we take care to avoid injection risks
         my ($field, $dir) = ($clause =~ /^([a-z0-9_\.]*)\b(?:\s+(asc|desc))?\s*$/i);
@@ -402,21 +407,42 @@ sub _handle_distinct_param {
 }
 
 
+# used to a) define order that params are handled,
+# and b) to force calling of a handler even if param is missing
+sub get_param_order {
+    return qw(page rows order);
+}
+
 
 sub handle_request_params {
     my $self = shift;
 
+    my %queue;
     for my $param ($self->param) {
-
-        # XXX we don't handle multiple params with same name
+        # XXX we don't handle multiple params which appear more than once
         my @v = $self->param($param);
         die "multiple $param parameters supplied" if @v > 1;
 
-        (my $tag = $param) =~ s/\..*//; # 'me.id' => 'me'
-        my $method = "_handle_${tag}_param";
-        die "The $param parameter is not supported by the $self resources"
-            unless $self->can($method);
-        $self->$method($v[0], $param);
+        (my $basename = $param) =~ s/\..*//; # 'me.id' => 'me'
+
+        push @{ $queue{$basename} }, [ $param, $v[0] ];
+
+    };
+
+    # call handlers in desired order, then any remaining ones
+    my %done;
+    for my $basename ($self->get_param_order, keys %queue) {
+        next if $done{$basename}++;
+
+        my $specs = $queue{$basename} || [ [ $basename, undef ] ];
+        for my $spec (@$specs) {
+            my ($param, $value) = @$spec;
+
+            my $method = "_handle_${basename}_param";
+            die "The $param parameter is not supported by the $self resource"
+                unless $self->can($method);
+            $self->$method($value, $param);
+        }
     }
 
     return 0;
