@@ -75,21 +75,29 @@ sub mk_generic_dbic_item_set_routes {
     my @routes;
 
     my $rs = $schema->resultset($resultset);
+    my $route_defaults = {
+        # used for route lookup
+        result_class => $rs->result_class,
+        # other uses
+        _title => $rs->result_class,
+    };
 
     push @routes, "$path" => { # set (aka collection)
         resource => 'WebAPI::DBIC::Resource::GenericSetDBIC',
-        resultset => $rs,
+        route_defaults => $route_defaults,
         getargs => sub {
             my ($request, $args) = @_;
+            $args->{set} = $rs;
         },
     };
 
     push @routes, "$path/:id" => { # item
         validations => { id => qr/^\d+$/ },
         resource => 'WebAPI::DBIC::Resource::GenericItemDBIC',
-        resultset => $rs,
+        route_defaults => $route_defaults,
         getargs => sub {
             my ($request, $args, $id) = @_;
+            $args->{set} = $rs;
             $args->{id} = $id;
         },
     };
@@ -128,40 +136,30 @@ my $router = Path::Router->new;
 while (my $r = shift @routes) {
     my $spec = shift @routes or die "panic";
 
-    my $rs = $spec->{resultset};
     my $getargs = $spec->{getargs};
-    my $writable = (exists $spec->{writable}) ? $spec->{writable} : $opt_writable;
     my $resource_class = $spec->{resource} or die "panic";
     load $resource_class;
 
     $router->add_route($r,
         validations => $spec->{validations} || {},
-        defaults => {
-            _rs => $rs,
-            result_class => $rs->result_class,
-            _title => $rs->result_class,
-        },
+        defaults => $spec->{route_defaults},
         target => sub {
             my $request = shift; # url args remain in @_
 
-#warn "$r: args @{[%$args]}";
-#$DB::single=1;
-local $SIG{__DIE__} = \&Carp::confess;
+#local $SIG{__DIE__} = \&Carp::confess;
 
-            # perform any required setup for this request
-            # bail-out if a Plack::Response is given, eg an error
-            my %debris = (
-                set => $rs,
-                writable => $writable,
+            my %resource_args = (
+                writable => $opt_writable,
                 throwable => 'My::HTTP::Throwable::Factory',
             );
-            $getargs->($request, \%debris, @_) if $getargs;
+            # perform any required setup for this request & params in @_
+            $getargs->($request, \%resource_args, @_) if $getargs;
 
-            warn "Running machine for $resource_class (with @{[ keys %debris ]})\n"
+            warn "Running machine for $resource_class (with @{[ keys %resource_args ]})\n"
                 if $ENV{TL_ENVIRONMENT} eq 'development';
             my $app = WebAPI::DBIC::Machine->new(
                 resource => $resource_class,
-                debris   => \%debris,
+                debris   => \%resource_args,
                 tracing => !$in_production,
             )->to_app;
             my $resp = eval { $app->($request->env) };
