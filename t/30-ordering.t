@@ -72,14 +72,17 @@ test_psgi $app, sub {
 note "===== Ordering with prefetch =====";
 
 test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "/ecosystems_people?prefetch=client_auth&order=client_auth.username" )));
+    # the extra me.* param is to make this query be less expensive
+    my $data = dsresp_ok(shift->(dsreq( GET => "/ecosystems_people?prefetch=client_auth&order=client_auth.username&me.client_auth.demo=1" )));
     my $set = is_set_with_embedded_key($data, "ecosystems_people", 2);
     is_ordered($set, sub { lc $_->{_embedded}{client_auth}{username} }, 'str');
 };
 
 test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "/ecosystems_people?prefetch=person,client_auth&order=person.last_name%20desc,client_auth.username%20asc" )));
+    # the extra me.* param is to make this query be less expensive
+    my $data = dsresp_ok(shift->(dsreq( GET => "/ecosystems_people?prefetch=person,client_auth&order=person.last_name%20desc,client_auth.username%20asc&me.client_auth.demo=1" )));
     my $set = is_set_with_embedded_key($data, "ecosystems_people", 2);
+    cmp_ok scalar @$set, '>=', 5, 'matched sufficient records';
     is_ordered($set, sub { lc $_->{_embedded}{person}{last_name}, lc $_->{_embedded}{client_auth}{username} }, '-str', 'str');
 };
 
