@@ -24,6 +24,10 @@ use Devel::Dwarn;
 use WebAPI::Schema::Corp;
 use WebAPI::DBIC::Machine;
 
+# pre-load some modules to improve shared memory footprint
+require DBIx::Class::SQLMaker;
+require DBIx::Class::Storage::DBI::Pg;
+
 
 my $in_production = ($ENV{TL_ENVIRONMENT} eq 'production');
 
