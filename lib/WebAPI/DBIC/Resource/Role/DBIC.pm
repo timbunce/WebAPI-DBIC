@@ -5,6 +5,7 @@ use Moo::Role;
 use Carp;
 use Scalar::Util qw(blessed);
 use Devel::Dwarn;
+use JSON;
 
 has prefetch => (
     is => 'rw',
@@ -86,11 +87,17 @@ sub render_item_as_hal {
         next if $prefetch eq 'self';
         my $subitem = $item->$prefetch();
         # XXX perhaps render_item_as_hal but requires cloned WM, eg without prefetch
+        # If we ever do render_item_as_hal then we need to ensure that "a link
+        # inside an embedded resource implicitly relates to that embedded
+        # resource and not the parent."
+        # See http://blog.stateless.co/post/13296666138/json-linking-with-hal
         $data->{_embedded}{$prefetch} = $self->render_item_as_plain($subitem);
     }
 
+    my $curie = (0) ? "r" : ""; # XXX we don't use CURIE syntax yet
+
     # add links for relationships
-    # XXX much of this should be cached
+    # XXX much of this relation selection logic should be cached
     for my $relname ($item->result_class->relationships) {
         my $rel = $item->result_class->relationship_info($relname);
 
@@ -114,10 +121,17 @@ sub render_item_as_hal {
                 unless our $warn_once->{"$relname $rel->{source}"}++;
             next;
         }
-        $data->{_links}{"relation:$relname"} = {
+        $data->{_links}{ ($curie?"$curie:":"") . $relname} = {
             href => $self->add_params_to_url($linkurl, {}, {})->as_string
         };
     }
+    if ($curie) {
+       $data->{_links}{curies} = [{
+         name => $curie,
+         href => "http://docs.acme.com/relations/{rel}", # XXX
+         templated => JSON::true,
+       }];
+   }
 
     return $data;
 }
@@ -180,7 +194,7 @@ sub _hal_page_links {
     my @link_kvs;
     push @link_kvs, self  => {
         href => $linkurl.($page),
-        title => $set->result_source->resultset_class,
+        title => $set->result_class,
     };
     push @link_kvs, next  => { href => $linkurl.($page+1) }
         if $page_items == $rows;
