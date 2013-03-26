@@ -33,13 +33,23 @@ sub render_item_as_plain {
 sub path_for_item {
     my ($self, $item) = @_;
 
-    my $data = $self->render_item_as_plain($item);
     my %pk = map { $_ => $item->get_column($_) } $item->result_source->primary_columns;
-    my $itemurl = $self->router->uri_for(
-        %pk, result_class => $item->result_source->result_class,
-    ) or die "panic: no route to @{[ %pk ]} ".$item->result_source->result_class;
+    my $url = $self->uri_for(%pk, result_class => $item->result_source->result_class)
+        or die "panic: no route to @{[ %pk ]} ".$item->result_source->result_class;
 
-    return $itemurl;
+    return $url;
+}
+
+sub uri_for {
+    my $self = shift; # %pk in @_
+
+    my $url = $self->router->uri_for(@_)
+        or return undef;
+    my $prefix = $self->request->env->{SCRIPT_NAME};
+
+    return "$prefix/$url" unless wantarray;
+    return ($prefix, $url);
+
 }
 
 
@@ -69,7 +79,7 @@ sub render_item_as_hal {
 
     my $itemurl = $self->path_for_item($item);
     $data->{_links}{self} = {
-        href => $self->mk_link_url("/$itemurl", {}, {})->as_string,
+        href => $self->add_params_to_url($itemurl, {}, {})->as_string,
     };
 
     while (my ($prefetch, $info) = each %{ $self->prefetch || {} }) {
@@ -95,7 +105,7 @@ sub render_item_as_hal {
                 and $fieldname
                 and defined $data->{$fieldname};
 
-        my $linkurl = $self->router->uri_for(
+        my $linkurl = $self->uri_for(
             result_class => $rel->{source},
             id           => $data->{$fieldname},
         );
@@ -105,7 +115,7 @@ sub render_item_as_hal {
             next;
         }
         $data->{_links}{"relation:$relname"} = {
-            href => $self->mk_link_url("/$linkurl", {}, {})->as_string
+            href => $self->add_params_to_url($linkurl, {}, {})->as_string
         };
     }
 
@@ -123,7 +133,7 @@ sub render_set_as_plain {
 }
 
 
-sub mk_link_url {
+sub add_params_to_url {
     my ($self, $base, $passthru_params, $override_params) = @_;
     $base || croak "no base";
 
@@ -163,7 +173,7 @@ sub _hal_page_links {
 
     # XXX this self link this should probably be subtractive, ie include all
     # params by default except any known to cause problems
-    my $url = $self->mk_link_url($base, { distinct=>1, with=>1, me=>1 }, { rows => $rows });
+    my $url = $self->add_params_to_url($base, { distinct=>1, with=>1, me=>1 }, { rows => $rows });
     my $linkurl = $url->as_string;
     $linkurl .= "&page="; # hack to optimize appending page 5 times below
 
@@ -199,13 +209,13 @@ sub render_set_as_hal {
         $total_items = $set->pager->total_entries;
     }
 
-    my $path = $self->request->env->{'plack.router.match'}->{path};
+    my ($prefix, $rel) = $self->uri_for(result_class => $self->set->result_class);
     my $data = {
         _embedded => {
-            $path => $set_data,
+            $rel => $set_data,
         },
         _links => {
-            $self->_hal_page_links($set, "/$path", scalar @$set_data, $total_items),
+            $self->_hal_page_links($set, "$prefix/$rel", scalar @$set_data, $total_items),
         }
     };
     $data->{_meta}{count} = $total_items

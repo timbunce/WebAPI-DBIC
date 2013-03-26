@@ -12,7 +12,7 @@ use TestDS;
 
 my $test_key_string = "clients_dataservice";
 
-my $app = require 'clients_dsapi.psgi'; # WebAPI::DBIC::WebApp;
+my $app = require WebAPI::DBIC::WebApp;
 
 note "===== Update a resource and related resources via PUT =====";
 

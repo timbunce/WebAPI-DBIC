@@ -76,16 +76,17 @@ my $schema = WebAPI::Schema::Corp->new_default_connect(
 
 sub mk_generic_dbic_item_set_routes {
     my ($path, $resultset) = @_;
-    my @routes;
 
     my $rs = $schema->resultset($resultset);
     my $route_defaults = {
-        # used for route lookup
+        # --- fields for route lookup
         result_class => $rs->result_class,
-        # other uses
-        _title => $rs->result_class,
+        # --- fields for other uses
+        # derive title from result class: WebAPI::Corp::Result::Foo => "Corp Foo"
+        _title => join(" ", (split /::/, $rs->result_class)[-3,-1]),
     };
 
+    my @routes;
     push @routes, "$path" => { # set (aka collection)
         resource => 'WebAPI::DBIC::Resource::GenericSetDBIC',
         route_defaults => $route_defaults,
@@ -120,7 +121,7 @@ if (0) { # all!
         for my $rel_name ($result_source->relationships) {
             my $rel = $result_source->relationship_info($rel_name);
         }
-        #push @routes, mk_generic_dbic_item_set_routes( $result_source->name => $result_source->source_name);
+        push @routes, mk_generic_dbic_item_set_routes( $result_source->name => $result_source->source_name);
     }
 }
 else {
@@ -175,41 +176,39 @@ while (my $r = shift @routes) {
 };
 
 if (1) { # root level links to describe/explore the api (eg for the hal-browser)
-    my %links = (self => { href => "/" } );
-
-    my @resource_links;
-    foreach my $route (@{$router->routes})  {
-        my @parts;
-        my %attr = ( title => $route->defaults->{_title}||"" );
-        for my $c (@{ $route->components }) {
-            if ($route->is_component_variable($c)) {
-                my $name = $route->get_component_name($c);
-                push @parts, "{/$name}";
-                $attr{templated} = JSON::true;
-
-            } else {
-                push @parts, "/$c";
-            }
-        }
-        my $url = join("", @parts);
-        $links{$url} = {
-            href => $url,
-            %attr
-        };
-    }
-
-    my $root_data = {
-        _links => \%links,
-    };
 
     $router->add_route('',
         target => sub {
             my $request = shift;
+            my $path = $request->env->{REQUEST_URI}; # "/clients/v1/";
+
             # if the request for the root url is from a browser
             # then redirect to the HAL browser interface
-            # (XXX should probably be done in our .psgi file)
-            return [ 302, [ Location => "/browser/hal_browser.html" ], [ ] ]
+            return [ 302, [ Location => "browser/hal_browser.html#$path" ], [ ] ]
                 if $request->headers->header('Accept') =~ /html/;
+
+            my %links = (self => { href => $path } );
+            foreach my $route (@{$router->routes})  {
+                my @parts;
+                my %attr = ( title => $route->defaults->{_title}||"" );
+                for my $c (@{ $route->components }) {
+                    if ($route->is_component_variable($c)) {
+                        my $name = $route->get_component_name($c);
+                        push @parts, "{/$name}";
+                        $attr{templated} = JSON::true;
+                    } else {
+                        push @parts, "$c";
+                    }
+                }
+                next unless @parts;
+                my $url = $path . join("", @parts);
+                $links{join("", @parts)} = {
+                    href => $url,
+                    %attr
+                };
+            }
+            my $root_data = { _links => \%links, };
+
             return [ 200, [ 'Content-Type' => 'application/json' ],
                 [ JSON->new->ascii->pretty->encode($root_data) ]
             ]

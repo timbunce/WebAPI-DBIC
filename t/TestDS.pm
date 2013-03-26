@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
 
+use tlcomp 'clients_dataservice';
+
 use Test::Most;
 use Plack::Test;
 use Test::HTTP::Response;
@@ -12,6 +14,7 @@ use parent 'Exporter';
 
 use WebAPI::Config;
 
+
 our @EXPORT = qw(
     url_query
     dsreq dsresp_json_data dsresp_ok
@@ -20,6 +23,7 @@ our @EXPORT = qw(
 );
 
 $Carp::Verbose = 1;
+
 
 sub _get_authorization_user_pass {
     # XXX TODO we ought to get the db realm name by querying the service

@@ -13,7 +13,7 @@ use lib "t";
 use TestDS;
 
 
-my $app = require 'clients_dsapi.psgi'; # WebAPI::DBIC::WebApp;
+my $app = require WebAPI::DBIC::WebApp;
 
 local $SIG{__DIE__} = \&Carp::confess;
 
@@ -33,7 +33,7 @@ test_psgi $app, sub {
 for my $rows_param (1,2,3) {
     note "rows $rows_param, page 1 implied";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/person_types?rows=$rows_param" )));
+        Dwarn my $data = dsresp_ok(shift->(dsreq( GET => "/person_types?rows=$rows_param" )));
         my $set = is_set_with_embedded_key($data, "person_types", $rows_param, $rows_param);
 
         eq_or_diff $set->[$_], $person_types{$_+1}, 'record matches'

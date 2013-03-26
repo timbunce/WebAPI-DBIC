@@ -11,7 +11,7 @@ use lib "t";
 use TestDS;
 
 
-my $app = require 'clients_dsapi.psgi'; # WebAPI::DBIC::WebApp;
+my $app = require WebAPI::DBIC::WebApp;
 
 local $SIG{__DIE__} = \&Carp::confess;
 
