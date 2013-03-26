@@ -97,7 +97,7 @@ sub mk_generic_dbic_item_set_routes {
     };
 
     push @routes, "$path/:id" => { # item
-        validations => { id => qr/^\d+$/ },
+        validations => { id => qr/^-?\d+$/ }, # int, but allow for -1 etc
         resource => 'WebAPI::DBIC::Resource::GenericItemDBIC',
         route_defaults => $route_defaults,
         getargs => sub {
