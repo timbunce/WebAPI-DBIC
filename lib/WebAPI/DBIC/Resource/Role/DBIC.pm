@@ -341,22 +341,23 @@ sub _handle_fields_param {
     }
     else {
         @columns = split /\s*,\s*/, $value;
-        for my $clause (@columns) {
-            # we take care to avoid injection risks
-            my ($field) = ($clause =~ /^([a-z0-9_\.]*)$/);
-            $self->throwable->throw_bad_request(400, errors => [{
-                parameter => "invalid fields clause",
-                _meta => { fields => $field, }, # XXX
-            }]) if not defined $field;
-            # sadly columns=>[...] doesn't work to limit the fields of prefetch relations
-            # so we disallow that for now. It's possible we could achieve the same effect
-            # using explicit join's for non-has-many rels, or perhaps using
-            # as_subselect_rs
-            $self->throwable->throw_bad_request(400, errors => [{
-                parameter => "invalid fields clause - can't refer to prefetch relations at the moment",
-                _meta => { fields => $field, }, # XXX
-            }]) if $field =~ m/\./;
-        }
+    }
+
+    for my $clause (@columns) {
+        # we take care to avoid injection risks
+        my ($field) = ($clause =~ /^([a-z0-9_\.]*)$/);
+        $self->throwable->throw_bad_request(400, errors => [{
+            parameter => "invalid fields clause",
+            _meta => { fields => $field, }, # XXX
+        }]) if not defined $field;
+        # sadly columns=>[...] doesn't work to limit the fields of prefetch relations
+        # so we disallow that for now. It's possible we could achieve the same effect
+        # using explicit join's for non-has-many rels, or perhaps using
+        # as_subselect_rs
+        $self->throwable->throw_bad_request(400, errors => [{
+            parameter => "invalid fields clause - can't refer to prefetch relations at the moment",
+            _meta => { fields => $field, }, # XXX
+        }]) if $field =~ m/\./;
     }
 
     $self->set( $self->set->search_rs(undef, { columns => \@columns }) )
