@@ -133,6 +133,7 @@ else {
     push @routes, mk_generic_dbic_item_set_routes( 'client_auths' => 'ClientAuth');
     push @routes, mk_generic_dbic_item_set_routes( 'ecosystems' => 'Ecosystem');
     push @routes, mk_generic_dbic_item_set_routes( 'ecosystems_people' => 'EcosystemsPeople');
+    push @routes, mk_generic_dbic_item_set_routes( 'ecosystem_domains' => 'EcosystemDomain');
 
 }
 
@@ -184,7 +185,7 @@ if (1) { # root level links to describe/explore the api (eg for the hal-browser)
 
             # if the request for the root url is from a browser
             # then redirect to the HAL browser interface
-            return [ 302, [ Location => "browser/hal_browser.html#$path" ], [ ] ]
+            return [ 302, [ Location => "browser/browser.html#$path" ], [ ] ]
                 if $request->headers->header('Accept') =~ /html/;
 
             my %links = (self => { href => $path } );
