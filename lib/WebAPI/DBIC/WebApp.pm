@@ -4,8 +4,8 @@ package WebAPI::DBIC::WebApp;
 
 BEGIN {
     $ENV{WM_DEBUG} ||= 0; # verbose
-    $ENV{DBIC_TRACE} ||= 1;
-    $ENV{DBI_TRACE} ||= 0 || ($ENV{TL_ENVIRONMENT} eq 'staging' ? 1 : 0);
+    $ENV{DBIC_TRACE} ||= 0;
+    $ENV{DBI_TRACE} ||= 0;
     $ENV{PATH_ROUTER_DEBUG} ||= 0;
     $|++;
 }
