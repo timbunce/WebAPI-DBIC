@@ -91,7 +91,9 @@ sub render_item_as_hal {
         # inside an embedded resource implicitly relates to that embedded
         # resource and not the parent."
         # See http://blog.stateless.co/post/13296666138/json-linking-with-hal
-        $data->{_embedded}{$prefetch} = $self->render_item_as_plain($subitem);
+        $data->{_embedded}{$prefetch} = (defined $subitem)
+            ? $self->render_item_as_plain($subitem)
+            : undef; # show an explicit null from a prefetch
     }
 
     my $curie = (0) ? "r" : ""; # XXX we don't use CURIE syntax yet
