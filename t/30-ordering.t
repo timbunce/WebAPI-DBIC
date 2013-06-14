@@ -75,7 +75,10 @@ test_psgi $app, sub {
     # the extra me.* param is to make this query be less expensive
     my $data = dsresp_ok(shift->(dsreq( GET => "/ecosystems_people?prefetch=client_auth&order=client_auth.username&me.client_auth.demo=1" )));
     my $set = is_set_with_embedded_key($data, "ecosystems_people", 2);
-    is_ordered($set, sub { lc $_->{_embedded}{client_auth}{username} }, 'str');
+    # XXX the s/\./~/g is a hack to workaround an apparent difference between
+    # perl's lexical sorting and postgres character sorting
+    # eg they order danielle.carne and daniel.rabiner differently
+    is_ordered($set, sub { my $val = lc $_->{_embedded}{client_auth}{username}; $val=~s/\./~/g; $val }, 'str');
 };
 
 test_psgi $app, sub {
