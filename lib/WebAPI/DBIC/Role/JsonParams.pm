@@ -1,4 +1,4 @@
-package WebAPI::DBIC::Resource::Role::RichParams;
+package WebAPI::DBIC::Role::JsonParams;
 
 # provides a param() method that returns query parameters
 # except that any parameters named foo~json have their values
@@ -7,7 +7,6 @@ package WebAPI::DBIC::Resource::Role::RichParams;
 use Moo::Role;
 
 use Carp qw(croak);
-use Devel::Dwarn;
 use JSON;
 
 
@@ -39,7 +38,7 @@ sub param {
 }
 
 
-sub decode_rich_parameters { # should live in a util library and be imported
+sub decode_rich_parameters { # perhaps should live in a util library and be imported
     my ($class, $raw_params) = @_;
 
     # Note that this is transparent to duplicate query parameter names
