@@ -1,16 +1,31 @@
 package WebAPI::DBIC::Resource::Role::RichParams;
 
+# provides a param() method that returns query parameters
+# except that any parameters named foo~json have their values
+# JSON decoded, so they can be arbitrary data structures.
+
 use Moo::Role;
 
 use Carp qw(croak);
 use Devel::Dwarn;
 use JSON;
 
+
+requires 'request';
+
+my $json = JSON->new->allow_nonref;
+
+
 has parameters => (
     is => 'rw',
     lazy => 1,
-    builder => '_build_params',
+    builder => '_build_parameters',
 );
+
+sub _build_parameters {
+    my $self = shift;
+    return $self->decode_rich_parameters($self->request->query_parameters);
+}
 
 
 sub param {
@@ -24,16 +39,12 @@ sub param {
 }
 
 
-sub _build_params {
-    my $self = shift;
-    return $self->decode_rich_parameters($self->request->query_parameters);
-}
-
-
 sub decode_rich_parameters { # should live in a util library and be imported
     my ($class, $raw_params) = @_;
 
-    my $json = JSON->new->allow_nonref;
+    # Note that this is transparent to duplicate query parameter names
+    # i.e., foo=7&foo=8&foo~json=9 will result in the same set of duplicate
+    # parameters as if the parameters were foo=7&foo=8&foo=9
 
     my @params;
     for my $key_raw (keys %$raw_params) {
