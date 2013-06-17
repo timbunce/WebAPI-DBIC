@@ -7,6 +7,8 @@ with 'WebAPI::DBIC::Role::JsonEncoder';
 with 'WebAPI::DBIC::Resource::Role::RichParams';
 with 'WebAPI::DBIC::Resource::Role::DBIC';
 with 'WebAPI::DBIC::Resource::Role::Item';
+with 'WebAPI::DBIC::Resource::Role::ItemWritable';
+with 'WebAPI::DBIC::Resource::Role::DBICParams';
 with 'WebAPI::DBIC::Resource::Role::DBICAuth';
 
 1;
