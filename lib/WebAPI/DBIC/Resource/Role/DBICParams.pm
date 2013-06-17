@@ -8,6 +8,10 @@ use Scalar::Util qw(blessed);
 
 requires 'set';
 
+# TODO the params supported by a resource should be determined by the roles
+# consumed by that resource, plus any extra params it wants to declare support for.
+# So this should be reworked to enable that.
+
 
 # we use malformed_request() call from Web::Machine to trigger parameter processing
 sub malformed_request {
