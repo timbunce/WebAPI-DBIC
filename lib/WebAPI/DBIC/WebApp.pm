@@ -76,8 +76,14 @@ my $schema = WebAPI::Schema::Corp->new_default_connect(
 sub mk_generic_dbic_item_set_routes {
     my ($path, $resultset, %opts) = @_;
 
+    # XXX might want to distinguish writable from non-writable (read-only) methods
     my $invokeable_on_set  = delete $opts{invokeable_on_set}  || [];
     my $invokeable_on_item = delete $opts{invokeable_on_item} || [];
+    # disable all methods if not writable, for safety: (perhaps allow get_* methods)
+    $invokeable_on_set  = undef unless $opt_writable;
+    $invokeable_on_item = undef unless $opt_writable;
+
+    my $qr_id = qr/^-?\d+$/, # int, but allow for -1 etc
     my $qr_names = sub {
         my $names_r = join "|", map { quotemeta $_ } @_ or die "panic";
         return qr/^(?:$names_r)$/;
@@ -91,38 +97,45 @@ sub mk_generic_dbic_item_set_routes {
         # derive title from result class: WebAPI::Corp::Result::Foo => "Corp Foo"
         _title => join(" ", (split /::/, $rs->result_class)[-3,-1]),
     };
-    my $getargs_set  = sub { my ($req, $args     ) = @_; $args->{set} = $rs; };
-    my $getargs_item = sub { my ($req, $args, $id) = @_; $args->{set} = $rs; $args->{id} = $id; };
+    my $mk_getargs = sub {
+        my @params = @_;
+        return sub {
+            my $req = shift;
+            my $args = shift;
+            $args->{set} = $rs; # closes over $rs above
+            $args->{$_} = shift for @params; # in path param name order
+        }
+    };
     my @routes;
 
     push @routes, "$path" => { # set (aka collection)
         resource => 'WebAPI::DBIC::Resource::GenericSetDBIC',
         route_defaults => $route_defaults,
-        getargs => $getargs_set,
+        getargs => $mk_getargs->(),
     };
 
     push @routes, "$path/invoke/:method" => { # method call on set
         validations => { method => $qr_names->(@$invokeable_on_set) },
-        resource => 'WebAPI::DBIC::Resource::GenericInvoke',
+        resource => 'WebAPI::DBIC::Resource::GenericSetInvoke',
         route_defaults => $route_defaults,
-        getargs => $getargs_set,
+        getargs => $mk_getargs->('method'),
     } if @$invokeable_on_set;
 
     push @routes, "$path/:id" => { # item
-        validations => { id => qr/^-?\d+$/ }, # int, but allow for -1 etc
+        validations => { id => $qr_id },
         resource => 'WebAPI::DBIC::Resource::GenericItemDBIC',
         route_defaults => $route_defaults,
-        getargs => $getargs_item,
+        getargs => $mk_getargs->('id'),
     };
 
     push @routes, "$path/:id/invoke/:method" => { # method call on item
         validations => {
-            id => qr/^-?\d+$/, # int, but allow for -1 etc
+            id => $qr_id,
             method => $qr_names->(@$invokeable_on_item),
         },
-        resource => 'WebAPI::DBIC::Resource::GenericInvoke',
+        resource => 'WebAPI::DBIC::Resource::GenericItemInvoke',
         route_defaults => $route_defaults,
-        getargs => $getargs_item,
+        getargs => $mk_getargs->('id', 'method'),
     } if @$invokeable_on_item;
 
     return @routes;
@@ -151,7 +164,10 @@ else {
     push @routes, mk_generic_dbic_item_set_routes( 'client_auths' => 'ClientAuth');
     push @routes, mk_generic_dbic_item_set_routes( 'ecosystems' => 'Ecosystem');
     push @routes, mk_generic_dbic_item_set_routes( 'ecosystems_people' => 'EcosystemsPeople',
-        invokeable_on_item => [qw(reassign_leads)]
+        invokeable_on_item => [
+            'item_instance_description',    # used for testing
+            'bulk_transfer_leads',
+        ]
     );
     push @routes, mk_generic_dbic_item_set_routes( 'ecosystem_domains' => 'EcosystemDomain');
 
