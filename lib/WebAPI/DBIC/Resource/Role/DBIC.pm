@@ -195,15 +195,24 @@ sub finish_request {
     if ($exception =~ m/DBD::Pg.*? failed:.*? column "?(.*?)"? (.*)/) {
         $error_data = {
             status => 400,
+            field => $1,
             foo => "$1: $2",
         };
     }
+    # handle exceptions from Params::Validate
+    elsif ($exception =~ /The '(\w+)' parameter \(.*?\) to (\S+) did not pass/) {
+        $error_data = {
+            status => 400,
+            field => $1,
+            message => $line1,
+        };
+    }
 
-    warn "finish_request - handling exception '$line1' (@{[ %{ $error_data||{} } ]})\n";
+    warn "finish_request is handling exception: $line1 (@{[ %{ $error_data||{} } ]})\n";
 
     if ($error_data) {
         $error_data->{_embedded}{exceptions}[0]{exception} = "$exception" # stringify
-            unless $ENV{TL_ENVIRONMENT} eq 'production';
+            unless $ENV{TL_ENVIRONMENT} eq 'production'; # don't leak info
         $error_data->{status} ||= 500;
         # create response
         my $json = JSON->new->ascii->pretty;
