@@ -8,6 +8,11 @@ use Devel::Dwarn;
 requires 'render_item_into_body';
 requires 'decode_json';
 requires 'item';
+requires 'param';
+requires 'prefetch';
+requires 'request';
+requires 'response';
+requires 'path_for_item';
 
 
 sub content_types_accepted { [
@@ -20,8 +25,6 @@ sub from_plain_json { # XXX currently used for hal too
     my $self = shift;
     my $data = $self->decode_json( $self->request->content );
     $self->update_resource($data, is_put_replace => 0);
-
-    #$self->response->body( $self->to_json_as_hal ) if $self->prefetch->{self};
 }
 
 

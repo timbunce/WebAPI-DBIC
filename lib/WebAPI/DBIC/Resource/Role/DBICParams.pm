@@ -7,6 +7,8 @@ use Scalar::Util qw(blessed);
 
 
 requires 'set';
+requires 'throwable';
+requires 'prefetch';
 
 # TODO the params supported by a resource should be determined by the roles
 # consumed by that resource, plus any extra params it wants to declare support for.

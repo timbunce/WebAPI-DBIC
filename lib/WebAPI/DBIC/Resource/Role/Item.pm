@@ -2,18 +2,12 @@ package WebAPI::DBIC::Resource::Role::Item;
 
 use Moo::Role;
 
-use Carp;
-use Devel::Dwarn;
 
 requires 'render_item_as_plain';
 requires 'render_item_as_hal';
 requires 'encode_json';
-requires 'decode_json';
+requires 'set';
 
-has set => (
-   is => 'rw',
-   required => 1,
-);
 
 has id => (
    is => 'ro',
@@ -24,15 +18,6 @@ has item => (
    is => 'ro',
    lazy => 1,
    builder => '_build_item'
-);
-
-has writable => (
-   is => 'ro',
-);
-
-has prefetch => (
-   is => 'ro',
-   default => sub { { } },
 );
 
 sub _build_item {

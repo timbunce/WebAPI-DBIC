@@ -5,7 +5,17 @@ use Moo::Role;
 use Carp;
 use Scalar::Util qw(blessed);
 use Devel::Dwarn;
-use JSON;
+use JSON ();
+
+
+has set => (
+   is => 'rw',
+   required => 1,
+);
+
+has writable => (
+   is => 'ro',
+);
 
 has prefetch => (
     is => 'rw',
@@ -120,7 +130,8 @@ sub render_item_as_hal {
             id           => $data->{$fieldname},
         );
         if (not $linkurl) {
-            warn "No path for $relname ($rel->{source})"
+            my $item_result_class = $item->result_class;
+            warn "Result source $rel->{source} has no resource uri in this app so relations (like $item_result_class $relname) won't have _links for it.\n"
                 unless our $warn_once->{"$relname $rel->{source}"}++;
             next;
         }

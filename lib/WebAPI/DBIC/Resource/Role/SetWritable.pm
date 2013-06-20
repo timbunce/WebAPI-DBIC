@@ -7,9 +7,11 @@ use Moo::Role;
 use Devel::Dwarn;
 
 requires 'render_set_as_plain';
+requires 'render_item_into_body';
 requires 'decode_json';
 requires 'encode_json';
 requires 'set';
+requires 'prefetch';
 requires 'writable';
 requires 'path_for_item';
 

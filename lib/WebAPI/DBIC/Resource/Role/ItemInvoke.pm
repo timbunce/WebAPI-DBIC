@@ -2,12 +2,12 @@ package WebAPI::DBIC::Resource::Role::ItemInvoke;
 
 use Moo::Role;
 
-use Carp;
 use Scalar::Util qw(blessed);
-use Devel::Dwarn;
 
 requires 'decode_json';
 requires 'encode_json';
+requires 'render_item_as_plain';
+requires 'throwable';
 requires 'item';
 
 has method => (
