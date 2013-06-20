@@ -7,7 +7,7 @@ package WebAPI::DBIC::Role::JsonParams;
 use Moo::Role;
 
 use Carp qw(croak);
-use JSON;
+use JSON ();
 
 
 requires 'request';
