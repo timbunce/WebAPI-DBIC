@@ -47,7 +47,7 @@ sub handle_request_params {
 
         push @{ $queue{$basename} }, [ $param, $v[0] ];
 
-    };
+    }
 
     # call handlers in desired order, then any remaining ones
     my %done;

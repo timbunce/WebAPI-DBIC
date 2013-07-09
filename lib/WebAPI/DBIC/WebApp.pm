@@ -261,7 +261,7 @@ while (my $r = shift @routes) {
             return $resp;
         },
     );
-};
+}
 
 $router->add_route('', target => \&hal_browser_app);
 
