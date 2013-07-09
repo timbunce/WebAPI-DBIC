@@ -27,7 +27,7 @@ sub _build_parameters {
 }
 
 
-sub param {
+sub param { ## no critic (RequireArgUnpacking)
     my $self = shift;
 
     return keys %{ $self->parameters } if @_ == 0;

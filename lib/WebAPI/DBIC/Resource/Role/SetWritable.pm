@@ -5,6 +5,7 @@ package WebAPI::DBIC::Resource::Role::SetWritable;
 use Moo::Role;
 
 use Devel::Dwarn;
+use Carp qw(confess);
 
 requires 'render_set_as_plain';
 requires 'render_item_into_body';
@@ -33,23 +34,23 @@ around 'allowed_methods' => sub {
 };
 
 
-sub post_is_create { 1 }
+sub post_is_create { return 1 }
 
-sub create_path_after_handler { 1 }
+sub create_path_after_handler { return 1 }
 
-sub content_types_accepted { [
+sub content_types_accepted { return [
     {'application/hal+json' => 'from_hal_json'},
     {'application/json'     => 'from_plain_json'}
 ] }
 
 sub from_plain_json {
     my $self = shift;
-    $self->item($self->create_resource($self->decode_json($self->request->content)));
+    return $self->item($self->create_resource($self->decode_json($self->request->content)));
 }
 
 sub from_hal_json {
     my $self = shift;
-    $self->item($self->create_resources_from_hal($self->decode_json($self->request->content)));
+    return $self->item($self->create_resources_from_hal($self->decode_json($self->request->content)));
 }
 
 
@@ -104,12 +105,12 @@ sub _create_embedded_resources {
     for my $rel (keys %$embedded) {
 
         my $rel_info = $result_class->relationship_info($rel)
-            or die "$result_class doesn't have a '$rel' relation";
-        die "$result_class $rel isn't a single"
+            or die "$result_class doesn't have a '$rel' relation\n";
+        die "$result_class _embedded $rel isn't a 'single' relationship\n"
             if $rel_info->{attrs}{accessor} ne 'single';
 
         my $rel_hal = $embedded->{$rel};
-        die "$rel data is not a hash"
+        die "_embedded $rel data is not a hash\n"
             if ref $rel_hal ne 'HASH';
 
         # work out what keys to copy from the subitem we're about to create
@@ -117,8 +118,8 @@ sub _create_embedded_resources {
         my $cond = $rel_info->{cond};
         for my $sub_field (keys %$cond) {
             my $our_field = $cond->{$sub_field};
-            $our_field =~ s/^self\.//    or die "panic $rel $our_field";
-            $sub_field =~ s/^foreign\.// or die "panic $rel $sub_field";
+            $our_field =~ s/^self\.//x    or confess "panic $rel $our_field";
+            $sub_field =~ s/^foreign\.//x or confess "panic $rel $sub_field";
             $fk_map{$our_field} = $sub_field;
 
             die "$result_class already contains a value for '$our_field'\n"

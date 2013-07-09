@@ -3,6 +3,7 @@ package WebAPI::DBIC::Resource::Role::SetRender;
 use Moo::Role;
 
 use Devel::Dwarn;
+use Carp qw(confess);
 
 requires 'render_item_as_plain';
 requires 'render_item_as_hal';
@@ -10,6 +11,9 @@ requires 'uri_for';
 requires 'param';
 requires 'add_params_to_url';
 
+
+# Avoid complaints about $set:
+## no critic (NamingConventions::ProhibitAmbiguousNames)
 
 sub render_set_as_plain {
     my ($self, $set) = @_;
@@ -60,8 +64,8 @@ sub _hal_page_links {
     # XXX When we're using a later version of DBIx::Class we can use this:
     # https://metacpan.org/source/RIBASUSHI/DBIx-Class-0.08208/lib/DBIx/Class/ResultSet/Pager.pm
     # and do something like $rs->pager->total_entries(sub { 99999999 })
-    my $rows = $set->{attrs}{rows} or die "panic: rows not set";
-    my $page = $set->{attrs}{page} or die "panic: page not set";
+    my $rows = $set->{attrs}{rows} or confess "panic: rows not set";
+    my $page = $set->{attrs}{page} or confess "panic: page not set";
 
     # XXX this self link this should probably be subtractive, ie include all
     # params by default except any known to cause problems

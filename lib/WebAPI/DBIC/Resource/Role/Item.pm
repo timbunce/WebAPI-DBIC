@@ -22,21 +22,21 @@ has item => (
 
 sub _build_item {
     my $self = shift;
-    $self->set->find($self->id);
+    return $self->set->find($self->id);
 }
 
 
-sub content_types_provided { [
+sub content_types_provided { return [
     {'application/hal+json' => 'to_json_as_hal'},
     {'application/json'     => 'to_json_as_plain'},
 ] }
 
-sub to_json_as_plain { $_[0]->encode_json($_[0]->render_item_as_plain($_[0]->item)) }
-sub to_json_as_hal {   $_[0]->encode_json($_[0]->render_item_as_hal($_[0]->item)) }
+sub to_json_as_plain { return $_[0]->encode_json($_[0]->render_item_as_plain($_[0]->item)) }
+sub to_json_as_hal {   return $_[0]->encode_json($_[0]->render_item_as_hal($_[0]->item)) }
 
-sub resource_exists { !! $_[0]->item }
+sub resource_exists { return !! $_[0]->item }
 
-sub allowed_methods { [ qw(GET HEAD) ] }
+sub allowed_methods { return [ qw(GET HEAD) ] }
 
 
 1;

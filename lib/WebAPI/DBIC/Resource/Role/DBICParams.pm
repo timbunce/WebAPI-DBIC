@@ -41,7 +41,7 @@ sub handle_request_params {
     for my $param ($self->param) {
         my @v = $self->param($param);
         # XXX we don't handle multiple params which appear more than once
-        die "multiple $param parameters supplied" if @v > 1;
+        die "Multiple $param parameters are not supported\n" if @v > 1;
 
         (my $basename = $param) =~ s/\..*//; # 'me.id' => 'me'
 
@@ -59,7 +59,7 @@ sub handle_request_params {
             my ($param, $value) = @$spec;
 
             my $method = "_handle_${basename}_param";
-            die "The $param parameter is not supported by the $self resource"
+            die "The $param parameter is not supported by the $self resource\n"
                 unless $self->can($method);
             $self->$method($value, $param);
         }
@@ -69,10 +69,13 @@ sub handle_request_params {
 }
 
 
+## no critic (ProhibitUnusedPrivateSubroutines)
+
 sub _handle_rows_param {
     my ($self, $value) = @_;
     $value = 30 unless defined $value;
     $self->set( $self->set->search_rs(undef, { rows => $value }) );
+    return;
 }
 
 
@@ -80,6 +83,7 @@ sub _handle_page_param {
     my ($self, $value) = @_;
     $value = 1 unless defined $value;
     $self->set( $self->set->search_rs(undef, { page => $value }) );
+    return;
 }
 
 
@@ -94,8 +98,9 @@ sub _handle_me_param {
     # we use me.relation.field=... to refer to relations via this param
     # so the param can be recognized by the leading 'me.'
     # but we strip off the leading 'me.' if there's a me.foo.bar
-    $param =~ s/^me\.// if $param =~ m/^me\.\w+\.\w+/;
+    $param =~ s/^me\.//x if $param =~ m/^me\.\w+\.\w+/x;
     $self->set( $self->set->search_rs({ $param => $value }) );
+    return;
 }
 
 
@@ -132,6 +137,8 @@ sub _handle_prefetch_param {
     delete $prefetch{self};
     $self->set( $self->set->search_rs(undef, { prefetch => [ keys %prefetch ] }))
         if %prefetch;
+
+    return;
 }
 
 
@@ -148,7 +155,7 @@ sub _handle_fields_param {
 
     for my $clause (@columns) {
         # we take care to avoid injection risks
-        my ($field) = ($clause =~ /^([a-z0-9_\.]*)$/);
+        my ($field) = ($clause =~ /^ ([a-z0-9_\.]*) $/x);
         $self->throwable->throw_bad_request(400, errors => [{
             parameter => "invalid fields clause",
             _meta => { fields => $field, }, # XXX
@@ -165,6 +172,8 @@ sub _handle_fields_param {
 
     $self->set( $self->set->search_rs(undef, { columns => \@columns }) )
         if @columns;
+
+    return;
 }
 
 
@@ -176,9 +185,9 @@ sub _handle_order_param {
         $value = (join ",", map { "me.$_" } $self->set->result_source->primary_columns);
     }
 
-    for my $clause (split /\s*,\s*/, $value) {
+    for my $clause (split /\s*,\s*/x, $value) {
         # we take care to avoid injection risks
-        my ($field, $dir) = ($clause =~ /^([a-z0-9_\.]*)\b(?:\s+(asc|desc))?\s*$/i);
+        my ($field, $dir) = ($clause =~ /^ ([a-z0-9_\.]*)\b (?:\s+(asc|desc))? \s* $/xi);
         unless (defined $field) {
             $self->throwable->throw_bad_request(400, errors => [{
                 parameter => "invalid order clause",
@@ -191,6 +200,8 @@ sub _handle_order_param {
 
     $self->set( $self->set->search_rs(undef, { order_by => \@order_spec }) )
         if @order_spec;
+
+    return;
 }
 
 
@@ -205,9 +216,12 @@ sub _handle_distinct_param {
         unless $self->param('fields');
     push @errors, "distinct param requires fields and orders parameters to have same value"
         unless $self->param('fields') eq $self->param('order');
-    die join(", ", @errors) if @errors; # XXX throw
+    my $errors = join(", ", @errors);
+    die "$errors\n" if $errors; # TODO throw?
 
     $self->set( $self->set->search_rs(undef, { distinct => $value }) );
+
+    return;
 }
 
 

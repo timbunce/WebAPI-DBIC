@@ -2,7 +2,7 @@ package HTTP::Throwable::Role::JSONBody;
 
 use Moose::Role;
 
-sub body { $_[0]->message }
+sub body { return shift->message }
 
 sub body_headers {
     my ($self, $body) = @_;
@@ -13,7 +13,7 @@ sub body_headers {
     ];
 }
 
-sub as_string { $_[0]->body }
+sub as_string { return shift->body }
 
 no Moose::Role;
 1;

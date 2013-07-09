@@ -25,15 +25,15 @@ use Sub::Exporter -setup => {
     ]]
 };
 
-sub pair_key   { ( keys   %{ $_[0] } )[0] }
-sub pair_value { ( values %{ $_[0] } )[0] }
+sub pair_key   { return ( keys   %{ $_[0] } )[0] }
+sub pair_value { return ( values %{ $_[0] } )[0] }
 
 {
     my $ACTION_PACK = HTTP::Headers::ActionPack->new;
-    sub create_header   { $ACTION_PACK->create( @_ ) }
-    sub create_date     { $ACTION_PACK->create( 'DateHeader' => shift ) }
-    sub inflate_headers { $ACTION_PACK->inflate( @_ ) }
-    sub get_action_pack { $ACTION_PACK }
+    sub create_header   { return $ACTION_PACK->create( @_ ) }
+    sub create_date     { return $ACTION_PACK->create( 'DateHeader' => shift ) }
+    sub inflate_headers { return $ACTION_PACK->inflate( @_ ) }
+    sub get_action_pack { return $ACTION_PACK }
 }
 
 sub bind_path {
@@ -65,7 +65,7 @@ sub bind_path {
 
     return if @parts;
 
-    wantarray
+    return wantarray
         ? @results
         : (scalar @results == 1)
             ? $results[0]

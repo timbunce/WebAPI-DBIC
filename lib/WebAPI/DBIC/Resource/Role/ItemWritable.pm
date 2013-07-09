@@ -2,7 +2,7 @@ package WebAPI::DBIC::Resource::Role::ItemWritable;
 
 use Moo::Role;
 
-use Carp;
+use Carp qw(croak confess);
 use Devel::Dwarn;
 
 requires 'render_item_into_body';
@@ -15,7 +15,7 @@ requires 'response';
 requires 'path_for_item';
 
 
-sub content_types_accepted { [
+sub content_types_accepted { return [
     {'application/hal+json' => 'from_plain_json'},
     {'application/json'     => 'from_plain_json'}
 ] }
@@ -25,6 +25,7 @@ sub from_plain_json { # XXX currently used for hal too
     my $self = shift;
     my $data = $self->decode_json( $self->request->content );
     $self->update_resource($data, is_put_replace => 0);
+    return;
 }
 
 
@@ -40,7 +41,7 @@ around 'allowed_methods' => sub {
 };
 
 
-sub delete_resource { $_[0]->item->delete }
+sub delete_resource { return $_[0]->item->delete }
 
 
 sub _update_embedded_resources {
@@ -53,12 +54,12 @@ sub _update_embedded_resources {
     for my $rel (keys %$embedded) {
 
         my $rel_info = $result_class->relationship_info($rel)
-            or die "$result_class doesn't have a '$rel' relation";
-        die "$result_class $rel isn't a single"
+            or die "$result_class doesn't have a '$rel' relation\n";
+        die "$result_class _embedded $rel isn't a 'single' relationship\n"
             if $rel_info->{attrs}{accessor} ne 'single';
 
         my $rel_hal = $embedded->{$rel};
-        die "$rel data is not a hash"
+        die "_embedded $rel data is not a hash\n"
             if ref $rel_hal ne 'HASH';
 
         # work out what keys to copy from the subitem we're about to update
@@ -67,8 +68,8 @@ sub _update_embedded_resources {
         my $cond = $rel_info->{cond};
         for my $sub_field (keys %$cond) {
             my $our_field = $cond->{$sub_field};
-            $our_field =~ s/^self\.//    or die "panic $rel $our_field";
-            $sub_field =~ s/^foreign\.// or die "panic $rel $sub_field";
+            $our_field =~ s/^self\.//x    or confess "panic $rel $our_field";
+            $sub_field =~ s/^foreign\.//x or confess "panic $rel $sub_field";
             $fk_map{$our_field} = $sub_field;
 
             die "$result_class already contains a value for '$our_field'\n"
@@ -150,6 +151,7 @@ sub update_resource {
 
         $schema->txn_rollback if $self->param('rollback'); # XXX
     });
+    return;
 }
 
 1;

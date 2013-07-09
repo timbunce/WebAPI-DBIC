@@ -12,7 +12,7 @@ has debris => (
 
 sub create_resource {
     my ($self, $request) = @_;
-    $self->{'resource'}->new(
+    return $self->{'resource'}->new(
         request  => $request,
         response => $request->new_response,
         %{ $self->debris },

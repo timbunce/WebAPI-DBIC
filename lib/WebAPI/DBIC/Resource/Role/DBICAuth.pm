@@ -1,20 +1,21 @@
 package WebAPI::DBIC::Resource::Role::DBICAuth;
 
 use Moo::Role;
+use Carp qw(confess);
 
 use WebAPI::DBIC::Util qw(create_header);
 
 requires 'set';
 
 
-sub connect_schema_as {
+sub connect_schema_as { ## no critic (Subroutines::RequireArgUnpacking)
     my ($self, $user, $pass) = @_;
     $_[2] = '...'; # hide password from stack trace
 
     my $schema = $self->set->result_source->schema;
     my $ci = $schema->storage->connect_info;
     my ($ci_dsn, $ci_user, $ci_pass, $ci_attr) = @$ci;
-    die "assert: expected attr as 3rd element in connect_info"
+    confess "assert: expected attr as 3rd element in connect_info"
         unless ref $ci_attr eq 'HASH';
 
     # ok if we're currently using the right auth

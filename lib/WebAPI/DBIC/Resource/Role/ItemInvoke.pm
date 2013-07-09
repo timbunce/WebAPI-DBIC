@@ -15,7 +15,7 @@ has method => (
    required => 1,
 );
 
-sub post_is_create { 0 }
+sub post_is_create { return 0 }
 
 around 'allowed_methods' => sub {
    return [ qw(POST) ];

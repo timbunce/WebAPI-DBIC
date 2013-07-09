@@ -2,7 +2,7 @@ package WebAPI::DBIC::Resource::Role::DBIC;
 
 use Moo::Role;
 
-use Carp;
+use Carp qw(croak confess);
 use Scalar::Util qw(blessed);
 use Devel::Dwarn;
 use JSON ();
@@ -47,16 +47,20 @@ sub path_for_item {
 
     my %pk = map { $_ => $item->get_column($_) } $result_source->primary_columns;
     my $url = $self->uri_for(%pk, result_class => $result_source->result_class)
-        or die "panic: no route to @{[ %pk ]} ".$result_source->result_class;
+        or confess "panic: no route to @{[ %pk ]} ".$result_source->result_class;
 
     return $url;
 }
 
-sub uri_for {
+# Uses the router to find the route that matches the given parameter hash
+# returns nothing if there's no match, else
+# returns the absolute url in scalar context, or in list context it returns
+# the prefix (SCRIPT_NAME) and the relative url (from the router)
+sub uri_for { ## no critic (RequireArgUnpacking)
     my $self = shift; # %pk in @_
 
     my $url = $self->router->uri_for(@_)
-        or return undef;
+        or return;
     my $prefix = $self->request->env->{SCRIPT_NAME};
 
     return "$prefix/$url" unless wantarray;
@@ -203,7 +207,7 @@ sub finish_request {
 
     my $error_data;
     # ... DBD::Pg::st execute failed: ERROR:  column "nonesuch" does not exist
-    if ($exception =~ m/DBD::Pg.*? failed:.*? column "?(.*?)"? (.*)/) {
+    if ($exception =~ m/DBD::Pg.*? \s+ failed:.*? \s+ column \s+ "?(.*?)"? \s+ (.*)/x) {
         $error_data = {
             status => 400,
             field => $1,
@@ -211,7 +215,7 @@ sub finish_request {
         };
     }
     # handle exceptions from Params::Validate
-    elsif ($exception =~ /The '(\w+)' parameter \(.*?\) to (\S+) did not pass/) {
+    elsif ($exception =~ /The \s '(\w+)' \s parameter \s \(.*?\) \s to \s (\S+) \s did \s not \s pass/x) {
         $error_data = {
             status => 400,
             field => $1,
@@ -234,6 +238,8 @@ sub finish_request {
         $response->content_length(length $body);
         $response->content_type('application/hal+json');
     }
+
+    return;
 }
 
 
