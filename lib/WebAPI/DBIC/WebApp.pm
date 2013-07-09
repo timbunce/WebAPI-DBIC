@@ -2,6 +2,9 @@
 
 package WebAPI::DBIC::WebApp;
 
+use strict;
+use warnings;
+
 BEGIN {
     $ENV{WM_DEBUG} ||= 0; # verbose
     $ENV{DBIC_TRACE} ||= 0;
@@ -15,7 +18,7 @@ use HTTP::Throwable::Factory;
 use Path::Class::File;
 use Path::Router;
 use Module::Load;
-use Carp;
+use Carp qw(croak confess);
 use JSON;
 
 use Devel::Dwarn;
@@ -41,15 +44,18 @@ my $schema = WebAPI::Schema::Corp->new_default_connect(
     #"corp_snapshot_previous",
 );
 
+
 {
-    package My::HTTP::Throwable::Factory;
+    package My::HTTP::Throwable::Factory; ## no critic (ProhibitMultiplePackages)
     use parent 'HTTP::Throwable::Factory';
     use Carp qw(cluck);
     use JSON;
 
     sub extra_roles {
-        'HTTP::Throwable::Role::JSONBody', # remove HTTP::Throwable::Role::TextBody
-        'StackTrace::Auto',
+        return (
+            'HTTP::Throwable::Role::JSONBody', # remove HTTP::Throwable::Role::TextBody
+            'StackTrace::Auto'
+        );
     }
 
     sub throw_bad_request {
@@ -67,10 +73,52 @@ my $schema = WebAPI::Schema::Corp->new_default_connect(
             status_code => $status,
             message => $json_body,
         });
+        return; # not reached
     }
 
 }
 
+
+sub hal_browser_app {
+    my $request = shift;
+    my $router = $request->env->{'plack.router'};
+    my $path = $request->env->{REQUEST_URI}; # "/clients/v1/";
+
+    # if the request for the root url is from a browser
+    # then redirect to the HAL browser interface
+    return [ 302, [ Location => "browser/browser.html#$path" ], [ ] ]
+        if $request->headers->header('Accept') =~ /html/;
+
+    # we get here when the HAL Browser requests the root JSON
+    my %links = (self => { href => $path } );
+    foreach my $route (@{$router->routes})  {
+        my @parts;
+        my %attr;
+
+        for my $c (@{ $route->components }) {
+            if ($route->is_component_variable($c)) {
+                my $name = $route->get_component_name($c);
+                push @parts, "{/$name}";
+                $attr{templated} = JSON::true;
+            } else {
+                push @parts, "$c";
+            }
+        }
+        next unless @parts;
+
+        my $url = $path . join("", @parts);
+        $links{join("", @parts)} = {
+            href => $url,
+            title => $route->defaults->{_title}||"",
+            %attr
+        };
+    }
+    my $root_data = { _links => \%links, };
+
+    return [ 200, [ 'Content-Type' => 'application/json' ],
+        [ JSON->new->ascii->pretty->encode($root_data) ]
+    ]
+}
 
 
 sub mk_generic_dbic_item_set_routes {
@@ -85,8 +133,8 @@ sub mk_generic_dbic_item_set_routes {
 
     my $qr_id = qr/^-?\d+$/, # int, but allow for -1 etc
     my $qr_names = sub {
-        my $names_r = join "|", map { quotemeta $_ } @_ or die "panic";
-        return qr/^(?:$names_r)$/;
+        my $names_r = join "|", map { quotemeta $_ } @_ or confess "panic";
+        return qr/^(?:$names_r)$/x;
     };
 
     my $rs = $schema->resultset($resultset);
@@ -147,8 +195,8 @@ if (0) { # all!
     my %source_names = map { $_ => 1 } $schema->sources;
     for my $source_names ($schema->sources) {
         my $result_source = $schema->source($source_names);
-        next unless $result_source->name =~ /^[\w\.]+$/;
-        my %relationships;
+        next unless $result_source->name =~ /^[\w\.]+$/x;
+        #my %relationships;
         for my $rel_name ($result_source->relationships) {
             my $rel = $result_source->relationship_info($rel_name);
         }
@@ -176,10 +224,10 @@ else {
 
 my $router = Path::Router->new;
 while (my $r = shift @routes) {
-    my $spec = shift @routes or die "panic";
+    my $spec = shift @routes or confess "panic";
 
     my $getargs = $spec->{getargs};
-    my $resource_class = $spec->{resource} or die "panic";
+    my $resource_class = $spec->{resource} or confess "panic";
     load $resource_class;
 
     $router->add_route($r,
@@ -206,51 +254,15 @@ while (my $r = shift @routes) {
             )->to_app;
             my $resp = eval { $app->($request->env) };
             #Dwarn $resp;
-            if ($@) { Dwarn [ "EXCEPTION from app: $@" ]; die $@ } # report and rethrow
+            if ($@) { # XXX report and rethrow
+                Dwarn [ "EXCEPTION from app: $@" ];
+                die; ## no critic (ErrorHandling::RequireCarping)
+            }
             return $resp;
         },
     );
 };
 
-if (1) { # root level links to describe/explore the api (eg for the hal-browser)
-
-    $router->add_route('',
-        target => sub {
-            my $request = shift;
-            my $path = $request->env->{REQUEST_URI}; # "/clients/v1/";
-
-            # if the request for the root url is from a browser
-            # then redirect to the HAL browser interface
-            return [ 302, [ Location => "browser/browser.html#$path" ], [ ] ]
-                if $request->headers->header('Accept') =~ /html/;
-
-            my %links = (self => { href => $path } );
-            foreach my $route (@{$router->routes})  {
-                my @parts;
-                my %attr = ( title => $route->defaults->{_title}||"" );
-                for my $c (@{ $route->components }) {
-                    if ($route->is_component_variable($c)) {
-                        my $name = $route->get_component_name($c);
-                        push @parts, "{/$name}";
-                        $attr{templated} = JSON::true;
-                    } else {
-                        push @parts, "$c";
-                    }
-                }
-                next unless @parts;
-                my $url = $path . join("", @parts);
-                $links{join("", @parts)} = {
-                    href => $url,
-                    %attr
-                };
-            }
-            my $root_data = { _links => \%links, };
-
-            return [ 200, [ 'Content-Type' => 'application/json' ],
-                [ JSON->new->ascii->pretty->encode($root_data) ]
-            ]
-        },
-    );
-}
+$router->add_route('', target => \&hal_browser_app);
 
 Plack::App::Path::Router->new( router => $router )->to_app; # return Plack app
