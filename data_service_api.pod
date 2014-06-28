@@ -1,0 +1,641 @@
+=head1 NAME
+
+TBD
+
+=head1 GENERIC ENTITY REPRESENTIONS
+
+Here we define the default behavior for GET, PUT, DELETE and POST methods on
+item and set resources. Any special cases for particular resources will
+be noted later.
+
+In these examples the ~ symbol is used to represent a common prefix.  The
+prefix is intended to contain at least a single path name element plus a
+version number element, for example, in:
+
+    GET ~/ecosystems/
+
+the ~ represents a prefix such as "/clients/v1", so the above is a shorthand
+way of representing:
+
+    GET /clients/v1/ecosystems/
+
+(TBD Note that the v1 method of API versioning has limitations. Versioned media
+types might be used instead.)
+
+=head2 Conventions
+
+Resource names are plural nouns, and lower case, with underscores if required.
+Verbs would be used for for non-resource requests and will probably be
+capitalized (e.g. /Convert?from=Y&to=Y).
+
+A parameter that's part of the url is represented in these examples with the
+:name convention, e.g. :id.
+
+XXX That might change to the 'URL Template' RFC6570 style
+http://tools.ietf.org/html/rfc6570
+
+
+=head2 GET Item
+
+    GET ~/resources/:id
+
+returns 
+
+    {
+        _links: { ... }  # optional
+        _embedded: { ... }  # optional
+        _meta: { ... }   # optional
+        ... # data attributes, optional
+    }
+
+The optional _links object holds relevant links in the HAL format
+(see below). This enables interactive browsing of the API.
+
+The optional _embedded object holds embedded resources in the HAL format.
+(see L</prefetch>).
+
+The optional _meta attribute might include things like the name of the
+attribute to treat as the label, or a count of items matching a search.
+
+    GET ~/ecosystems/1
+
+would include
+
+    {
+        id: 1,
+        ...
+        person_id: 2,  # foreign key
+        ...
+        _links {
+            self: {
+                href: "/ecosystems/1"
+            },
+            "relation:person": {
+                href: /person/19
+            },
+            "relation:email_domain": {
+                href: "/email_domain/8"
+            }
+        },
+    }
+
+The "relation" links describe the relationships this resource has with other resources.
+
+TBD Currently only 1-1 relationships (e.g., belongs_to) are included. Also see L</prefetch>.
+
+
+=head2 GET Item Optional Parameters
+
+=head3 prefetch
+
+    prefetch=relationship
+    prefetch=relationship1,relationship2
+
+The prefetch parameter enables one or more related resources to be fetched and
+embedded in the response. For example:
+
+    GET ~/ecosystems/1?prefetch=person
+
+would return:
+
+    {
+        id: 1,
+        person_id: 2,  # foreign key
+        ...
+        _links: { ... },
+        _embedded: {
+            person: {  # prefetched using person_id
+                id: 2,
+                ...
+                _links: { ... },
+            },
+        }
+    }
+
+Here the _embedded person is a resource, not an array of resources, because the
+relationship is 1-1. For 1-N relationships the value of the _embedded key would
+be an array that contains the relevant resource records.
+
+=head3 fields
+
+Partial responses:
+
+    fields=field1,field2
+
+TBD Currently doesn't work for limiting the fields of prefetched relations.
+
+=head3 with
+
+The C<with> parameter is used to control optional items within responses. It's
+a comma separated list of words. This parameter is only passed-through in paging links.
+
+* B<count>
+
+Adds a C<count> attribute to the C<_meta> hash in the results containing the
+count of items in the set matched by the request, i.e., the number of items
+that would be returned if paging was disabled. Also adds a C<last> link to the
+C<_links> section of the results.
+
+* B<nolinks>
+
+TBD - possibly used to disable links in the results, especially for large sets
+of small items where the links section would take significant time and space to
+construct and return. Might be better as a linkdepth=N where N is decremented
+at each level of embedding so linkdepth=0 disables all links, but linkdepth=1
+allows paging of the set but doesn't include links in the embedded resources.
+
+=head2 GET on Set
+
+    GET ~/ecosystems
+
+returns 
+
+    {
+        _links: { ... },  # optional
+        _meta: { ... },   # optional
+        _embedded: { 
+            ecosystems => [
+                { ... }, ...
+            ]
+        }
+    }
+
+The _embedded object contains a key matching the resource name whoose
+value is an array of those resources, in HAL format. It may seem unusual that
+the response isn't simply an array of the resources, but you can think of the
+'set' as a 'virtual' entity that contains nothing itself but just acts as a
+container for a set of embedded resources.
+
+The _links objects would include links in HAL format for first/prev/next/last.
+
+The _meta could include attributes like limit, offset.
+
+=head2 GET on Set - Optional Parameters
+
+=head3 Paging
+
+Set results are returned in pages to prevent accidentally trying to
+fetch very large numbers of rows. The default is a small number.
+
+    rows=N   - default 30 (at the time of writing)
+    page=N   - default 1
+
+
+=head3 fields
+
+Partial results, as for GET Item above.
+
+
+=head3 Ordering
+
+    order=field1
+    order=field1 desc
+    order=field1 asc,field2 asc
+
+A comma-separated list of one or more ordering clauses, each consisting of a
+field designator followed by an optional direction.  Direction can be asc or
+desc and defaults to asc.
+
+Field names can refer to fields of L</prefetch> relations. For example:
+
+    ~/ecosystems_people?prefetch=person,client_auth&order=client_auth.username
+
+=head3 Filtering
+
+    ?me.fieldname=value
+
+Filtering with query params
+
+    ?me.color=red&me.state=running
+
+The me.*= values can be JSON data structures if the field name is sufixed with
+~json, for example:
+
+    ?me.color~json=["red","blue"]    # would actually be URL encoded
+
+which would be evaluated as an SQL 'IN' expression:
+
+    color IN ('red', 'blue')
+
+More complex expressions can be expressed using hashes, for example:
+
+    ?me.color~json={"like":"%red%"}  # would actually be URL encoded
+
+would be evaluated as
+
+    color LIKE '%red%'
+
+and
+
+    ?me.foo~json=[ "-and", {"!=":2}, {"!=":1} ]  # shown unencoded
+
+would be evaluated as
+
+    foo != 2 and foo != 1
+
+See https://metacpan.org/module/SQL::Abstract#WHERE-CLAUSES for more examples.
+
+The me.* parameters are only passed-through in paging links.
+
+
+=head3 Prefetching Related Objects
+
+    ?prefetch=person,client_auth
+
+The resource may have 1-1 relationships with other resources.
+(E.g., a "belongs_to" relationship in DBIx::Class terminology.)
+
+The relevant instances of related resources can be fetched and returned along
+with the requested resource by listing the relationships in a prefetch parameter.
+
+For example: GET /ecosystems_people?prefetch=person,client_auth
+
+  {
+    "_links": { ... },
+    "_embedded": {
+      "ecosystems_people": [
+        {
+          "client_auth_id": "29",
+          "person_id": "8",
+          ...
+          "_links": { ... },
+          "_embedded": {
+            "client_auth": {   # embedded client_auth resourse
+              "id": 29
+              ...
+            },
+            "person": {        # embedded person resourse
+              "id": 8,
+              ...
+            }
+          },
+        },
+        ... # next ecosystems_people resource
+      ]
+    }
+  }
+
+
+=head3 distinct
+
+    distinct=1
+
+Only return distinct results.
+
+Currently this parameter requires that both the fields and order parameters are
+provided, and have identical values.
+
+The results are returned in HAL format, i.e., as an array of objects in an
+_embedded field, but the objects themselves are not in HAL format, i.e. they
+don't have _links or _embedded elements.
+
+
+=head2 PUT on Item
+
+Update resource attributes using the JSON attribute values in the request body.
+
+Embedded related resources can be supplied (if the Content-Type is C<application/hal+json>).
+
+Changes will be made in a single transaction.
+
+Prefetch of related resources is supported.
+
+TODO Enable use of the ETag header for optimistic locking.
+
+=head2 PUT on Set
+
+Not supported.
+
+=head2 DELETE on Item
+
+Delete the record.
+
+=head2 DELETE on Set
+
+Not supported.
+
+=head2 POST on Item
+
+Not supported.
+
+=head2 POST on Set
+
+Create a new resource in the set. Returns a 302 redirect with a Location
+header giving the URL of the newly created resource.
+
+Any attributes that aren't specified in the POST data will be given the default
+values specified by the database schema.
+
+The C<prefetch> parameter can be used to request that the created resource, and
+any related resources, be returned in the body of the response.
+
+The rollback=1 parameter let's you rollback a POST to a set, e.g., for testing.
+
+TBD check that only fields valid for GET have been supplied
+
+=head2 Creating Related Resources
+
+If the Content-Type is C<application/hal+json> then related resources can be
+provided via the C<_embedded> attribute. They will be created first and the
+corresponding key fields of the main resource will be set to the appropriate
+values before it's inserted. All database changes will happen in a single transaction.
+
+For example, given a POST to /albums containing:
+
+    {
+        name: "album name",
+        artist_id: null,        # optional
+        _embedded => {
+            artist => {
+                name: "artist name",
+            }
+        }
+    }
+
+The artist resource would be created first and its primary key would be
+used to set the artist_id field before that was created.
+
+This process works recursively for any number of level and any number of
+relations at each level.
+
+=head2 Error
+
+Error status responses should include a JSON object with at least these fields:
+
+    {
+        status: NNN,
+        message: "...",
+    }
+
+XXX Needs to be extended to be able to express errors related to specific
+attributes in the request. See L</Validation>.
+
+=head2 Invoking Methods
+
+To enable the execution of functionality not covered by the general HTTP
+mechanisms described above, it's possible to define resources that represent
+arbitary methods. These methods are executed by a POST request to the
+correponding resource. The body of the request contains the parameters to the
+method.
+
+Currently a method can only be invoked on an item resource. The resource for
+the method call is simply the url of the item resource with '/invoke/:method'
+appended:
+
+    POST ~/ecosystems/:id/invoke/:method
+
+The request supports the same query parameters as the corresponding item
+resource.
+
+=head3 Default Argument and Response Handling
+
+Custom method resources can be defined which can perform any desired action,
+argument and response handling.
+
+A default behaviour is provided to handle simple cases and that is described here.
+
+The named method is invoked on the item object specified by the item resource.
+In other words, the method is a method in the schema's Result class.
+
+The POST request must use content-type of application/json and, if arguments
+are required, are specified via an 'args' element in the body JSON:
+
+    { args => [ ... ] }
+
+The method is called in a scalar context.
+
+If the method returns a DBIx::Class::Row object it is returned as a JSON hash.
+
+If the method returns a DBIx::Class ResultSet object it is returned as a JSON
+array containing a hash for every row in the result set. There is no paging.
+
+If the method returns any other kind of value it it returned as a JSON hash
+containing a single element 'result':
+
+    { result: ... }
+
+(To avoid attempting to serialize objects, if the result is blessed then it's
+stringified.)
+
+
+=head1 AUTHENTICATION
+
+Currently we're using HTTP Basic authentication and using the supplied
+credentials as the credentials for database access. So whatever username and
+password are provided with the request will be used to perform the request on
+the database.
+
+Clearly https is needed if auth is required and the interface is public!
+
+Current Basic auth leaves db password in browsers auth cache or keychain.
+
+    Digest auth http://en.wikipedia.org/wiki/Digest_access_authentication
+    http://search.cpan.org/perldoc?Plack%3A%3AMiddleware%3A%3AAuth%3A%3ADigest
+
+    Also http://stackoverflow.com/questions/319530/restful-authentication
+
+
+=head1 IMPLEMENTATION NOTES
+
+We use the existing DBIx::Class classes directly as the
+entity definitions exposed by the data service. This is reasonable given that
+it's an internal service so there's little value in abstracting it further.
+
+The pattern of set, set/id, set/id/relation, set/id/relation/id can continue to
+any depth but we're using a flat namespace for now. If we used a deeper path it
+would represent 'is identified by' (or 'belongs to') relationships. This
+complicates the caching/invalidation though, so we'll keep it flat for now.
+
+XXX Allow overriding the method via a url param, e.g. for testing: GET /dogs?method=delete TBD
+
+XXX Allow overriding the return status via a url param, e.g. for testing: GET /dogs?suppress_response_codes=true
+would return 200 status, but the content would still be the error details.
+
+ETag etc [LATER]
+
+For datetime use UTC and ISO8601 - automation via TBD
+
+Review the Web Linking spec (RFC5899) and HAL for use of rel links, eg first/prev/next/last. [LATER]
+
+Formalize the error response contents.
+
+
+=head2 Validation
+
+Validation in the data service requires defining an approach to parameter
+validation (eg adopting a module like Params::Validate plus Moose attribute
+validations) and defining an approach to throwing and handling exceptions.
+
+Specifically it should provide sufficient information to the client, via the
+JSON response, to enable the client to update the form to indicate *which*
+field(s) are associated with the error.
+
+Similarly exceptions raised due to database constraint errors should also
+generate client-useful exceptions with field information if possible.
+Note that this may require some mapping of database field names to json entity
+type field names.
+
+
+=head1 CACHING
+
+Implementing caching is easy. Implementing efficient caching (where each
+resource is only cached one - a canonical copy) and cache invalidation
+(eg a trigger on a table can invalidate the cached copy of affected rows)
+is, er, non-trivial.
+
+=head2 ESI
+
+Edge Side Include is the "secret sauce" that enables caching (and cache
+invalidation) to work nicely with prefetch and HAL.
+
+Consider a simple request like /foo/42. The response looks like:
+
+    {
+        id: 42,
+        ...foo fields...
+    }
+
+A database trigger on the foo table could be used to invalidate the cache for a
+particular /foo/:id record when that record is updated. So far so good.
+
+Now consider a request with prefetch: /foo/42&prefetch=bar where the response
+looks like:
+
+    {
+        id: 42,
+        ...other foo fields...
+        _embedded: {
+            bar: { id: 97, ...other bar fields...}
+        }
+    }
+
+Now there's no simple way to invalidate that cached response when the
+corresponding record in the bar table is updated.
+
+This is where ESI comes in. The response from the API would look like this:
+
+    {
+        id: 42,
+        ...other foo fields...
+        _embedded: {
+            bar: <esi:include src="/bar/97">
+        }
+    }
+
+the ESI processor (eg varnish) caches that unprocessed response and then
+processes the ESI requests embedded in it. So it makes a separate request for
+"/bar/97" (which may well be resolved from its own cache) and builds the
+response to send to the client.
+
+The same database triger mechanism on the bar table will invalidate the cached
+/bar/97 response when the corresponding record in the bar table is updated.
+
+With ESI, this invalidation affects all cached responses.
+
+    http://odino.org/some-common-questions-about-edge-side-includes/
+    http://stackoverflow.com/questions/11781576/most-secure-javascript-json-inline-technique
+
+Also look into "Surrogate-Capability & Surrogate- Control headers for ESI based block caching"
+
+=head2 Varnish
+
+The varnish cache (see http://varnish-cache.org) supports basic ESI and also
+enables alternative approaches that might be useful:
+
+* X-depends-on - e.g. http://www.smashingmagazine.com/2014/04/23/cache-invalidation-strategies-with-varnish-cache/
+
+* https://www.varnish-cache.org/utilities?field_utility_category_tid=16
+
+* http://www.hward.com/varnish-cache-invalidation-with-fastly-surrogate-keys
+
+
+=head1 RESEARCH
+
+REST Core concepts and specifications:
+
+    http://en.wikipedia.org/wiki/Representational_State_Transfer
+    http://www.w3.org/Protocols/rfc2616/rfc2616.html (HTTP Spec)
+    https://github.com/basho/webmachine/wiki/Diagram
+
+Best practice (hint: there's isn't one, just lots of suggestions):
+
+    http://www.slideshare.net/Wombert/designing-http-interfaces-and-restful-web-services-sfliveparis2012-20120608
+    http://www.infoq.com/articles/webber-rest-workflow
+    https://restful-api-design.readthedocs.org/en/latest/
+    http://www.stormpath.com/blog/designing-rest-json-apis
+    http://www.slideshare.net/guilhermecaelum/rest-in-practice (XML)
+    http://www.slideshare.net/apigee/restful-api-design-second-edition (107 slides)
+    http://www.foxycart.com/blog/the-hypermedia-debate#.UT8PSKVYXdk
+
+PUT vs POST
+
+    http://jcalcote.wordpress.com/2008/10/16/put-or-post-the-rest-of-the-story/
+    http://benramsey.com/blog/2009/11/post-vs-put/
+    http://techno-weenie.net/2011/4/28/my-put-requests-bug-me/
+
+Example APIs
+
+    http://developer.github.com/v3/
+    http://bitworking.org/projects/atom/rfc5023.html
+
+API Design
+
+    http://www4.in.tum.de/~blanchet/api-design.pdf
+
+Linking
+
+    http://amundsen.com/media-types/linkrelations/
+    http://www.iana.org/assignments/link-relations/link-relations.xml
+    http://tools.ietf.org/html/rfc5988
+    http://www.mnot.net/blog/2011/11/25/linking_in_json (see also the comments)
+
+HAL - Hypertext Application Language
+
+    http://blog.stateless.co/post/13296666138/json-linking-with-hal
+    http://stateless.co/hal_specification.html
+    http://tools.ietf.org/html/draft-kelly-json-hal
+    http://haltalk.herokuapp.com/explorer/browser.html
+    http://www.quora.com/REST-software-architectural-style/JSON-+-Hypermedia-Using-HAL-in-Production
+
+URI Template
+
+    http://tools.ietf.org/html/rfc6570
+    https://metacpan.org/module/URI::Template
+
+CURIE Syntax - Compact URIs
+
+    http://www.w3.org/TR/curie/
+
+Partial reponses
+
+    http://blog.apigee.com/detail/restful_api_design_can_your_api_give_developers_just_the_information
+    https://developers.google.com/+/api/#partial-response
+
+Other references:
+
+    http://www.programmableweb.com
+    http://www.programmableweb.com/apis/directory/1?protocol=REST&format=JSON
+    http://www.slideshare.net/jmusser/j-musser-apishotnotgluecon2012
+    http://nocarrier.co.uk/2012/09/hypermedia-types-and-connection-negotiation/
+
+Restful Objects:
+
+    http://en.wikipedia.org/wiki/Restful_Objects
+    http://www.infoq.com/articles/Intro_Restful_Objects
+    Demo: http://simple-dusk-6870.herokuapp.com/arow-ronet.html#
+    http://skillsmatter.com/podcast/design-architecture/restful-objects (video)
+
+Assorted Proposed Standards
+
+    http://json-ld.org
+
+    https://github.com/kevinswiber/siren
+
+    http://librelist.com/browser//hypermedia/2012/5/2/notes-on-hal-and-collection+json/
+
+Error Formats
+
+    https://github.com/blongden/vnd.error
+    http://tools.ietf.org/html/draft-nottingham-http-problem-02
+
+=cut
