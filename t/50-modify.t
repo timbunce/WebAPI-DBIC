@@ -89,7 +89,7 @@ test_psgi $app, sub {
 note "put with prefetch=self";
 test_psgi $app, sub {
     my $desc = "bar";
-    Dwarn my $data = dsresp_ok(shift->(dsreq( PUT => "/person_types/$item->{id}?prefetch=self", [], {
+    my $data = dsresp_ok(shift->(dsreq( PUT => "/person_types/$item->{id}?prefetch=self", [], {
         description => $desc,
     })), 200);
     is ref $data, 'HASH', 'has response body';

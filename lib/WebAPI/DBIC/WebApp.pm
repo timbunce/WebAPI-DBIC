@@ -48,7 +48,7 @@ my $schema = WebAPI::Schema::Corp->new_default_connect(
 {
     package My::HTTP::Throwable::Factory; ## no critic (ProhibitMultiplePackages)
     use parent 'HTTP::Throwable::Factory';
-    use Carp qw(cluck);
+    use Carp qw(carp cluck);
     use JSON;
 
     sub extra_roles {
@@ -61,7 +61,7 @@ my $schema = WebAPI::Schema::Corp->new_default_connect(
     sub throw_bad_request {
         my ($class, $status, %opts) = @_;
         cluck("bad status") unless $status =~ /^4\d\d$/;
-        cluck("throw_bad_request @_");
+        carp("throw_bad_request @_");
 
         # XXX TODO validations
         my $data = {

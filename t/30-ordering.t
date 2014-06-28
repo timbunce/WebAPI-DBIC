@@ -22,17 +22,27 @@ sub is_ordered {
     my $sorter = multikeysorter($value_sub, @types);
     my @ordered = $sorter->(@$got);
 
-    my @got_view = map { join "+", $value_sub->($_) } @$got;
-    my @ord_view = map { join "+", $value_sub->($_) } @ordered;
+    my @got_view = map { join "/", $value_sub->($_) } @$got;
+    my @ord_view = map { join "/", $value_sub->($_) } @ordered;
 
     local $Test::Builder::Level = $Test::Builder::Level + 1;
     eq_or_diff_data \@got_view, \@ord_view, 'ordered';
 }
 
+sub hack_str {
+    my $str = shift;
+    # XXX the s/\./~/g is a hack to workaround an apparent difference between
+    # perl's lexical sorting and postgres character sorting
+    # eg they order 'danielle.carne' vs 'daniel.rabiner' and
+    # 'salesman' vs 'sales team' differently. Unicode collation?
+    $str =~ s/ /~/g;
+    return lc $str;
+}
+
 
 note "===== Ordering =====";
 
-my $base = "/person_types?rows=1000"; # rows must include all for tests to pass
+my $base = "/person_types?rows=1000"; # rows count must include all rows in set for tests to pass
 my %person_types;
 my @person_types;
 
@@ -56,29 +66,29 @@ test_psgi $app, sub {
 test_psgi $app, sub {
     my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.name%20desc,id%20desc" )));
     my $set = is_set_with_embedded_key($data, "person_types", 2);
-    cmp_deeply $set, bag(@person_types), 'same set of rows';
-    ok not eq_deeply $set, \@person_types, 'order has changed';
-    is_ordered($set, sub { lc $_->{name}, $_->{id} }, '-str', '-int');
+    cmp_deeply $set, bag(@person_types), 'same set of rows returned';
+    ok not eq_deeply $set, \@person_types, 'order has changed from original';
+    # XXX the s/\./~/g is a hack to workaround an apparent difference between
+    # perl's lexical sorting and postgres character sorting
+    # eg they order danielle.carne and daniel.rabiner differently
+    is_ordered($set, sub { return hack_str($_->{name}), $_->{id} }, '-str', '-int');
 };
 
 test_psgi $app, sub {
     my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.name,id%20asc" )));
     my $set = is_set_with_embedded_key($data, "person_types", 2);
-    cmp_deeply $set, bag(@person_types), 'same set of rows';
-    ok not eq_deeply $set, \@person_types, 'order has changed';
-    is_ordered($set, sub { lc $_->{name}, $_->{id} }, 'str', 'int');
+    cmp_deeply $set, bag(@person_types), 'same set of rows returned';
+    ok not eq_deeply $set, \@person_types, 'order has changed from original';
+    is_ordered($set, sub { return hack_str($_->{name}), $_->{id} }, 'str', 'int');
 };
 
 note "===== Ordering with prefetch =====";
 
 test_psgi $app, sub {
-    # the extra me.* param is to make this query be less expensive
+    # the extra me.* param is to make this query be less expensive on our data set
     my $data = dsresp_ok(shift->(dsreq( GET => "/ecosystems_people?prefetch=client_auth&order=client_auth.username&me.client_auth.demo=1" )));
     my $set = is_set_with_embedded_key($data, "ecosystems_people", 2);
-    # XXX the s/\./~/g is a hack to workaround an apparent difference between
-    # perl's lexical sorting and postgres character sorting
-    # eg they order danielle.carne and daniel.rabiner differently
-    is_ordered($set, sub { my $val = lc $_->{_embedded}{client_auth}{username}; $val=~s/\./~/g; $val }, 'str');
+    is_ordered($set, sub { hack_str($_->{_embedded}{client_auth}{username}) }, 'str');
 };
 
 test_psgi $app, sub {
