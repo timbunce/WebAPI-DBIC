@@ -1,7 +1,5 @@
 #!/usr/bin/env perl
 
-use tlcomp 'clients_dataservice';
-
 use Test::Most;
 use Plack::Test;
 use Test::HTTP::Response;
