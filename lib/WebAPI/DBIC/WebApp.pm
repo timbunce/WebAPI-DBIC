@@ -5,14 +5,6 @@ package WebAPI::DBIC::WebApp;
 use strict;
 use warnings;
 
-BEGIN {
-    $ENV{WM_DEBUG} ||= 0; # verbose
-    $ENV{DBIC_TRACE} ||= 0;
-    $ENV{DBI_TRACE} ||= 0;
-    $ENV{PATH_ROUTER_DEBUG} ||= 0;
-    $|++;
-}
-
 use Plack::App::Path::Router;
 use Path::Class::File;
 use Path::Router;

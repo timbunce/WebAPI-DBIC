@@ -4,6 +4,14 @@ use Plack::App::File;
 
 use Devel::Dwarn;
 
+BEGIN {
+    $ENV{WM_DEBUG} ||= 0; # verbose
+    $ENV{DBIC_TRACE} ||= 0;
+    $ENV{DBI_TRACE} ||= 0;
+    $ENV{PATH_ROUTER_DEBUG} ||= 0;
+    $|++;
+}
+
 my $app = require WebAPI::DBIC::WebApp;
 
 my $app_prefix = "/clients/v1";
