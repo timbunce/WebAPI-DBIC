@@ -29,6 +29,29 @@ my $in_production = ($ENV{PLACK_ENV} eq 'production');
 
 has schema => (is => 'ro', required => 1);
 has opt_writable => (is => 'ro', default => 1);
+has routes => (is => 'ro', lazy => 1, builder => 1);
+has extra_routes => (is => 'ro', lazy => 1, builder => 1);
+
+sub _build_extra_routes { [] }
+sub _build_routes {
+    my ($self) = @_;
+
+    my @routes;
+    my %source_names = map { $_ => 1 } $self->schema->sources;
+    for my $source_names ($self->schema->sources) {
+        my $result_source = $self->schema->source($source_names);
+        next unless $result_source->name =~ /^[\w\.]+$/x;
+        #my %relationships;
+        for my $rel_name ($result_source->relationships) {
+            my $rel = $result_source->relationship_info($rel_name);
+        }
+        push @routes, $self->mk_generic_dbic_item_set_routes(
+            $result_source->name => $result_source->source_name
+        );
+    }
+
+    return \@routes;
+}
 
 
 sub hal_browser_app {
@@ -141,48 +164,21 @@ sub mk_generic_dbic_item_set_routes {
     return @routes;
 }
 
-sub to_psgi_app {
+sub all_routes {
     my ($self) = @_;
 
     my @routes;
+    my @extra_routes = map {
+        $self->mk_generic_dbic_item_set_routes(@$_)
+    } @{ $self->extra_routes };
 
-    if (1) {                    # all!
-        my %source_names = map { $_ => 1 } $self->schema->sources;
-        for my $source_names (sort $self->schema->sources) {
-            my $result_source = $self->schema->source($source_names);
-            next unless $result_source->name =~ /^[\w\.]+$/x;
-            #my %relationships;
-            for my $rel_name ($result_source->relationships) {
-                my $rel = $result_source->relationship_info($rel_name);
-                # I can't remember what I'd planned to do here :)
-            }
-            #warn sprintf "/%s => %s\n", $result_source->name => $result_source->source_name;
-            push @routes, $self->mk_generic_dbic_item_set_routes(
-                $result_source->name => $result_source->source_name,
-                invokeable_on_item => [
-                    'table', # a DBIx::Class::Row method, just used for testing
-                ]
-            );
-        }
-    }
-    else {
+    return ( @{ $self->routes }, @extra_routes );
+}
 
-        push @routes, $self->mk_generic_dbic_item_set_routes( 'person_types' => 'PersonType');
-        push @routes, $self->mk_generic_dbic_item_set_routes( 'persons' => 'People');
-        push @routes, $self->mk_generic_dbic_item_set_routes( 'phones' => 'Phone');
-        push @routes, $self->mk_generic_dbic_item_set_routes( 'person_emails' => 'Email');
-        push @routes, $self->mk_generic_dbic_item_set_routes( 'client_auths' => 'ClientAuth');
-        push @routes, $self->mk_generic_dbic_item_set_routes( 'ecosystems' => 'Ecosystem');
-        push @routes, $self->mk_generic_dbic_item_set_routes( 'ecosystems_people' => 'EcosystemsPeople',
-            invokeable_on_item => [
-                'item_instance_description', # used for testing
-                'bulk_transfer_leads',
-            ]
-        );
-        push @routes, $self->mk_generic_dbic_item_set_routes( 'ecosystem_domains' => 'EcosystemDomain');
+sub to_psgi_app {
+    my ($self) = @_;
 
-    }
-
+    my @routes = $self->all_routes;
 
     my $router = Path::Router->new;
     while (my $r = shift @routes) {
