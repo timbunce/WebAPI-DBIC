@@ -29,11 +29,11 @@ my $in_production = ($ENV{PLACK_ENV} eq 'production');
 
 has schema => (is => 'ro', required => 1);
 has opt_writable => (is => 'ro', default => 1);
-has routes => (is => 'ro', lazy => 1, builder => 1);
 has extra_routes => (is => 'ro', lazy => 1, builder => 1);
+has auto_routes => (is => 'ro', lazy => 1, builder => 1);
 
 sub _build_extra_routes { [] }
-sub _build_routes {
+sub _build_auto_routes {
     my ($self) = @_;
 
     my @routes;
@@ -45,9 +45,9 @@ sub _build_routes {
         for my $rel_name ($result_source->relationships) {
             my $rel = $result_source->relationship_info($rel_name);
         }
-        push @routes, $self->mk_generic_dbic_item_set_routes(
+        push @routes, [
             $result_source->name => $result_source->source_name
-        );
+        ];
     }
 
     return \@routes;
@@ -166,13 +166,9 @@ sub mk_generic_dbic_item_set_routes {
 
 sub all_routes {
     my ($self) = @_;
-
-    my @routes;
-    my @extra_routes = map {
+    return map {
         $self->mk_generic_dbic_item_set_routes(@$_)
-    } @{ $self->extra_routes };
-
-    return ( @{ $self->routes }, @extra_routes );
+    } (@{ $self->auto_routes }, @{ $self->extra_routes });
 }
 
 sub to_psgi_app {
