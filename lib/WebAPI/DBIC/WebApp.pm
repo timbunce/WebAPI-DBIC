@@ -27,9 +27,8 @@ use namespace::clean;
 $ENV{PLACK_ENV} ||= 'production';
 my $in_production = ($ENV{PLACK_ENV} eq 'production');
 
-my $opt_writable = 1;
-
 has schema => (is => 'ro', required => 1);
+has opt_writable => (is => 'ro', default => 1);
 
 
 sub hal_browser_app {
@@ -81,8 +80,8 @@ sub mk_generic_dbic_item_set_routes {
     my $invokeable_on_set  = delete $opts{invokeable_on_set}  || [];
     my $invokeable_on_item = delete $opts{invokeable_on_item} || [];
     # disable all methods if not writable, for safety: (perhaps allow get_* methods)
-    $invokeable_on_set  = undef unless $opt_writable;
-    $invokeable_on_item = undef unless $opt_writable;
+    $invokeable_on_set  = undef unless $self->opt_writable;
+    $invokeable_on_item = undef unless $self->opt_writable;
 
     my $qr_id = qr/^-?\d+$/, # int, but allow for -1 etc
     my $qr_names = sub {
@@ -202,7 +201,7 @@ sub to_psgi_app {
                 #local $SIG{__DIE__} = \&Carp::confess;
 
                 my %resource_args = (
-                    writable => $opt_writable,
+                    writable => $self->opt_writable,
                     throwable => 'WebAPI::HTTP::Throwable::Factory',
                 );
                 # perform any required setup for this request & params in @_
