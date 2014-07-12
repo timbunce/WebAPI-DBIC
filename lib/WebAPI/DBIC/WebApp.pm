@@ -6,7 +6,6 @@ use strict;
 use warnings;
 
 use Plack::App::Path::Router;
-use Path::Class::File;
 use Path::Router;
 use Module::Load;
 use Carp qw(croak confess);
