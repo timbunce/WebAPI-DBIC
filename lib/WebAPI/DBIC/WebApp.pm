@@ -14,7 +14,6 @@ BEGIN {
 }
 
 use Plack::App::Path::Router;
-use HTTP::Throwable::Factory;
 use Path::Class::File;
 use Path::Router;
 use Module::Load;
@@ -25,6 +24,7 @@ use Devel::Dwarn;
 
 use DummySchema;
 use WebAPI::DBIC::Machine;
+use WebAPI::HTTP::Throwable::Factory;
 
 # pre-load some modules to improve shared memory footprint
 require DBIx::Class::SQLMaker;
@@ -40,38 +40,6 @@ my $opt_writable = 1;
 my $schema = DummySchema->new_default_connect( {}, "corp" );
 
 
-{
-    package My::HTTP::Throwable::Factory; ## no critic (ProhibitMultiplePackages)
-    use parent 'HTTP::Throwable::Factory';
-    use Carp qw(carp cluck);
-    use JSON;
-
-    sub extra_roles {
-        return (
-            'HTTP::Throwable::Role::JSONBody', # remove HTTP::Throwable::Role::TextBody
-            'StackTrace::Auto'
-        );
-    }
-
-    sub throw_bad_request {
-        my ($class, $status, %opts) = @_;
-        cluck("bad status") unless $status =~ /^4\d\d$/;
-        carp("throw_bad_request @_");
-
-        # XXX TODO validations
-        my $data = {
-            errors => $opts{errors},
-        };
-        my $json_body = JSON->new->ascii->pretty->encode($data);
-        # [ 'Content-Type' => 'application/hal+json' ],
-        $class->throw( BadRequest => {
-            status_code => $status,
-            message => $json_body,
-        });
-        return; # not reached
-    }
-
-}
 
 
 sub hal_browser_app {
@@ -242,7 +210,7 @@ while (my $r = shift @routes) {
 
             my %resource_args = (
                 writable => $opt_writable,
-                throwable => 'My::HTTP::Throwable::Factory',
+                throwable => 'WebAPI::HTTP::Throwable::Factory',
             );
             # perform any required setup for this request & params in @_
             $getargs->($request, \%resource_args, @_) if $getargs;
