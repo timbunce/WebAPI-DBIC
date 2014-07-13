@@ -22,14 +22,32 @@ WebAPI::DBIC features include:
 
 * Uses the JSON+HAL (Hypertext Application Language) lean hypermedia type
 
-* Supports safe multi-related-record CRUD transactions
+* Supports safe robust multi-related-record CRUD transactions
 
 * Built on the strong foundations of L<Web::Machine> and L<Path::Router>
 
 * Built as fine-grained roles for maximum reusability and extensibility
 
-See L<http://stateless.co/hal_specification.html> for more details of the
-Hypertext Application Language hypermedia type.
+=head2 HAL - Hypertext Application Language
+
+The Hypertext Application Language hypermedia type (or HAL for short)
+is a simple JSON format that gives a consistent and easy way to hyperlink
+between resources in your API.
+
+Adopting HAL makes the API explorable, and its documentation easily
+discoverable from within the API itself.  In short, it will make your API
+easier to work with and therefore more attractive to client developers.
+
+A JavaScript "HAL Browser" is included in the WebAPI::DBIC distribution.
+(WebAPI::DBIC doesn't yet offer direct support for documentation resources.)
+
+APIs that adopt HAL can be easily served and consumed using open source
+libraries available for most major programming languages. It's also simple
+enough that you can just deal with it as you would any other JSON.
+
+See L<http://stateless.co/hal_specification.html> for more details.
+
+=head1 MODULES
 
 =head2 Roles
 
@@ -120,6 +138,6 @@ L<WebAPI::DBIC::Util.pm> provides a few general utilities.
 L<WebAPI::DBIC::Machine.pm> a subclass of L<Web::Machine>.
 
 L<WebAPI::DBIC::WebApp> - this is the main app class and is most likely to
-change in the near future and will be documented in more detail later.
+change in the near future so isn't documented yet.
 
 =cut
