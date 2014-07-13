@@ -19,7 +19,7 @@ note "===== Create item, with embedded items, by POST to set =====";
 my $item;
 
 test_psgi $app, sub {
-    my $res = shift->(dsreq( POST => "/persons?rollback=1", [], {
+    my $res = shift->(dsreq( POST => "/people?rollback=1", [], {
         full_name => "$test_key_string test deleteme",
         deleted_at => "2000-01-01",
         _embedded => {
@@ -30,14 +30,14 @@ test_psgi $app, sub {
         }
     }));
     my ($location, $data) = dsresp_created_ok($res);
-    like $location, qr{^/persons/\d+$}, 'returns reasonable Location';
+    like $location, qr{^/people/\d+$}, 'returns reasonable Location';
     is $data, undef, 'returns no data'
         or diag $data;
 };
 
 
 test_psgi $app, sub {
-    my $res = shift->(dsreq( POST => "/persons?rollback=1&prefetch=self", [], {
+    my $res = shift->(dsreq( POST => "/people?rollback=1&prefetch=self", [], {
         full_name => "$test_key_string test deleteme",
         deleted_at => "2000-01-01",
         _embedded => {
@@ -48,7 +48,7 @@ test_psgi $app, sub {
         }
     }));
     my ($location, $data) = dsresp_created_ok($res);
-    like $location, qr{^/persons/\d+$}, 'returns reasonable Location';
+    like $location, qr{^/people/\d+$}, 'returns reasonable Location';
 
     is ref $data, 'HASH', 'return data';
     is $data->{full_name}, "$test_key_string test deleteme", 'has full_name';
@@ -61,7 +61,7 @@ test_psgi $app, sub {
 
 
 test_psgi $app, sub {
-    my $res = shift->(dsreq( POST => "/persons?rollback=1&prefetch=self,type", [], {
+    my $res = shift->(dsreq( POST => "/people?rollback=1&prefetch=self,type", [], {
         full_name => "$test_key_string test deleteme",
         deleted_at => "2000-01-01",
         _embedded => {
@@ -72,7 +72,7 @@ test_psgi $app, sub {
         }
     }));
     my ($location, $data) = dsresp_created_ok($res);
-    like $location, qr{^/persons/\d+$}, 'returns reasonable Location';
+    like $location, qr{^/people/\d+$}, 'returns reasonable Location';
 
     is ref $data, 'HASH', 'return data';
     is $data->{full_name}, "$test_key_string test deleteme", 'has full_name';

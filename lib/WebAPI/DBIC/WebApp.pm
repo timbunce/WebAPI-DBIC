@@ -187,14 +187,21 @@ my @routes;
 
 if (1) { # all!
     my %source_names = map { $_ => 1 } $schema->sources;
-    for my $source_names ($schema->sources) {
+    for my $source_names (sort $schema->sources) {
         my $result_source = $schema->source($source_names);
         next unless $result_source->name =~ /^[\w\.]+$/x;
         #my %relationships;
         for my $rel_name ($result_source->relationships) {
             my $rel = $result_source->relationship_info($rel_name);
+            # I can't remember what I'd planned to do here :)
         }
-        push @routes, mk_generic_dbic_item_set_routes( $result_source->name => $result_source->source_name);
+        #warn sprintf "/%s => %s\n", $result_source->name => $result_source->source_name;
+        push @routes, mk_generic_dbic_item_set_routes(
+            $result_source->name => $result_source->source_name,
+            invokeable_on_item => [
+                'table',    # a DBIx::Class::Row method, just used for testing
+            ]
+        );
     }
 }
 else {

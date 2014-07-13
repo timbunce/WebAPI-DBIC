@@ -21,7 +21,7 @@ my $orig_location;
 
 # create one to edit
 test_psgi $app, sub {
-    my $res = shift->(dsreq( POST => "/persons?prefetch=self", [], {
+    my $res = shift->(dsreq( POST => "/people?prefetch=self", [], {
         full_name => $test_key_string,
         deleted_at => "2000-01-01",
         _embedded => {
@@ -36,7 +36,7 @@ test_psgi $app, sub {
 
 
 test_psgi $app, sub {
-    my $res = shift->(dsreq( PUT => "/persons/$orig_item->{id}?prefetch=self,type", [], {
+    my $res = shift->(dsreq( PUT => "/people/$orig_item->{id}?prefetch=self,type", [], {
         deleted_at => "2000-02-02 00:00:00",
         _embedded => {
             type => {
@@ -59,7 +59,7 @@ test_psgi $app, sub {
 
 note "recheck data as a separate request";
 test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "/persons/$orig_item->{id}?prefetch=self,type")));
+    my $data = dsresp_ok(shift->(dsreq( GET => "/people/$orig_item->{id}?prefetch=self,type")));
     is $data->{deleted_at}, "2000-02-02 00:00:00", 'has deleted_at';
     ok $data->{_embedded}, 'has _embedded';
     my $type = $data->{_embedded}{type};
@@ -67,7 +67,7 @@ test_psgi $app, sub {
 };
 
 test_psgi $app, sub {
-    dsresp_ok(shift->(dsreq( DELETE => "/persons/$orig_item->{id}")), 204);
+    dsresp_ok(shift->(dsreq( DELETE => "/people/$orig_item->{id}")), 204);
 };
 
 done_testing();

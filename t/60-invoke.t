@@ -19,16 +19,16 @@ note "===== Invoke =====";
 my $item;
 
 test_psgi $app, sub {
-    my $res = shift->(dsreq( POST => "/ecosystems_people/1/invoke/item_instance_description", [], {
+    my $res = shift->(dsreq( POST => "/ecosystems_people/1/invoke/table", [], {
         args => []
     }));
     my $data = dsresp_ok($res);
-    is_deeply $data, { result => "Ecosystems People(id=1)" }, 'returns expected data'
+    is_deeply $data, { result => "ecosystems_people" }, 'returns expected data'
         or diag $data;
 };
 
 test_psgi $app, sub {
-    my $res = shift->(dsreq( POST => "/ecosystems_people/1/invoke/item_instance_description", [], {
+    my $res = shift->(dsreq( POST => "/ecosystems_people/1/invoke/table", [], {
         args => {}
     }));
     dsresp_ok($res, 400);
@@ -36,7 +36,7 @@ test_psgi $app, sub {
 };
 
 test_psgi $app, sub {
-    my $res = shift->(dsreq( POST => "/ecosystems_people/1/invoke/item_instance_description", [], {
+    my $res = shift->(dsreq( POST => "/ecosystems_people/1/invoke/table", [], {
         nonesuch => 1
     }));
     dsresp_ok($res, 400);
@@ -44,18 +44,9 @@ test_psgi $app, sub {
 };
 
 test_psgi $app, sub {
-    my $res = shift->(dsreq( POST => "/ecosystems_people/1/invoke/item_instance_description", [], []));
+    my $res = shift->(dsreq( POST => "/ecosystems_people/1/invoke/table", [], []));
     dsresp_ok($res, 400);
     like $res->content, qr/not a JSON hash/i;
-};
-
-
-test_psgi $app, sub {
-    my $res = shift->(dsreq( POST => "/ecosystems_people/1/invoke/bulk_transfer_leads", [], {
-        args => [ assigner_id => 'nonesuch' ] # invalid integer param
-    }));
-    dsresp_ok($res, 400);
-    like $res->content, qr/The 'assigner_id' parameter/i;
 };
 
 done_testing;
