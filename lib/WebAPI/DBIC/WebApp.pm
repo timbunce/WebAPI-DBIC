@@ -31,6 +31,7 @@ require DBIx::Class::SQLMaker;
 require DBIx::Class::Storage::DBI::Pg;
 
 
+$ENV{PLACK_ENV} ||= 'production';
 my $in_production = ($ENV{PLACK_ENV} eq 'production');
 
 my $opt_writable = 1;
