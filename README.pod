@@ -1,0 +1,49 @@
+=head1 NAME
+
+WebAPI::DBIC - A composable RESTful JSON+HAL API to DBIx::Class schemas using roles, Web::Machine and Path::Router
+
+=head1 DESCRIPTION
+
+WebAPI::DBIC provides the parts you need to build a feature-rich RESTful JSON web
+service API backed by DBIx::Class schemas. It also provides a PSGI file that
+gives you an instant web service for any DBIx::Class schema with a single command.
+
+WebAPI::DBIC features include:
+
+* Uses the JSON+HAL (Hypertext Application Language) lean hypermedia type
+
+* Supports safe robust multi-related-record CRUD transactions
+
+* Built on the strong foundations of L<Web::Machine> and L<Path::Router>
+
+* Built as fine-grained roles for maximum reusability and extensibility
+
+=head2 HAL - Hypertext Application Language
+
+The Hypertext Application Language hypermedia type (or HAL for short)
+is a simple JSON format that gives a consistent and easy way to hyperlink
+between resources in your API.
+
+Adopting HAL makes the API explorable, and its documentation easily
+discoverable from within the API itself.  In short, it will make your API
+easier to work with and therefore more attractive to client developers.
+
+A JavaScript "HAL Browser" is included in the WebAPI::DBIC distribution.
+(WebAPI::DBIC doesn't yet offer direct support for documentation resources.)
+
+APIs that adopt HAL can be easily served and consumed using open source
+libraries available for most major programming languages. It's also simple
+enough that you can just deal with it as you would any other JSON.
+
+See L<http://stateless.co/hal_specification.html> for more details.
+
+=head1 STATUS
+
+The WebAPI::DBIC code has been in production use for over a year, however it's
+only recently (July 2014) been open sourced so it's still lacking in packaging,
+documentation, tests etc.
+
+It's also likely to undergo a period of refactoring now there are more
+developers contributing and the code is being applied to more domains.
+
+=cut
