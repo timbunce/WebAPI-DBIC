@@ -23,7 +23,7 @@ use JSON;
 
 use Devel::Dwarn;
 
-use WebAPI::Schema::Corp;
+use DummySchema;
 use WebAPI::DBIC::Machine;
 
 # pre-load some modules to improve shared memory footprint
@@ -36,13 +36,7 @@ my $in_production = ($ENV{TL_ENVIRONMENT} eq 'production');
 my $opt_writable = 1;
 
 
-my $schema = WebAPI::Schema::Corp->new_default_connect(
-    {},
-    # connect to yesterdays snapshot because we make edits to the db
-    # XXX should really have a better approach for this!
-    "corp",
-    #"corp_snapshot_previous",
-);
+my $schema = DummySchema->new_default_connect( {}, "corp" );
 
 
 {
@@ -191,7 +185,7 @@ sub mk_generic_dbic_item_set_routes {
 
 my @routes;
 
-if (0) { # all!
+if (1) { # all!
     my %source_names = map { $_ => 1 } $schema->sources;
     for my $source_names ($schema->sources) {
         my $result_source = $schema->source($source_names);

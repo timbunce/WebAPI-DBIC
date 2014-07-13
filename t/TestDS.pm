@@ -12,8 +12,6 @@ use Carp;
 
 use parent 'Exporter';
 
-use WebAPI::Config;
-
 
 our @EXPORT = qw(
     url_query
@@ -27,7 +25,8 @@ $Carp::Verbose = 1;
 
 sub _get_authorization_user_pass {
     # XXX TODO we ought to get the db realm name by querying the service
-    our $db = WebAPI::Config->new->dbh('corp');
+    require DummySchema;
+    our $db = DummySchema->get_db_connection_info;
     return ($db->{user}, $db->{pass});
 }
 

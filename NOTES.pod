@@ -1,0 +1,58 @@
+=head1 DESCRIPTION
+
+Implements a HTTP REST API to DBIx::Class schema
+
+The API uses JSON for data encoding and uses the Hypertext Application Language
+(HAL) media type "application/hal+json". For more information see:
+
+    http://stateless.co/hal_specification.html
+
+Using HAL enables the use of a generic interactive "browser" for the API.
+A HAL browser is bundled with the API and the supplied webapi-dbic.psgi.
+Simply navigate to the root URL of the API with a web browser to access the
+"HAL browser".
+
+See data_service_api.pod for (much) more detail.
+
+=head1 TODO
+
+Vague thoughts for consideration, in no particular order:
+
+    Refactor ::WebApp
+    - move HAL browser out somewhere and mount via .psgi file
+    - move/rethink My::HTTP::Throwable::Factory package block
+    - move mk_generic_dbic_item_set_routes out to new module
+    Leave just calls to mk_generic_dbic_item_set_routes and the construction
+    of Path::Router - though even that could be moved to a better home.
+
+    Reconsider using or removing unused code from ::Util
+    (I think only create_header is used at the moment)
+
+    Better error reporting (in HAL format)
+    Reconsider and/or polish HTTP::Throwable::Role::JSONBody
+    Handle and report parameter validation and db constraint errors in a way that
+    allows sufficient information to be returned to the caller e.g., to mark which
+    fields of a web form hold invalid values.
+
+    improve partial response support for prefetch (post DBIx::Class upgrade)
+
+    use HAL CURIE prefix in link keys
+
+    limit fields returned by default - add to the code on demand, so we know the
+    fields are actually being used and the inverse, that we can remove/change a
+    field that's not being exposed and know that no users of the api will be affected.
+    Perhaps allow DBIC resultset classes to define what default set of fields to use.
+
+    Refactor param handling to abstract ~json both for requests *and* constructing
+    link urls (where json data isn't fully handled at the moment, other than pass-thru).
+
+    Refactor transaction handling.
+
+    Update HAL browser:
+    git subtree pull --squash --prefix hal-browser git@github.com:mikekelly/hal-browser.git master
+
+    Look for further ideas in
+    https://metacpan.org/module/Catalyst::Controller::DBIC::API
+    https://metacpan.org/pod/Cookieville
+
+=cut

@@ -1,12 +1,12 @@
 
-use tlcomp 'clients_dataservice';
-
 use Plack::Builder;
 use Plack::App::File;
 
 use Devel::Dwarn;
 
 my $app = require WebAPI::DBIC::WebApp;
+
+my $app_prefix = "/clients/v1";
 
 builder {
     enable 'SimpleLogger';  # show on STDERR
@@ -17,11 +17,11 @@ builder {
 
     #enable sub { my $app=shift; sub { Dwarn my $env=shift; my $res = $app->($env); return $res; }; };
 
-    mount "/clients/v1/" => builder {
+    mount "$app_prefix/" => builder {
         mount "/browser" => Plack::App::File->new(root => "hal-browser")->to_app;
         mount "/" => $app;
     };
 
-    # root redirect for discovery
-    mount "/" => sub { [ 302, [ Location => "/clients/v1/" ], [ ] ] };
+    # root redirect for discovery - redirect to API
+    mount "/" => sub { [ 302, [ Location => "$app_prefix/" ], [ ] ] };
 };
