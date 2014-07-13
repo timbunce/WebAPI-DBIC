@@ -31,7 +31,7 @@ require DBIx::Class::SQLMaker;
 require DBIx::Class::Storage::DBI::Pg;
 
 
-my $in_production = ($ENV{TL_ENVIRONMENT} eq 'production');
+my $in_production = ($ENV{PLACK_ENV} eq 'production');
 
 my $opt_writable = 1;
 
@@ -240,7 +240,7 @@ while (my $r = shift @routes) {
             $getargs->($request, \%resource_args, @_) if $getargs;
 
             warn "Running machine for $resource_class (with @{[ keys %resource_args ]})\n"
-                if $ENV{TL_ENVIRONMENT} eq 'development';
+                if $ENV{PLACK_ENV} eq 'development';
             my $app = WebAPI::DBIC::Machine->new(
                 resource => $resource_class,
                 debris   => \%resource_args,

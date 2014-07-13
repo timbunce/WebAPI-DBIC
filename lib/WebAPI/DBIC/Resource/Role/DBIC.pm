@@ -226,9 +226,14 @@ sub finish_request {
     warn "finish_request is handling exception: $line1 (@{[ %{ $error_data||{} } ]})\n";
 
     if ($error_data) {
-        $error_data->{_embedded}{exceptions}[0]{exception} = "$exception" # stringify
-            unless $ENV{TL_ENVIRONMENT} eq 'production'; # don't leak info
+
         $error_data->{status} ||= 500;
+
+        # only include detailed exception information if not in production
+        # (as it might contain sensitive information)
+        $error_data->{_embedded}{exceptions}[0]{exception} = "$exception" # stringify
+            if $ENV{PLACK_ENV} ne 'production';
+
         # create response
         my $json = JSON->new->ascii->pretty;
         my $response = $self->response;

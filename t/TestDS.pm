@@ -22,6 +22,7 @@ our @EXPORT = qw(
 
 $Carp::Verbose = 1;
 
+$ENV{PLACK_ENV} ||= 'development'; # ensure env var is set
 
 sub _get_authorization_user_pass {
     # XXX TODO we ought to get the db realm name by querying the service
