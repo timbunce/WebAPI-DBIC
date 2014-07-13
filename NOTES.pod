@@ -46,6 +46,8 @@ Vague thoughts for consideration, in no particular order:
     Refactor param handling to abstract ~json both for requests *and* constructing
     link urls (where json data isn't fully handled at the moment, other than pass-thru).
 
+    Any security issues with allowing arbitrary json in parameters?
+
     Refactor transaction handling.
 
     Update HAL browser:
