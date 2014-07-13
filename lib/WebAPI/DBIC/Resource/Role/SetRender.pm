@@ -5,8 +5,8 @@ use Moo::Role;
 use Devel::Dwarn;
 use Carp qw(confess);
 
-requires 'render_item_as_plain';
-requires 'render_item_as_hal';
+requires 'render_item_as_plain_hash';
+requires 'render_item_as_hal_hash';
 requires 'uri_for';
 requires 'param';
 requires 'add_params_to_url';
@@ -17,7 +17,7 @@ requires 'add_params_to_url';
 
 sub render_set_as_plain {
     my ($self, $set) = @_;
-    my $set_data = [ map { $self->render_item_as_plain($_) } $set->all ];
+    my $set_data = [ map { $self->render_item_as_plain_hash($_) } $set->all ];
     return $set_data;
 }
 
@@ -28,8 +28,8 @@ sub render_set_as_hal {
     # some params mean we're not returning resource representations
     # so render the contents of the _embedded set as plain JSON
     my $render_meth = ($self->param('distinct'))
-        ? 'render_item_as_plain'
-        : 'render_item_as_hal';
+        ? 'render_item_as_plain_hash'
+        : 'render_item_as_hal_hash';
     my $set_data = [ map { $self->$render_meth($_) } $set->all ];
 
     my $total_items;
@@ -37,6 +37,7 @@ sub render_set_as_hal {
         $total_items = $set->pager->total_entries;
     }
 
+    # XXX should $self->set here be $set?
     my ($prefix, $rel) = $self->uri_for(result_class => $self->set->result_class);
     my $data = {
         _embedded => {

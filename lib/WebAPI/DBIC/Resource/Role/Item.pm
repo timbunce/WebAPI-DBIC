@@ -3,8 +3,8 @@ package WebAPI::DBIC::Resource::Role::Item;
 use Moo::Role;
 
 
-requires 'render_item_as_plain';
-requires 'render_item_as_hal';
+requires 'render_item_as_plain_hash';
+requires 'render_item_as_hal_hash';
 requires 'encode_json';
 requires 'set';
 
@@ -31,8 +31,8 @@ sub content_types_provided { return [
     {'application/json'     => 'to_json_as_plain'},
 ] }
 
-sub to_json_as_plain { return $_[0]->encode_json($_[0]->render_item_as_plain($_[0]->item)) }
-sub to_json_as_hal {   return $_[0]->encode_json($_[0]->render_item_as_hal($_[0]->item)) }
+sub to_json_as_plain { return $_[0]->encode_json($_[0]->render_item_as_plain_hash($_[0]->item)) }
+sub to_json_as_hal {   return $_[0]->encode_json($_[0]->render_item_as_hal_hash($_[0]->item)) }
 
 sub resource_exists { return !! $_[0]->item }
 

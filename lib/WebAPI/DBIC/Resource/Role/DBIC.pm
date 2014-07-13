@@ -33,7 +33,7 @@ has throwable => (
 # default render for DBIx::Class item
 # https://metacpan.org/module/DBIx::Class::Manual::ResultClass
 # https://metacpan.org/module/DBIx::Class::InflateColumn
-sub render_item_as_plain {
+sub render_item_as_plain_hash {
     my ($self, $item) = @_;
     my $data = { $item->get_columns }; # XXX ?
     # DateTimes
@@ -71,8 +71,10 @@ sub uri_for { ## no critic (RequireArgUnpacking)
 
 sub render_item_into_body {
     my ($self, $item) = @_;
+
     # XXX ought to be a cloned request, with tweaked url/params?
     my $item_request = $self->request;
+
     # XXX shouldn't hard-code GenericItemDBIC here
     my $item_resource = WebAPI::DBIC::Resource::GenericItemDBIC->new(
         request => $item_request, response => $item_request->new_response,
@@ -88,10 +90,10 @@ sub render_item_into_body {
 }
 
 
-sub render_item_as_hal {
+sub render_item_as_hal_hash {
     my ($self, $item) = @_;
 
-    my $data = $self->render_item_as_plain($item);
+    my $data = $self->render_item_as_plain_hash($item);
 
     my $itemurl = $self->path_for_item($item);
     $data->{_links}{self} = {
@@ -101,13 +103,13 @@ sub render_item_as_hal {
     while (my ($prefetch, $info) = each %{ $self->prefetch || {} }) {
         next if $prefetch eq 'self';
         my $subitem = $item->$prefetch();
-        # XXX perhaps render_item_as_hal but requires cloned WM, eg without prefetch
-        # If we ever do render_item_as_hal then we need to ensure that "a link
+        # XXX perhaps render_item_as_hal_hash but requires cloned WM, eg without prefetch
+        # If we ever do render_item_as_hal_hash then we need to ensure that "a link
         # inside an embedded resource implicitly relates to that embedded
         # resource and not the parent."
         # See http://blog.stateless.co/post/13296666138/json-linking-with-hal
         $data->{_embedded}{$prefetch} = (defined $subitem)
-            ? $self->render_item_as_plain($subitem)
+            ? $self->render_item_as_plain_hash($subitem)
             : undef; # show an explicit null from a prefetch
     }
 
@@ -186,6 +188,7 @@ sub add_params_to_url {
 }
 
 
+# XXX should probably be moved into a separate role
 sub finish_request {
     my ($self, $metadata) = @_;
 
