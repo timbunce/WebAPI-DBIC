@@ -14,7 +14,6 @@ use JSON;
 
 use Devel::Dwarn;
 
-use DummySchema;
 use WebAPI::DBIC::Machine;
 use WebAPI::HTTP::Throwable::Factory;
 
@@ -22,16 +21,15 @@ use WebAPI::HTTP::Throwable::Factory;
 require DBIx::Class::SQLMaker;
 require DBIx::Class::Storage::DBI::Pg;
 
+use Moo;
+use namespace::clean;
 
 $ENV{PLACK_ENV} ||= 'production';
 my $in_production = ($ENV{PLACK_ENV} eq 'production');
 
 my $opt_writable = 1;
 
-
-my $schema = DummySchema->new_default_connect( {}, "corp" );
-
-
+has schema => (is => 'ro', required => 1);
 
 
 sub hal_browser_app {
@@ -77,7 +75,7 @@ sub hal_browser_app {
 
 
 sub mk_generic_dbic_item_set_routes {
-    my ($path, $resultset, %opts) = @_;
+    my ($self, $path, $resultset, %opts) = @_;
 
     # XXX might want to distinguish writable from non-writable (read-only) methods
     my $invokeable_on_set  = delete $opts{invokeable_on_set}  || [];
@@ -92,7 +90,7 @@ sub mk_generic_dbic_item_set_routes {
         return qr/^(?:$names_r)$/x;
     };
 
-    my $rs = $schema->resultset($resultset);
+    my $rs = $self->schema->resultset($resultset);
     my $route_defaults = {
         # --- fields for route lookup
         result_class => $rs->result_class,
@@ -144,87 +142,94 @@ sub mk_generic_dbic_item_set_routes {
     return @routes;
 }
 
-my @routes;
+sub to_psgi_app {
+    my ($self) = @_;
 
-if (1) { # all!
-    my %source_names = map { $_ => 1 } $schema->sources;
-    for my $source_names (sort $schema->sources) {
-        my $result_source = $schema->source($source_names);
-        next unless $result_source->name =~ /^[\w\.]+$/x;
-        #my %relationships;
-        for my $rel_name ($result_source->relationships) {
-            my $rel = $result_source->relationship_info($rel_name);
-            # I can't remember what I'd planned to do here :)
+    my @routes;
+
+    if (1) {                    # all!
+        my %source_names = map { $_ => 1 } $self->schema->sources;
+        for my $source_names (sort $self->schema->sources) {
+            my $result_source = $self->schema->source($source_names);
+            next unless $result_source->name =~ /^[\w\.]+$/x;
+            #my %relationships;
+            for my $rel_name ($result_source->relationships) {
+                my $rel = $result_source->relationship_info($rel_name);
+                # I can't remember what I'd planned to do here :)
+            }
+            #warn sprintf "/%s => %s\n", $result_source->name => $result_source->source_name;
+            push @routes, $self->mk_generic_dbic_item_set_routes(
+                $result_source->name => $result_source->source_name,
+                invokeable_on_item => [
+                    'table', # a DBIx::Class::Row method, just used for testing
+                ]
+            );
         }
-        #warn sprintf "/%s => %s\n", $result_source->name => $result_source->source_name;
-        push @routes, mk_generic_dbic_item_set_routes(
-            $result_source->name => $result_source->source_name,
+    }
+    else {
+
+        push @routes, $self->mk_generic_dbic_item_set_routes( 'person_types' => 'PersonType');
+        push @routes, $self->mk_generic_dbic_item_set_routes( 'persons' => 'People');
+        push @routes, $self->mk_generic_dbic_item_set_routes( 'phones' => 'Phone');
+        push @routes, $self->mk_generic_dbic_item_set_routes( 'person_emails' => 'Email');
+        push @routes, $self->mk_generic_dbic_item_set_routes( 'client_auths' => 'ClientAuth');
+        push @routes, $self->mk_generic_dbic_item_set_routes( 'ecosystems' => 'Ecosystem');
+        push @routes, $self->mk_generic_dbic_item_set_routes( 'ecosystems_people' => 'EcosystemsPeople',
             invokeable_on_item => [
-                'table',    # a DBIx::Class::Row method, just used for testing
+                'item_instance_description', # used for testing
+                'bulk_transfer_leads',
             ]
         );
+        push @routes, $self->mk_generic_dbic_item_set_routes( 'ecosystem_domains' => 'EcosystemDomain');
+
     }
-}
-else {
-
-    push @routes, mk_generic_dbic_item_set_routes( 'person_types' => 'PersonType');
-    push @routes, mk_generic_dbic_item_set_routes( 'persons' => 'People');
-    push @routes, mk_generic_dbic_item_set_routes( 'phones' => 'Phone');
-    push @routes, mk_generic_dbic_item_set_routes( 'person_emails' => 'Email');
-    push @routes, mk_generic_dbic_item_set_routes( 'client_auths' => 'ClientAuth');
-    push @routes, mk_generic_dbic_item_set_routes( 'ecosystems' => 'Ecosystem');
-    push @routes, mk_generic_dbic_item_set_routes( 'ecosystems_people' => 'EcosystemsPeople',
-        invokeable_on_item => [
-            'item_instance_description',    # used for testing
-            'bulk_transfer_leads',
-        ]
-    );
-    push @routes, mk_generic_dbic_item_set_routes( 'ecosystem_domains' => 'EcosystemDomain');
-
-}
 
 
-my $router = Path::Router->new;
-while (my $r = shift @routes) {
-    my $spec = shift @routes or confess "panic";
+    my $router = Path::Router->new;
+    while (my $r = shift @routes) {
+        my $spec = shift @routes or confess "panic";
 
-    my $getargs = $spec->{getargs};
-    my $resource_class = $spec->{resource} or confess "panic";
-    load $resource_class;
+        my $getargs = $spec->{getargs};
+        my $resource_class = $spec->{resource} or confess "panic";
+        load $resource_class;
 
-    $router->add_route($r,
-        validations => $spec->{validations} || {},
-        defaults => $spec->{route_defaults},
-        target => sub {
-            my $request = shift; # url args remain in @_
+        $router->add_route($r,
+            validations => $spec->{validations} || {},
+            defaults => $spec->{route_defaults},
+            target => sub {
+                my $request = shift; # url args remain in @_
 
-#local $SIG{__DIE__} = \&Carp::confess;
+                #local $SIG{__DIE__} = \&Carp::confess;
 
-            my %resource_args = (
-                writable => $opt_writable,
-                throwable => 'WebAPI::HTTP::Throwable::Factory',
-            );
-            # perform any required setup for this request & params in @_
-            $getargs->($request, \%resource_args, @_) if $getargs;
+                my %resource_args = (
+                    writable => $opt_writable,
+                    throwable => 'WebAPI::HTTP::Throwable::Factory',
+                );
+                # perform any required setup for this request & params in @_
+                $getargs->($request, \%resource_args, @_) if $getargs;
 
-            warn "Running machine for $resource_class (with @{[ keys %resource_args ]})\n"
-                if $ENV{PLACK_ENV} eq 'development';
-            my $app = WebAPI::DBIC::Machine->new(
-                resource => $resource_class,
-                debris   => \%resource_args,
-                tracing => !$in_production,
-            )->to_app;
-            my $resp = eval { $app->($request->env) };
-            #Dwarn $resp;
-            if ($@) { # XXX report and rethrow
-                Dwarn [ "EXCEPTION from app: $@" ];
-                die; ## no critic (ErrorHandling::RequireCarping)
-            }
-            return $resp;
-        },
-    );
+                warn "Running machine for $resource_class (with @{[ keys %resource_args ]})\n"
+                    if $ENV{PLACK_ENV} eq 'development';
+                my $app = WebAPI::DBIC::Machine->new(
+                    resource => $resource_class,
+                    debris   => \%resource_args,
+                    tracing => !$in_production,
+                )->to_app;
+                my $resp = eval { $app->($request->env) };
+                #Dwarn $resp;
+                if ($@) { # XXX report and rethrow
+                    Dwarn [ "EXCEPTION from app: $@" ];
+                    die; ## no critic (ErrorHandling::RequireCarping)
+                }
+                return $resp;
+            },
+        );
+    }
+
+    $router->add_route('', target => \&hal_browser_app);
+
+    Plack::App::Path::Router->new( router => $router )->to_app; # return Plack app
 }
 
-$router->add_route('', target => \&hal_browser_app);
-
-Plack::App::Path::Router->new( router => $router )->to_app; # return Plack app
+1;
+__END__

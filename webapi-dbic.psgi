@@ -1,6 +1,8 @@
 
+use Dummy::Schema;
 use Plack::Builder;
 use Plack::App::File;
+use WebAPI::DBIC::WebApp;
 
 use Devel::Dwarn;
 
@@ -12,7 +14,8 @@ BEGIN {
     $|++;
 }
 
-my $app = require WebAPI::DBIC::WebApp;
+my $schema = DummySchema->new_default_connect( {}, "corp" );
+my $app = WebAPI::DBIC::WebApp->new({schema => $schema})->to_psgi_app;
 
 my $app_prefix = "/clients/v1";
 
