@@ -2,6 +2,7 @@ package WebAPI::DBIC::Resource::Role::DBICAuth;
 
 use Moo::Role;
 use Carp qw(confess);
+use Try::Tiny;
 
 use WebAPI::DBIC::Util qw(create_header);
 
@@ -15,15 +16,25 @@ sub connect_schema_as { ## no critic (Subroutines::RequireArgUnpacking)
     my $schema = $self->set->result_source->schema;
     my $ci = $schema->storage->connect_info;
     my ($ci_dsn, $ci_user, $ci_pass, $ci_attr) = @$ci;
-    confess "assert: expected attr as 3rd element in connect_info"
-        unless ref $ci_attr eq 'HASH';
 
     # ok if we're currently using the right auth
-    return 1 if $user eq $ci_user and $pass eq $ci_pass;
+    return 1 if defined $ci_user and $user eq $ci_user
+            and defined $ci_pass and $pass eq $ci_pass;
+
+    # XXX used to be an assertion
+    warn "expected attr as 3rd element in connect_info"
+        unless ref $ci_attr eq 'HASH';
 
     # try to connect with the user supplied credentials
     my $newschema = $schema->clone->connect($ci_dsn, $user, $pass, $ci_attr);
-    return 0 if not eval { $newschema->storage->dbh };
+    my $err;
+    try { $newschema->storage->dbh }
+    catch {
+        # XXX we need to diferenciate between auth errors and other problems
+        warn "Error connecting to $ci_dsn: $_\n";
+        $err = $_;
+    };
+    return 0 if $err;
 
     # we connected ok, so update resultset to use new connection
     $self->set->result_source->schema($newschema);
