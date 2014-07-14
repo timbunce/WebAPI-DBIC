@@ -43,14 +43,18 @@ sub render_item_as_plain {
 
 sub path_for_item {
     my ($self, $item) = @_;
+
     my $result_source = $item->result_source;
 
     my %pk = map { $_ => $item->get_column($_) } $result_source->primary_columns;
+
     my $url = $self->uri_for(%pk, result_class => $result_source->result_class)
-        or confess "panic: no route to @{[ %pk ]} ".$result_source->result_class;
+        or confess sprintf("panic: no route found for result_class %s (%s) ",
+            $result_source->result_class, join(", ", map { "$_=$pk{$_}" } sort keys %pk));
 
     return $url;
 }
+
 
 # Uses the router to find the route that matches the given parameter hash
 # returns nothing if there's no match, else
