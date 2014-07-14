@@ -32,29 +32,29 @@ test '===== Get =====' => sub {
     })->to_psgi_app;
 
 
-    my %person_types;
+    my %artist;
 
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/person_types" )));
-        my $set = is_set_with_embedded_key($data, "person_types", 2);
-        %person_types = map { $_->{id} => $_ } @$set;
-        is ref $person_types{$_}, "HASH", "/person_types includes $_"
+        my $data = dsresp_ok(shift->(dsreq( GET => "/artist" )));
+        my $set = is_set_with_embedded_key($data, "artist", 2);
+        %artist = map { $_->{artistid} => $_ } @$set;
+        is ref $artist{$_}, "HASH", "/artist includes $_"
             for (1..3);
-        ok $person_types{1}{name}, "/person_types data looks sane";
+        ok $artist{1}{name}, "/artist data looks sane";
     };
 
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/person_types/1" )));
+        my $data = dsresp_ok(shift->(dsreq( GET => "/artist/1" )));
         is_item($data, 3);
-        is $data->{id}, 1, 'id';
-        eq_or_diff $data, $person_types{$data->{id}}, 'data matches';
+        is $data->{artistid}, 1, 'artistid';
+        eq_or_diff $data, $artist{$data->{artistid}}, 'data matches';
     };
 
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/person_types/2" )));
+        my $data = dsresp_ok(shift->(dsreq( GET => "/artist/2" )));
         is_item($data, 3);
-        is $data->{id}, 2, 'id';
-        eq_or_diff $data, $person_types{$data->{id}}, 'data matches';
+        is $data->{artistid}, 2, 'artistid';
+        eq_or_diff $data, $artist{$data->{artistid}}, 'data matches';
     };
 };
 
