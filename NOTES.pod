@@ -14,6 +14,10 @@ Simply navigate to the root URL of the API with a web browser to access the
 
 See data_service_api.pod for (much) more detail.
 
+To bootstrap dependencies:
+
+    cpanm PSGI Plack Web::Machine Path::Router Moo Test::DBIx::Class Plack::App::Path::Router HTTP::Throwable::Factory Test::HTTP::Response Test::Roo
+
 =head1 TODO
 
 Vague thoughts for consideration, in no particular order:
