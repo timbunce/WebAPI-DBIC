@@ -29,7 +29,7 @@ test '===== Get =====' => sub {
 
     my $app = WebAPI::DBIC::WebApp->new({
         schema => $self->schema,
-    });
+    })->to_psgi_app;
 
 
     my %person_types;

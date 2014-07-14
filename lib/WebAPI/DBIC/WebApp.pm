@@ -98,6 +98,8 @@ sub hal_browser_app {
 sub mk_generic_dbic_item_set_routes {
     my ($self, $path, $resultset, %opts) = @_;
 
+    warn sprintf "/%s => %s\n", $path, $resultset;
+
     # XXX might want to distinguish writable from non-writable (read-only) methods
     my $invokeable_on_set  = delete $opts{invokeable_on_set}  || [];
     my $invokeable_on_item = delete $opts{invokeable_on_item} || [];

@@ -19,23 +19,9 @@ BEGIN {
 my $dummy = DummySchema->new;
 $dummy->load_fixtures('basic');
 my $schema = $dummy->schema;
+
 my $app = WebAPI::DBIC::WebApp->new({
     schema => $schema,
-#     extra_routes => [
-#         [ 'person_types'      => 'PersonType' ],
-#         [ 'persons'           => 'People' ],
-#         [ 'phones'            => 'Phone' ],
-#         [ 'person_emails'     => 'Email' ],
-#         [ 'client_auths'      => 'ClientAuth' ],
-#         [ 'ecosystems'        => 'Ecosystem' ],
-#         [ 'ecosystems_people' => 'EcosystemsPeople',
-#             invokeable_on_item => [
-#                 'item_instance_description',    # used for testing
-#                 'bulk_transfer_leads',
-#             ]
-#         ],
-#         [ 'ecosystem_domains' => 'EcosystemDomain' ],
-#     ],
 })->to_psgi_app;
 
 my $app_prefix = "/clients/v1";
