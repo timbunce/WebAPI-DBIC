@@ -5,17 +5,7 @@ package WebAPI::DBIC::WebApp;
 use strict;
 use warnings;
 
-BEGIN {
-    $ENV{WM_DEBUG} ||= 0; # verbose
-    $ENV{DBIC_TRACE} ||= 0;
-    $ENV{DBI_TRACE} ||= 0;
-    $ENV{PATH_ROUTER_DEBUG} ||= 0;
-    $|++;
-}
-
 use Plack::App::Path::Router;
-use HTTP::Throwable::Factory;
-use Path::Class::File;
 use Path::Router;
 use Module::Load;
 use Carp qw(croak confess);
@@ -23,53 +13,43 @@ use JSON;
 
 use Devel::Dwarn;
 
-use DummySchema;
 use WebAPI::DBIC::Machine;
+use WebAPI::HTTP::Throwable::Factory;
 
 # pre-load some modules to improve shared memory footprint
 require DBIx::Class::SQLMaker;
 require DBIx::Class::Storage::DBI::Pg;
 
+use Moo;
+use namespace::clean;
 
+$ENV{PLACK_ENV} ||= 'production';
 my $in_production = ($ENV{PLACK_ENV} eq 'production');
 
-my $opt_writable = 1;
+has schema => (is => 'ro', required => 1);
+has opt_writable => (is => 'ro', default => 1);
+has extra_routes => (is => 'ro', lazy => 1, builder => 1);
+has auto_routes => (is => 'ro', lazy => 1, builder => 1);
 
+sub _build_extra_routes { [] }
+sub _build_auto_routes {
+    my ($self) = @_;
 
-my $schema = DummySchema->new_default_connect( {}, "corp" );
-
-
-{
-    package My::HTTP::Throwable::Factory; ## no critic (ProhibitMultiplePackages)
-    use parent 'HTTP::Throwable::Factory';
-    use Carp qw(carp cluck);
-    use JSON;
-
-    sub extra_roles {
-        return (
-            'HTTP::Throwable::Role::JSONBody', # remove HTTP::Throwable::Role::TextBody
-            'StackTrace::Auto'
-        );
+    my @routes;
+    my %source_names = map { $_ => 1 } $self->schema->sources;
+    for my $source_names ($self->schema->sources) {
+        my $result_source = $self->schema->source($source_names);
+        next unless $result_source->name =~ /^[\w\.]+$/x;
+        #my %relationships;
+        for my $rel_name ($result_source->relationships) {
+            my $rel = $result_source->relationship_info($rel_name);
+        }
+        push @routes, [
+            $result_source->name => $result_source->source_name
+        ];
     }
 
-    sub throw_bad_request {
-        my ($class, $status, %opts) = @_;
-        cluck("bad status") unless $status =~ /^4\d\d$/;
-        carp("throw_bad_request @_");
-
-        # XXX TODO validations
-        my $data = {
-            errors => $opts{errors},
-        };
-        my $json_body = JSON->new->ascii->pretty->encode($data);
-        # [ 'Content-Type' => 'application/hal+json' ],
-        $class->throw( BadRequest => {
-            status_code => $status,
-            message => $json_body,
-        });
-        return; # not reached
-    }
-
+    return \@routes;
 }
 
 
@@ -116,22 +96,29 @@ sub hal_browser_app {
 
 
 sub mk_generic_dbic_item_set_routes {
-    my ($path, $resultset, %opts) = @_;
+    my ($self, $path, $resultset, %opts) = @_;
+
+    my $rs = $self->schema->resultset($resultset);
+
+    warn sprintf "/%s => %s (%s)\n", $path, $resultset, $rs->result_class;
 
     # XXX might want to distinguish writable from non-writable (read-only) methods
     my $invokeable_on_set  = delete $opts{invokeable_on_set}  || [];
     my $invokeable_on_item = delete $opts{invokeable_on_item} || [];
     # disable all methods if not writable, for safety: (perhaps allow get_* methods)
-    $invokeable_on_set  = undef unless $opt_writable;
-    $invokeable_on_item = undef unless $opt_writable;
+    $invokeable_on_set  = undef unless $self->opt_writable;
+    $invokeable_on_item = undef unless $self->opt_writable;
 
+    # regex to validate the id
+    # XXX could check the data types of the PK fields, or simply remove this
+    # validation and let the resource handle whatever value comes
     my $qr_id = qr/^-?\d+$/, # int, but allow for -1 etc
+
     my $qr_names = sub {
         my $names_r = join "|", map { quotemeta $_ } @_ or confess "panic";
         return qr/^(?:$names_r)$/x;
     };
 
-    my $rs = $schema->resultset($resultset);
     my $route_defaults = {
         # --- fields for route lookup
         result_class => $rs->result_class,
@@ -183,87 +170,63 @@ sub mk_generic_dbic_item_set_routes {
     return @routes;
 }
 
-my @routes;
+sub all_routes {
+    my ($self) = @_;
+    return map {
+        $self->mk_generic_dbic_item_set_routes(@$_)
+    } (@{ $self->auto_routes }, @{ $self->extra_routes });
+}
 
-if (1) { # all!
-    my %source_names = map { $_ => 1 } $schema->sources;
-    for my $source_names (sort $schema->sources) {
-        my $result_source = $schema->source($source_names);
-        next unless $result_source->name =~ /^[\w\.]+$/x;
-        #my %relationships;
-        for my $rel_name ($result_source->relationships) {
-            my $rel = $result_source->relationship_info($rel_name);
-            # I can't remember what I'd planned to do here :)
-        }
-        #warn sprintf "/%s => %s\n", $result_source->name => $result_source->source_name;
-        push @routes, mk_generic_dbic_item_set_routes(
-            $result_source->name => $result_source->source_name,
-            invokeable_on_item => [
-                'table',    # a DBIx::Class::Row method, just used for testing
-            ]
+sub to_psgi_app {
+    my ($self) = @_;
+
+    my @routes = $self->all_routes;
+
+    my $router = Path::Router->new;
+    while (my $r = shift @routes) {
+        my $spec = shift @routes or confess "panic";
+
+        my $getargs = $spec->{getargs};
+        my $resource_class = $spec->{resource} or confess "panic";
+        load $resource_class;
+
+        $router->add_route($r,
+            validations => $spec->{validations} || {},
+            defaults => $spec->{route_defaults},
+            target => sub {
+                my $request = shift; # url args remain in @_
+
+                #local $SIG{__DIE__} = \&Carp::confess;
+
+                my %resource_args = (
+                    writable => $self->opt_writable,
+                    throwable => 'WebAPI::HTTP::Throwable::Factory',
+                );
+                # perform any required setup for this request & params in @_
+                $getargs->($request, \%resource_args, @_) if $getargs;
+
+                warn "Running machine for $resource_class (with @{[ keys %resource_args ]})\n"
+                    if $ENV{PLACK_ENV} eq 'development';
+                my $app = WebAPI::DBIC::Machine->new(
+                    resource => $resource_class,
+                    debris   => \%resource_args,
+                    tracing => !$in_production,
+                )->to_app;
+                my $resp = eval { $app->($request->env) };
+                #Dwarn $resp;
+                if ($@) { # XXX report and rethrow
+                    Dwarn [ "EXCEPTION from app: $@" ];
+                    die; ## no critic (ErrorHandling::RequireCarping)
+                }
+                return $resp;
+            },
         );
     }
-}
-else {
 
-    push @routes, mk_generic_dbic_item_set_routes( 'person_types' => 'PersonType');
-    push @routes, mk_generic_dbic_item_set_routes( 'persons' => 'People');
-    push @routes, mk_generic_dbic_item_set_routes( 'phones' => 'Phone');
-    push @routes, mk_generic_dbic_item_set_routes( 'person_emails' => 'Email');
-    push @routes, mk_generic_dbic_item_set_routes( 'client_auths' => 'ClientAuth');
-    push @routes, mk_generic_dbic_item_set_routes( 'ecosystems' => 'Ecosystem');
-    push @routes, mk_generic_dbic_item_set_routes( 'ecosystems_people' => 'EcosystemsPeople',
-        invokeable_on_item => [
-            'item_instance_description',    # used for testing
-            'bulk_transfer_leads',
-        ]
-    );
-    push @routes, mk_generic_dbic_item_set_routes( 'ecosystem_domains' => 'EcosystemDomain');
+    $router->add_route('', target => \&hal_browser_app);
 
+    Plack::App::Path::Router->new( router => $router )->to_app; # return Plack app
 }
 
-
-my $router = Path::Router->new;
-while (my $r = shift @routes) {
-    my $spec = shift @routes or confess "panic";
-
-    my $getargs = $spec->{getargs};
-    my $resource_class = $spec->{resource} or confess "panic";
-    load $resource_class;
-
-    $router->add_route($r,
-        validations => $spec->{validations} || {},
-        defaults => $spec->{route_defaults},
-        target => sub {
-            my $request = shift; # url args remain in @_
-
-#local $SIG{__DIE__} = \&Carp::confess;
-
-            my %resource_args = (
-                writable => $opt_writable,
-                throwable => 'My::HTTP::Throwable::Factory',
-            );
-            # perform any required setup for this request & params in @_
-            $getargs->($request, \%resource_args, @_) if $getargs;
-
-            warn "Running machine for $resource_class (with @{[ keys %resource_args ]})\n"
-                if $ENV{PLACK_ENV} eq 'development';
-            my $app = WebAPI::DBIC::Machine->new(
-                resource => $resource_class,
-                debris   => \%resource_args,
-                tracing => !$in_production,
-            )->to_app;
-            my $resp = eval { $app->($request->env) };
-            #Dwarn $resp;
-            if ($@) { # XXX report and rethrow
-                Dwarn [ "EXCEPTION from app: $@" ];
-                die; ## no critic (ErrorHandling::RequireCarping)
-            }
-            return $resp;
-        },
-    );
-}
-
-$router->add_route('', target => \&hal_browser_app);
-
-Plack::App::Path::Router->new( router => $router )->to_app; # return Plack app
+1;
+__END__

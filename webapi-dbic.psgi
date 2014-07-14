@@ -1,10 +1,28 @@
 
+use lib 't/lib';
+
+BEGIN {
+    $ENV{WM_DEBUG} ||= 0; # verbose
+    $ENV{DBIC_TRACE} ||= 0;
+    $ENV{DBI_TRACE} ||= 0;
+    $ENV{PATH_ROUTER_DEBUG} ||= 0;
+    $|++;
+}
+
+use DummySchema;
 use Plack::Builder;
 use Plack::App::File;
+use WebAPI::DBIC::WebApp;
 
 use Devel::Dwarn;
 
-my $app = require WebAPI::DBIC::WebApp;
+my $dummy = DummySchema->new;
+$dummy->load_fixtures('basic');
+my $schema = $dummy->schema;
+
+my $app = WebAPI::DBIC::WebApp->new({
+    schema => $schema,
+})->to_psgi_app;
 
 my $app_prefix = "/clients/v1";
 

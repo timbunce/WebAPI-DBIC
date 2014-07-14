@@ -1,45 +1,70 @@
 #!/usr/bin/env perl
 
-use Test::Most;
-use Plack::Test;
-use Test::HTTP::Response;
-use JSON;
+use lib 't/lib';
+use lib "t";
 
 use Devel::Dwarn;
-
-use lib "t";
+use JSON;
+use Plack::Test;
 use TestDS;
+use Test::HTTP::Response;
+use Test::Most;
+use WebAPI::DBIC::WebApp;
+
+use Test::Roo;
+with 'TestRole::Schema';
 
 
-my $app = require WebAPI::DBIC::WebApp;
+after setup => sub {
+    my ($self) = @_;
+    $self->load_fixtures(qw(basic));
+};
+
+
 
 local $SIG{__DIE__} = \&Carp::confess;
 
-note "===== Get =====";
+test '===== Get =====' => sub {
+    my ($self) = @_;
 
-my %person_types;
+    my $app = WebAPI::DBIC::WebApp->new({
+        schema => $self->schema,
+    })->to_psgi_app;
 
-test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "/person_types" )));
-    my $set = is_set_with_embedded_key($data, "person_types", 2);
-    %person_types = map { $_->{id} => $_ } @$set;
-    is ref $person_types{$_}, "HASH", "/person_types includes $_"
-        for (1..3);
-    ok $person_types{1}{name}, "/person_types data looks sane";
+
+    my %artist;
+
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq( GET => "/artist" )));
+        my $set = is_set_with_embedded_key($data, "artist", 2);
+        %artist = map { $_->{artistid} => $_ } @$set;
+        is ref $artist{$_}, "HASH", "/artist includes $_"
+            for (1..3);
+        ok $artist{1}{name}, "/artist data looks sane";
+    };
+
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq( GET => "/artist/1" )));
+        is_item($data, 3);
+        is $data->{artistid}, 1, 'artistid';
+        eq_or_diff $data, $artist{$data->{artistid}}, 'data matches';
+    };
+
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq( GET => "/artist/2" )));
+        is_item($data, 3);
+        is $data->{artistid}, 2, 'artistid';
+        eq_or_diff $data, $artist{$data->{artistid}}, 'data matches';
+    };
 };
 
-test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "/person_types/1" )));
-    is_item($data, 3);
-    is $data->{id}, 1, 'id';
-    eq_or_diff $data, $person_types{$data->{id}}, 'data matches';
+
+
+after teardown => sub {
+    my ($self) = @_;
+    diag "Bye!";
 };
 
-test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "/person_types/2" )));
-    is_item($data, 3);
-    is $data->{id}, 2, 'id';
-    eq_or_diff $data, $person_types{$data->{id}}, 'data matches';
-};
 
+run_me();
 done_testing();

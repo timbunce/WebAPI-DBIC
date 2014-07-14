@@ -43,14 +43,21 @@ sub render_item_as_plain_hash {
 
 sub path_for_item {
     my ($self, $item) = @_;
+
     my $result_source = $item->result_source;
 
-    my %pk = map { $_ => $item->get_column($_) } $result_source->primary_columns;
-    my $url = $self->uri_for(%pk, result_class => $result_source->result_class)
-        or confess "panic: no route to @{[ %pk ]} ".$result_source->result_class;
+    my $id = join "-", map { $item->get_column($_) } $result_source->primary_columns;
+
+    my $url = $self->uri_for(id => $id, result_class => $result_source->result_class)
+        or confess sprintf("panic: no route found to result_class %s id %s (%s)",
+            $result_source->result_class, $id, join(", ",
+                map { "$_=".$item->get_column($_) } $result_source->primary_columns
+            )
+        );
 
     return $url;
 }
+
 
 # Uses the router to find the route that matches the given parameter hash
 # returns nothing if there's no match, else
@@ -119,13 +126,20 @@ sub render_item_as_hal_hash {
     # XXX much of this relation selection logic should be cached
     for my $relname ($item->result_class->relationships) {
         my $rel = $item->result_class->relationship_info($relname);
+        my $cond = $rel->{cond};
+
+        if (ref $cond ne 'HASH') { # eg need to add support for CODE refs
+            warn "relationship $relname cond value $cond not handled";
+            next;
+        }
 
         # XXX support other types of relationships
         # specifically multi's that would map to collection urls
         # with me.foo=X query parameters
         # see also https://example.com/default.asp?23010
-        my $fieldname = $rel->{cond}{"foreign.id"};
+        my $fieldname = $rel->{cond}{"foreign.id"}; # XXX id?
         $fieldname =~ s/^self\.// if $fieldname;
+
         next unless $rel->{attrs}{accessor} eq 'single'
                 and $rel->{attrs}{is_foreign_key_constraint}
                 and $fieldname
@@ -133,7 +147,7 @@ sub render_item_as_hal_hash {
 
         my $linkurl = $self->uri_for(
             result_class => $rel->{source},
-            id           => $data->{$fieldname},
+            id           => $data->{$fieldname}, # XXX id vs pk?
         );
         if (not $linkurl) {
             my $item_result_class = $item->result_class;

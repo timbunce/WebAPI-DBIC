@@ -14,6 +14,10 @@ Simply navigate to the root URL of the API with a web browser to access the
 
 See data_service_api.pod for (much) more detail.
 
+To bootstrap dependencies:
+
+    cpanm PSGI Plack Web::Machine Path::Router Moo Test::DBIx::Class Plack::App::Path::Router HTTP::Throwable::Factory Test::HTTP::Response Test::Roo
+
 =head1 TODO
 
 Vague thoughts for consideration, in no particular order:
@@ -35,6 +39,10 @@ Vague thoughts for consideration, in no particular order:
     fields of a web form hold invalid values.
 
     improve partial response support for prefetch (post DBIx::Class upgrade)
+
+    consider how to handle non-integer primary keys, probably trivial.
+    consider how to handle multi-field primary keys, harder.
+    also relates to improving the separation between resources and records
 
     use HAL CURIE prefix in link keys
 

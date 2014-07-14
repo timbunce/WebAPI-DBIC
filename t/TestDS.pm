@@ -1,7 +1,5 @@
 #!/usr/bin/env perl
 
-use tlcomp 'clients_dataservice';
-
 use Test::Most;
 use Plack::Test;
 use Test::HTTP::Response;
@@ -25,10 +23,7 @@ $Carp::Verbose = 1;
 $ENV{PLACK_ENV} ||= 'development'; # ensure env var is set
 
 sub _get_authorization_user_pass {
-    # XXX TODO we ought to get the db realm name by querying the service
-    require DummySchema;
-    our $db = DummySchema->get_db_connection_info;
-    return ($db->{user}, $db->{pass});
+    return( $ENV{DBI_USER}||"", $ENV{DBI_PASS}||"" );
 }
 
 
