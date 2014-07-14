@@ -38,6 +38,9 @@ sub _build_fixtures {
                 [ 1, 'Caterwauler McCrae' ],
                 [ 2, 'Random Boy Band' ],
                 [ 3, 'We Are Goth' ],
+                [ 4, 'KielbaSka' ],
+                [ 5, 'Gruntfiddle' ],
+                [ 6, 'A-ha Na Na' ],
             ]);
 
             $self->schema->populate('CD', [
