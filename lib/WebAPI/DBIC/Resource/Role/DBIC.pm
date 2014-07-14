@@ -123,26 +123,30 @@ sub render_item_as_hal_hash {
     my $curie = (0) ? "r" : ""; # XXX we don't use CURIE syntax yet
 
     # add links for relationships
-    # XXX much of this relation selection logic should be cached
-    for my $relname ($item->result_class->relationships) {
-        my $rel = $item->result_class->relationship_info($relname);
-        my $cond = $rel->{cond};
+    # XXX much of this relation selection logic could be pre-calculated and cached
+    my $result_class = $item->result_class;
+    for my $relname ($result_class->relationships) {
+        my $rel = $result_class->relationship_info($relname);
 
+        # TODO support more kinds of relationships
+
+        # we only handle a subset of relations at the moment
+        next unless $rel->{attrs}{accessor} eq 'single'
+                and $rel->{attrs}{is_foreign_key_constraint};
+
+        my $cond = $rel->{cond};
+        # https://metacpan.org/pod/DBIx::Class::Relationship::Base#add_relationship
         if (ref $cond ne 'HASH') { # eg need to add support for CODE refs
-            warn "relationship $relname cond value $cond not handled";
+            # we'll may end up silencing this warning till we can offer better support
+            warn "$result_class relationship $relname cond value $cond not handled yet"
+                unless our $warn_once->{"$result_class $relname"}++;
             next;
         }
 
-        # XXX support other types of relationships
-        # specifically multi's that would map to collection urls
-        # with me.foo=X query parameters
-        # see also https://example.com/default.asp?23010
         my $fieldname = $rel->{cond}{"foreign.id"}; # XXX id?
         $fieldname =~ s/^self\.// if $fieldname;
 
-        next unless $rel->{attrs}{accessor} eq 'single'
-                and $rel->{attrs}{is_foreign_key_constraint}
-                and $fieldname
+        next unless $fieldname
                 and defined $data->{$fieldname};
 
         my $linkurl = $self->uri_for(
@@ -150,9 +154,8 @@ sub render_item_as_hal_hash {
             id           => $data->{$fieldname}, # XXX id vs pk?
         );
         if (not $linkurl) {
-            my $item_result_class = $item->result_class;
-            warn "Result source $rel->{source} has no resource uri in this app so relations (like $item_result_class $relname) won't have _links for it.\n"
-                unless our $warn_once->{"$relname $rel->{source}"}++;
+            warn "Result source $rel->{source} has no resource uri in this app so relations (like $result_class $relname) won't have _links for it.\n"
+                unless our $warn_once->{"$result_class $relname $rel->{source}"}++;
             next;
         }
         $data->{_links}{ ($curie?"$curie:":"") . $relname} = {
