@@ -40,6 +40,10 @@ Vague thoughts for consideration, in no particular order:
 
     improve partial response support for prefetch (post DBIx::Class upgrade)
 
+    consider how to handle non-integer primary keys, probably trivial.
+    consider how to handle multi-field primary keys, harder.
+    also relates to improving the separation between resources and records
+
     use HAL CURIE prefix in link keys
 
     limit fields returned by default - add to the code on demand, so we know the

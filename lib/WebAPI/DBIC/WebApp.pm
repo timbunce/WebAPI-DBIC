@@ -109,7 +109,11 @@ sub mk_generic_dbic_item_set_routes {
     $invokeable_on_set  = undef unless $self->opt_writable;
     $invokeable_on_item = undef unless $self->opt_writable;
 
+    # regex to validate the id
+    # XXX could check the data types of the PK fields, or simply remove this
+    # validation and let the resource handle whatever value comes
     my $qr_id = qr/^-?\d+$/, # int, but allow for -1 etc
+
     my $qr_names = sub {
         my $names_r = join "|", map { quotemeta $_ } @_ or confess "panic";
         return qr/^(?:$names_r)$/x;
