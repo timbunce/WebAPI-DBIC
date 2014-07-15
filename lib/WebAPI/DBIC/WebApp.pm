@@ -38,13 +38,15 @@ sub _build_auto_routes {
     my %source_names = map { $_ => 1 } $self->schema->sources;
     for my $source_names ($self->schema->sources) {
         my $result_source = $self->schema->source($source_names);
-        next unless $result_source->name =~ /^[\w\.]+$/x;
+        my $result_name = $result_source->name;
+        $result_name = $$result_name if (ref($result_name) eq 'SCALAR');
+        next unless $result_name =~ /^[\w\.]+$/x;
         #my %relationships;
         for my $rel_name ($result_source->relationships) {
             my $rel = $result_source->relationship_info($rel_name);
         }
         push @routes, [
-            $result_source->name => $result_source->source_name
+            $result_name => $result_source->source_name
         ];
     }
 
