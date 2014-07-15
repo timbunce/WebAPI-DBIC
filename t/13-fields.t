@@ -4,43 +4,59 @@ use Test::Most;
 use Plack::Test;
 use Test::HTTP::Response;
 use JSON;
+use WebAPI::DBIC::WebApp;
 
 use Devel::Dwarn;
 
+use lib "t/lib";
 use lib "t";
 use TestDS;
 
+use Test::Roo;
+with 'TestRole::Schema';
 
-my $app = require WebAPI::DBIC::WebApp;
 
 local $SIG{__DIE__} = \&Carp::confess;
 
-note "===== Get with fields param =====";
-
-my %person_types;
-
-test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "/person_types?fields=id,name" )));
-    my $set = is_set_with_embedded_key($data, "person_types", 2);
-    %person_types = map { $_->{id} => $_ } @$set;
-    is ref $person_types{$_}, "HASH", "/person_types includes $_"
-        for (1..3);
-    ok $person_types{1}{name}, "/person_types data looks sane";
-    ok !exists $person_types{1}{description}, 'description fields not preset';
+after setup => sub {
+    my ($self) = @_;
+    $self->load_fixtures(qw(basic));
 };
 
-test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "/person_types/1?fields=id,name" )));
-    is_item($data, 2);
-    is $data->{id}, 1, 'id';
-    eq_or_diff $data, $person_types{$data->{id}}, 'data matches';
+test "===== Get with fields param =====" => sub {
+    my ($self) = @_;
+
+    my $app = WebAPI::DBIC::WebApp->new({
+        schema => $self->schema,
+    })->to_psgi_app;
+
+
+    my %artist;
+
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq( GET => "/artist?fields=artistid,name" )));
+        my $set = is_set_with_embedded_key($data, "artist", 2);
+        %artist = map { $_->{artistid} => $_ } @$set;
+        is ref $artist{$_}, "HASH", "/artist includes $_"
+            for (1..3);
+        ok $artist{1}{name}, "/artist data looks sane";
+        ok !exists $artist{1}{rank}, 'rank fields not preset';
+    };
+
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq( GET => "/artist/1?fields=artistid,name" )));
+        is_item($data, 2);
+        is $data->{artistid}, 1, 'artistid';
+        eq_or_diff $data, $artist{$data->{artistid}}, 'data matches';
+    };
+
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq( GET => "/artist/2?fields=artistid,rank" )));
+        is_item($data, 2);
+        is $data->{artistid}, 2, 'artistid';
+        ok exists $data->{rank}, 'has rank field';
+    };
 };
 
-test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "/person_types/2?fields=id,description" )));
-    is_item($data, 2);
-    is $data->{id}, 2, 'id';
-    ok exists $data->{description}, 'hash description field';
-};
-
+run_me();
 done_testing();
