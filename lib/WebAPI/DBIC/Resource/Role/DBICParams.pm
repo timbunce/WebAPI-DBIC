@@ -117,7 +117,7 @@ sub _handle_prefetch_param {
 
         my $rel = $result_class->relationship_info($prefetch);
 
-        # limit to simple single relationships, e.g., belongs_to
+        # limit to simple single/filter relationships, e.g., belongs_to
         $self->throwable->throw_bad_request(400, errors => [{
                     $prefetch => "not a valid relationship",
                     _meta => {
@@ -126,8 +126,8 @@ sub _handle_prefetch_param {
                     }, # XXX
                 }])
             unless $rel
-                and $rel->{attrs}{accessor} eq 'single'       # sanity
-                and $rel->{attrs}{is_foreign_key_constraint}; # safety/speed
+                and $rel->{attrs}{accessor} =~ m/^single|filter$/ # sanity
+                and $rel->{attrs}{is_foreign_key_constraint};     # safety/speed
     }
 
     # XXX hack?: perhaps use {embedded}{$key} = sub { ... };
