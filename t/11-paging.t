@@ -23,8 +23,6 @@ after setup => sub {
 };
 
 
-my $app = require WebAPI::DBIC::WebApp;
-
 local $SIG{__DIE__} = \&Carp::confess;
 
 test "===== Paging =====" => sub {
