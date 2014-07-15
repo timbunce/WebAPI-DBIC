@@ -22,8 +22,6 @@ require DBIx::Class::SQLMaker;
 use Moo;
 use namespace::clean;
 
-$ENV{PLACK_ENV} ||= 'production';
-my $in_production = ($ENV{PLACK_ENV} eq 'production');
 
 has schema => (is => 'ro', required => 1);
 has opt_writable => (is => 'ro', default => 1);
@@ -101,7 +99,8 @@ sub mk_generic_dbic_item_set_routes {
 
     my $rs = $self->schema->resultset($resultset);
 
-    warn sprintf "/%s => %s (%s)\n", $path, $resultset, $rs->result_class;
+    warn sprintf "/%s => %s (%s)\n", $path, $resultset, $rs->result_class
+        if $ENV{WEBAPI_DBIC_DEBUG};
 
     # XXX might want to distinguish writable from non-writable (read-only) methods
     my $invokeable_on_set  = delete $opts{invokeable_on_set}  || [];
@@ -207,11 +206,11 @@ sub to_psgi_app {
                 $getargs->($request, \%resource_args, @_) if $getargs;
 
                 warn "Running machine for $resource_class (with @{[ keys %resource_args ]})\n"
-                    if $ENV{PLACK_ENV} eq 'development';
+                    if $ENV{WEBAPI_DBIC_DEBUG};
                 my $app = WebAPI::DBIC::Machine->new(
                     resource => $resource_class,
                     debris   => \%resource_args,
-                    tracing => !$in_production,
+                    tracing => $ENV{WEBAPI_DBIC_DEBUG},
                 )->to_app;
                 my $resp = eval { $app->($request->env) };
                 #Dwarn $resp;

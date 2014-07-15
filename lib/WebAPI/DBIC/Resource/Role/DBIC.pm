@@ -237,7 +237,8 @@ sub finish_request {
         };
     }
 
-    warn "finish_request is handling exception: $line1 (@{[ %{ $error_data||{} } ]})\n";
+    warn "finish_request is handling exception: $line1 (@{[ %{ $error_data||{} } ]})\n"
+        if $ENV{WEBAPI_DBIC_DEBUG};
 
     if ($error_data) {
 

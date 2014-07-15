@@ -14,7 +14,7 @@ sub extra_roles {
 sub throw_bad_request {
     my ($class, $status, %opts) = @_;
     cluck("bad status") unless $status =~ /^4\d\d$/;
-    carp("throw_bad_request @_");
+    carp("throw_bad_request @_") if $ENV{WEBAPI_DBIC_DEBUG};
 
     # XXX TODO validations
     my $data = {

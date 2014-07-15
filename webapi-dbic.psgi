@@ -6,6 +6,7 @@ BEGIN {
     $ENV{DBIC_TRACE} ||= 0;
     $ENV{DBI_TRACE} ||= 0;
     $ENV{PATH_ROUTER_DEBUG} ||= 0;
+    $ENV{WEBAPI_DBIC_DEBUG} ||= 0;
     $|++;
 }
 
