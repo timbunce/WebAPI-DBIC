@@ -18,7 +18,6 @@ use WebAPI::HTTP::Throwable::Factory;
 
 # pre-load some modules to improve shared memory footprint
 require DBIx::Class::SQLMaker;
-require DBIx::Class::Storage::DBI::Pg;
 
 use Moo;
 use namespace::clean;

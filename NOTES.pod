@@ -63,4 +63,13 @@ Vague thoughts for consideration, in no particular order:
     https://metacpan.org/module/Catalyst::Controller::DBIC::API
     https://metacpan.org/pod/Cookieville
 
+    WebAPI::DBIC::Resource::Role::DBIC::finish_request() figures out
+    invalid fields by doing regex matching against database error
+    messages.  The current regex works for Pg and SQLite, but may not
+    work against other databases.  fREW has some code on
+    L<https://github.com/frioux/DBIx-Exceptions|github> for matching
+    the error messages. That plus L<DBIx::Introspector> could do the
+    trick.  Another alternative would be to build a valid parameter
+    list while we're introspecting the schema.
+
 =cut
