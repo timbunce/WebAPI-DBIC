@@ -6,6 +6,7 @@ use Test::HTTP::Response;
 use JSON;
 use URI;
 use URI::QueryParam;
+use WebAPI::DBIC::WebApp;
 
 use Devel::Dwarn;
 
