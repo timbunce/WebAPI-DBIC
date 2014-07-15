@@ -22,11 +22,14 @@ WebAPI::DBIC features include:
 
 * Uses the JSON+HAL (Hypertext Application Language) lean hypermedia type
 
+* Automatically detects and exposes relationships between result sets as C<_links> in HAL
+
 * Supports safe robust multi-related-record CRUD transactions
 
-* Built on the strong foundations of L<Web::Machine> and L<Path::Router>
+* Built on the strong foundations of L<Web::Machine>, L<Path::Router> and L<Plack>
 
 * Built as fine-grained roles for maximum reusability and extensibility
+
 
 =head2 HAL - Hypertext Application Language
 
@@ -46,6 +49,44 @@ libraries available for most major programming languages. It's also simple
 enough that you can just deal with it as you would any other JSON.
 
 See L<http://stateless.co/hal_specification.html> for more details.
+
+
+=head2 Web::Machine
+
+The L<Web::Machine> module provides a RESTful web framework modeled as a formal
+state machine. This is a rigorous and powerful approach, originally developed in Haskel and since ported to 
+See L<https://raw.githubusercontent.com/basho/webmachine/develop/docs/http-headers-status-v3.png>
+for an image of the state machine.
+
+By building on Web::Machine, WebAPI::DBIC removes the need to implement all the
+logic needed for accurate and full-features HTTP protocol behaviour.
+You just provide small pieces of logic at the decision points you care about
+and Web::Machine looks after the rest.
+
+See L<https://github.com/basho/webmachine/wiki> for more information.
+
+Web::Machine provides the logic to handle a HTTP request for a I<single resource>.
+
+With WebAPI::DBIC those resources typically represent a DBIx::Class result set,
+a row, or a method invocation on a row. They are implemented as a subclass of
+L<Web::Machine::Resource> that consumes a some set of WebAPI::DBIC roles that add
+the specific desired functionality.
+
+
+=head2 Path::Router
+
+The L<Path::Router> module is used to organize multiple resources into a URL
+namespace. It's used to route incoming requests to the appropriate Web::Machine
+instance. It's also used in reverse to construct links to other resources that
+are included in the outgoing responses.
+
+Path::Router supports full reversability: the value produced by a path match
+can be passed back in and you will get the same path you originally put in.
+This removes ambiguity and reduces mis-routings. This is important for
+WebAPI::DBIC because, for each resource returned, it automatically add HAL
+C<_links> containing the URLs of the related resources, as defined by the
+DBIx::Class schema. This is what makes the API discoverable and browseable.
+
 
 =head1 MODULES
 
@@ -139,5 +180,39 @@ L<WebAPI::DBIC::Machine.pm> a subclass of L<Web::Machine>.
 
 L<WebAPI::DBIC::WebApp> - this is the main app class and is most likely to
 change in the near future so isn't documented yet.
+
+
+=head1 HOW TO GET HELP
+
+=over
+
+=item * IRC: irc.perl.org#webapi
+
+=for html
+<a href="https://chat.mibbit.com/#webapi@irc.perl.org">(click for instant chatroom login)</a>
+
+=for comment
+=item * RT Bug Tracker: L<https://rt.cpan.org/NoAuth/Bugs.html?Dist=WebAPI-DBIC>
+
+=item * Source: L<https://github.com/timbunce/WebAPI-DBIC>
+
+=back
+
+
+=head1 CREDITS
+
+Stevan Little gets top billing for creating L<Web::Machine> and L<Path::Router>
+(not to mention L<Moose> and much else besides).
+
+Matt Trout and Peter Rabbitson and the rest of the L<DBIx::Class> team for
+creating and maintaining such an excellent object <-> relational mapper.
+
+Arthur Axel "fREW" Schmidt, both for his original "drinkup" prototype using
+Web::Machine that WebAPI::DBIC is based on, and for offering to help with the
+work required to open source and release WebAPI::DBIC to CPAN. Without that,
+and further help from Fitz Elliott, WebAPI::DBIC might still be a closed source
+internal project.
+
+
 
 =cut
