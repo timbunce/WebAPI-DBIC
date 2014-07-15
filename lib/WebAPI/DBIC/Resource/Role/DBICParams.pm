@@ -126,7 +126,7 @@ sub _handle_prefetch_param {
                     }, # XXX
                 }])
             unless $rel
-                and $rel->{attrs}{accessor} =~ m/^single|filter$/ # sanity
+                and $rel->{attrs}{accessor} =~ m/^(?:single|filter)$/ # sanity
                 and $rel->{attrs}{is_foreign_key_constraint};     # safety/speed
     }
 
