@@ -1,3 +1,0 @@
-# lib/DummySchema.pm is Tim's temporary hack to allow him to keep testing till we
-# build a new test database and schema. It'll be removed then.
-lib/DummySchema.pm

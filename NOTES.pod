@@ -14,13 +14,10 @@ Simply navigate to the root URL of the API with a web browser to access the
 
 See data_service_api.pod for (much) more detail.
 
-To bootstrap dependencies:
-
-    cpanm PSGI Plack Web::Machine Path::Router Moo Test::DBIx::Class Plack::App::Path::Router HTTP::Throwable::Factory Test::HTTP::Response Test::Roo
 
 =head1 TODO
 
-Vague thoughts for consideration, in no particular order:
+Things to do, or at least consider, before we stop being alpha:
 
     Refactor ::WebApp
     - move HAL browser out somewhere and mount via .psgi file
@@ -29,8 +26,9 @@ Vague thoughts for consideration, in no particular order:
     Leave just calls to mk_generic_dbic_item_set_routes and the construction
     of Path::Router - though even that could be moved to a better home.
 
-    Reconsider using or removing unused code from ::Util
-    (I think only create_header is used at the moment)
+    Review authorization handling and explore alternatives.
+
+    META - including RT or github issues?
 
     Better error reporting (in HAL format)
     Reconsider and/or polish HTTP::Throwable::Role::JSONBody
@@ -38,31 +36,71 @@ Vague thoughts for consideration, in no particular order:
     allows sufficient information to be returned to the caller e.g., to mark which
     fields of a web form hold invalid values.
 
-    improve partial response support for prefetch (post DBIx::Class upgrade)
-
     consider how to handle non-integer primary keys, probably trivial.
     consider how to handle multi-field primary keys, harder.
     also relates to improving the separation between resources and records
-
-    use HAL CURIE prefix in link keys
-
-    limit fields returned by default - add to the code on demand, so we know the
-    fields are actually being used and the inverse, that we can remove/change a
-    field that's not being exposed and know that no users of the api will be affected.
-    Perhaps allow DBIC resultset classes to define what default set of fields to use.
 
     Refactor param handling to abstract ~json both for requests *and* constructing
     link urls (where json data isn't fully handled at the moment, other than pass-thru).
 
     Any security issues with allowing arbitrary json in parameters?
 
+    Review code for DBIx::Class sanity and best practice
+
+    Review code for XXX / TODO markers
+
+    Better test coverage, especially for roles
+
+    Documentation
+
+Other items:
+
     Refactor transaction handling.
 
-    Update HAL browser:
-    git subtree pull --squash --prefix hal-browser git@github.com:mikekelly/hal-browser.git master
+    Add an empty WebAPI::DBIC::Resource::Base class that subclasses
+    Web::Machine::Resource and use that in the ::Generic* classes.
+
+    improve partial response support for prefetch
+
+    Reconsider using or removing unused code from ::Util
+    (I think only create_header is used at the moment)
+
+    use HAL CURIE prefix in link keys
+
+    make it easy to limit fields returned by default so new apps can adopt that
+    as best practice - add to the code on demand, so we know the
+    fields are actually being used and the inverse, that we can remove/change a
+    field that's not being exposed and know that no users of the api will be affected.
+    Perhaps allow DBIC resultset classes to define what default set of fields to use.
+    Note effect on caching.
+
+    Consider async?
 
     Look for further ideas in
     https://metacpan.org/module/Catalyst::Controller::DBIC::API
-    https://metacpan.org/pod/Cookieville
+
+=head2 Caching
+
+Explore of HAL item caching using ESI or SSI
+
+    https://metacpan.org/pod/Plack::Middleware::ESI
+    http://wiki.nginx.org/NginxHttpSsiModule
+
+The cached urls would need to include extra params like fields=...
+
+It's possibly better to use a surrogate key approach:
+
+    http://www.hward.com/varnish-cache-invalidation-with-fastly-surrogate-keys
+    https://www.varnish-cache.org/utility/secondary-hash-hash-ninja
+
+which would need some support in WebAPI::DBIC to pass some kind of cache key
+through the code to include in a response header.
+
+
+=head2 HAL Browser
+
+To update:
+
+    git subtree pull --squash --prefix hal-browser git@github.com:mikekelly/hal-browser.git master
 
 =cut
