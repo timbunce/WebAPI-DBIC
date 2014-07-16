@@ -84,7 +84,6 @@ sub dsresp_created_ok {
     local $Test::Builder::Level = $Test::Builder::Level + 1;
     status_matches($res, 201)
         or diag $res->as_string;
-    diag $res->as_string;
     my $location = $res->header('Location');
     ok $location, 'has Location header';
     my $data = dsresp_json_data($res);
