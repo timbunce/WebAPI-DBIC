@@ -99,15 +99,17 @@ sub mk_generic_dbic_item_set_routes {
 
     my $rs = $self->schema->resultset($resultset);
 
-    warn sprintf "/%s => %s (%s)\n", $path, $resultset, $rs->result_class
-        if $ENV{WEBAPI_DBIC_DEBUG};
-
     # XXX might want to distinguish writable from non-writable (read-only) methods
     my $invokeable_on_set  = delete $opts{invokeable_on_set}  || [];
     my $invokeable_on_item = delete $opts{invokeable_on_item} || [];
     # disable all methods if not writable, for safety: (perhaps allow get_* methods)
     $invokeable_on_set  = undef unless $self->opt_writable;
     $invokeable_on_item = undef unless $self->opt_writable;
+
+    if ($ENV{WEBAPI_DBIC_DEBUG}) {
+        warn sprintf "Auto routes for /%s => resultset %s, result_class %s\n",
+            $path, $resultset, $rs->result_class;
+    }
 
     # regex to validate the id
     # XXX could check the data types of the PK fields, or simply remove this
@@ -181,6 +183,17 @@ sub to_psgi_app {
     my ($self) = @_;
 
     my @routes = $self->all_routes;
+
+    if ($ENV{WEBAPI_DBIC_DEBUG}) {
+        my %routes = @routes;
+        warn sprintf "Routes for $self:\n";
+        for my $path (sort keys %routes) {
+            my $spec = $routes{$path};
+            warn sprintf "/%s => %s as %s\n", $path,
+                $spec->{route_defaults}{result_class},
+                $spec->{resource};
+        }
+    }
 
     my $router = Path::Router->new;
     while (my $r = shift @routes) {
