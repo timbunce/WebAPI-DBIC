@@ -60,6 +60,9 @@ Other items:
     Add an empty WebAPI::DBIC::Resource::Base class that subclasses
     Web::Machine::Resource and use that in the ::Generic* classes.
 
+    Profiling, especially re the cost of constructing relationship links
+    for each item. Much work could be cached to make it much cheaper.
+
     improve partial response support for prefetch
 
     Reconsider using or removing unused code from ::Util
