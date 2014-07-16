@@ -33,18 +33,23 @@ sub _build_auto_routes {
     my ($self) = @_;
 
     my @routes;
-    my %source_names = map { $_ => 1 } $self->schema->sources;
     for my $source_names ($self->schema->sources) {
+
         my $result_source = $self->schema->source($source_names);
         my $result_name = $result_source->name;
         $result_name = $$result_name if (ref($result_name) eq 'SCALAR');
+
         next unless $result_name =~ /^[\w\.]+$/x;
-        #my %relationships;
-        for my $rel_name ($result_source->relationships) {
-            my $rel = $result_source->relationship_info($rel_name);
-        }
+
+        my %opts;
+        # this is a hack just to enable testing, eg t/60-invoke.t
+        push @{$opts{invokeable_on_item}}, 'get_column'
+            if $self->schema->resultset($result_source->source_name)
+                ->result_class =~ /^TestSchema::Result/;
+
+        # these become args to mk_generic_dbic_item_set_routes
         push @routes, [
-            $result_name => $result_source->source_name
+            $result_name => $result_source->source_name, %opts
         ];
     }
 
