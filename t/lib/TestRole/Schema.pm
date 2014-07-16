@@ -32,6 +32,8 @@ sub _build_fixtures {
                 [qw/genreid name/],
                 [qw/1       emo  /],
                 [qw/2       country/],
+                [qw/3       pop/],
+                [qw/4       goth/],
             ]);
 
             $self->schema->populate('Artist', [
@@ -46,11 +48,11 @@ sub _build_fixtures {
 
             $self->schema->populate('CD', [
                 [ qw/cdid artist title year genreid/ ],
-                [ 1, 1, "Spoonful of bees", 1999, 1 ],
+                [ 1, 1, "Spoonful of bees", 1999, 1, ],
                 [ 2, 1, "Forkful of bees", 2001, 2, ],
-                [ 3, 1, "Caterwaulin' Blues", 1997 ],
-                [ 4, 2, "Generic Manufactured Singles", 2001 ],
-                [ 5, 3, "Come Be Depressed With Us", 1998 ],
+                [ 3, 1, "Caterwaulin' Blues", 1997, 2, ],
+                [ 4, 2, "Generic Manufactured Singles", 2001, 3, ],
+                [ 5, 3, "Come Be Depressed With Us", 1998, 4, ],
             ]);
 
             $self->schema->populate('Producer', [
