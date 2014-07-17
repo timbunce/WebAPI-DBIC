@@ -3,7 +3,6 @@ package WebAPI::DBIC::Resource::Role::DBIC;
 use Moo::Role;
 
 use Carp qw(croak confess);
-use Scalar::Util qw(blessed);
 use Devel::Dwarn;
 use JSON ();
 
@@ -202,70 +201,6 @@ sub add_params_to_url {
     my $uri = URI->new($base);
     $uri->query_form(@params);
     return $uri;
-}
-
-
-# XXX should probably be moved into a separate role
-sub finish_request {
-    my ($self, $metadata) = @_;
-
-    my $exception = $metadata->{'exception'};
-    return unless $exception;
-
-    if (blessed($exception) && $exception->can('as_psgi')) {
-        my ($status, $headers, $body) = @{ $exception->as_psgi };
-        $self->response->status($status);
-        $self->response->headers($headers);
-        $self->response->body($body);
-        return;
-    }
-
-    #$exception->rethrow if ref $exception and $exception->can('rethrow');
-    #die $exception if ref $exception;
-
-    (my $line1 = $exception) =~ s/\n.*//ms;
-
-    my $error_data;
-    # ... DBD::Pg::st execute failed: ERROR:  column "nonesuch" does not exist
-    if ($exception =~ m/DBD::.*? \s+ failed:.*? \s+ column:? \s+ "?(.*?)"? \s+ (.*)/x) {
-        $error_data = {
-            status => 400,
-            field => $1,
-            foo => "$1: $2",
-        };
-    }
-    # handle exceptions from Params::Validate
-    elsif ($exception =~ /The \s '(\w+)' \s parameter \s \(.*?\) \s to \s (\S+) \s did \s not \s pass/x) {
-        $error_data = {
-            status => 400,
-            field => $1,
-            message => $line1,
-        };
-    }
-
-    warn "finish_request is handling exception: $line1 (@{[ %{ $error_data||{} } ]})\n"
-        if $ENV{WEBAPI_DBIC_DEBUG};
-
-    if ($error_data) {
-
-        $error_data->{status} ||= 500;
-
-        # only include detailed exception information if not in production
-        # (as it might contain sensitive information)
-        $error_data->{_embedded}{exceptions}[0]{exception} = "$exception" # stringify
-            if $ENV{PLACK_ENV} ne 'production';
-
-        # create response
-        my $json = JSON->new->ascii->pretty;
-        my $response = $self->response;
-        $response->status($error_data->{status});
-        my $body = $json->encode($error_data);
-        $response->body($body);
-        $response->content_length(length $body);
-        $response->content_type('application/hal+json');
-    }
-
-    return;
 }
 
 
