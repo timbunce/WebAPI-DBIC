@@ -7,7 +7,7 @@ use warnings;
 
 use Plack::App::Path::Router;
 use Path::Router;
-use Module::Load;
+use Module::Runtime qw(use_module);
 use Carp qw(croak confess);
 use JSON::MaybeXS qw(JSON);
 
@@ -207,7 +207,7 @@ sub to_psgi_app {
 
         my $getargs = $spec->{getargs};
         my $resource_class = $spec->{resource} or confess "panic";
-        load $resource_class;
+        use_module $resource_class;
 
         $router->add_route($r,
             validations => $spec->{validations} || {},

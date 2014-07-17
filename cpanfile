@@ -2,7 +2,7 @@ requires 'Carp';
 requires 'HTTP::Throwable';
 requires 'JSON::MaybeXS';
 requires 'List::Util';
-requires 'Module::Load';
+requires 'Module::Runtime';
 requires 'Moo';
 requires 'Moose';
 requires 'namespace::clean';
