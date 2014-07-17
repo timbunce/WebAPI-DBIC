@@ -8,7 +8,7 @@ The API uses JSON for data encoding and uses the Hypertext Application Language
     http://stateless.co/hal_specification.html
 
 Using HAL enables the use of a generic interactive "browser" for the API.
-A HAL browser is bundled with the API and the supplied webapi-dbic.psgi.
+A HAL browser is bundled with the API and the supplied webapi-dbic-any.psgi.
 Simply navigate to the root URL of the API with a web browser to access the
 "HAL browser".
 
@@ -16,6 +16,12 @@ See data_service_api.pod for (much) more detail.
 
 
 =head1 TODO
+
+Urgent:
+
+    Fix auth for testing
+
+    Fix missing _links in test schema
 
 Things to do, or at least consider, before we stop being alpha:
 
@@ -67,9 +73,6 @@ Things to do, or at least consider, before we stop being alpha:
 Other items:
 
     Refactor transaction handling.
-
-    Add an empty WebAPI::DBIC::Resource::Base class that subclasses
-    Web::Machine::Resource and use that in the ::Generic* classes.
 
     Profiling, especially re the cost of constructing relationship links
     for each item. Much work could be cached to make it much cheaper.
