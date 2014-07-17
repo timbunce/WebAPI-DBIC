@@ -4,13 +4,11 @@ use Test::Most;
 use Plack::Test;
 use Test::HTTP::Response;
 use JSON;
-use WebAPI::DBIC::WebApp;
-
 use Devel::Dwarn;
 
 use lib "t/lib";
-use lib "t";
 use TestDS;
+use WebAPI::DBIC::WebApp;
 
 use Test::Roo;
 with 'TestRole::Schema';
@@ -19,8 +17,6 @@ after setup => sub {
     my ($self) = @_;
     $self->load_fixtures(qw(basic));
 };
-
-my $test_key_string = "clients_dataservice";
 
 
 test "===== Update a resource and related resources via PUT =====" => sub {

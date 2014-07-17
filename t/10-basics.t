@@ -1,14 +1,13 @@
 #!/usr/bin/env perl
 
-use lib 't/lib';
-use lib "t";
-
 use Devel::Dwarn;
 use JSON;
 use Plack::Test;
-use TestDS;
 use Test::HTTP::Response;
 use Test::Most;
+
+use lib 't/lib';
+use TestDS;
 use WebAPI::DBIC::WebApp;
 
 use Test::Roo;

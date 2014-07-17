@@ -6,13 +6,11 @@ use Test::HTTP::Response;
 use JSON;
 use URI;
 use URI::QueryParam;
-use WebAPI::DBIC::WebApp;
-
 use Devel::Dwarn;
 
 use lib "t/lib";
-use lib "t";
 use TestDS;
+use WebAPI::DBIC::WebApp;
 
 use Test::Roo;
 with 'TestRole::Schema';
