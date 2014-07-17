@@ -81,7 +81,8 @@ sub _update_embedded_resources {
         $subitem = $self->_update_embedded_resources($subitem, $rel_hal, $rel_info->{source});
 
         # copy the keys of the subitem up to the item we're about to update
-        warn "$result_class $rel: propagating keys: @{[ %fk_map ]}\n";
+        warn "$result_class $rel: propagating keys: @{[ %fk_map ]}\n"
+            if $ENV{WEBAPI_DBIC_DEBUG};
         while ( my ($ourfield, $subfield) = each %fk_map) {
             $hal->{$ourfield} = $subitem->$subfield();
         }
