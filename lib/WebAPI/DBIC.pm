@@ -163,7 +163,7 @@ L<WebAPI::DBIC::Resource::GenericItemDBIC>:
 
     package WebAPI::DBIC::Resource::GenericItemDBIC;
     use Moo;
-    extends 'Web::Machine::Resource';
+    extends 'WebAPI::DBIC::Resource::Base'; # is just Web::Machine::Resource
     with    'WebAPI::DBIC::Role::JsonEncoder',
             'WebAPI::DBIC::Role::JsonParams',
             'WebAPI::DBIC::Resource::Role::DBIC',

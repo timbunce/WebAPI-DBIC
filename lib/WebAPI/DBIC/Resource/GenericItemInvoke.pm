@@ -2,8 +2,7 @@ package WebAPI::DBIC::Resource::GenericItemInvoke;
 
 use Moo;
 
-extends 'Web::Machine::Resource';
-
+extends 'WebAPI::DBIC::Resource::Base';
 with    'WebAPI::DBIC::Role::JsonEncoder',
         'WebAPI::DBIC::Role::JsonParams',
         'WebAPI::DBIC::Resource::Role::DBIC',
