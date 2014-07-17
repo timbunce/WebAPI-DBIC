@@ -17,6 +17,10 @@ sub finish_request {
 }
 
 
+# XXX we probably ought to allow a stck/list of handlers that can try to
+# recognise an exception - we'd try them in turn, perhaps until one has
+# converted it into an object that has an as_psgi method.
+
 sub handle_web_machine_exception {
     my ($self, $exception) = @_;
 
@@ -79,7 +83,7 @@ sub handle_web_machine_exception {
         $response->content_type('application/hal+json');
     }
     else {
-        # XXX ?
+        warn "Exception: $line1\n"
     }
 
     return;

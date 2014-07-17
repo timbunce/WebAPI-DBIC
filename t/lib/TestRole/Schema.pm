@@ -4,6 +4,11 @@ require Test::DBIx::Class;
 
 use Moo::Role;
 
+# We set DBNAME so the in-memory database isn't used
+# (otherwise tests would fail because DBICAuth reconnects to the db
+# so the original connection is closed and the db data would be lost)
+$ENV{DBNAME} = "temp-test-db";
+
 has schema_config => (is => 'ro', lazy => 1, builder => 1);
 sub _build_schema_config {
     my ($self) = @_;

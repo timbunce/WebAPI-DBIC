@@ -21,12 +21,6 @@ sub connect_schema_as { ## no critic (Subroutines::RequireArgUnpacking)
     return 1 if defined $ci_user and $user eq $ci_user
             and defined $ci_pass and $pass eq $ci_pass;
 
-return 1; # XXX AUTH DISABLED FOR NOW
-
-    # XXX used to be an assertion
-    warn "expected attr as 3rd element in connect_info"
-        unless ref $ci_attr eq 'HASH';
-
     # try to connect with the user supplied credentials
     my $newschema = $schema->clone->connect($ci_dsn, $user, $pass, $ci_attr);
     my $err;
@@ -39,6 +33,7 @@ return 1; # XXX AUTH DISABLED FOR NOW
     return 0 if $err;
 
     # we connected ok, so update resultset to use new connection
+    # XXX Is this sane and safe?
     $self->set->result_source->schema($newschema);
 
     return 1;
