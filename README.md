@@ -49,12 +49,14 @@ JSON.
 
     $ git clone https://github.com/timbunce/WebAPI-DBIC.git
     $ cd WebAPI-DBIC
+    $ cpanm Module::CPANfile
+    $ cpanm --installdeps .    # this may take a while
 
     $ export WEBAPI_DBIC_SCHEMA=DummyLoadedSchema
     $ plackup -Ilib -It/lib webapi-dbic-any.psgi
-    ... open a web browser on port 5000 to browse your new API
+    ... open a web browser on port 5000 to browse the API
 
-Or try it with your own schema:
+Then try it out with your own schema:
 
     $ export WEBAPI_DBIC_SCHEMA=Foo::Bar     # your own schema
     $ export WEBAPI_DBIC_HTTP_AUTH_TYPE=none # recommended
