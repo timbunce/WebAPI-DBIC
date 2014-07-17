@@ -132,30 +132,64 @@ sub render_item_as_hal_hash {
         my $rel = $result_class->relationship_info($relname);
 
         # TODO support more kinds of relationships
+        # TODO refactor
+        # TODO For 'multi' I think we 'just' need to link to the set (ie call uri_for()
+        # without an id param) and add a "?me.foo=..." to the url
 
-        # we only handle a subset of relations at the moment
-        next unless $rel->{attrs}{accessor} eq 'single'
-                and $rel->{attrs}{is_foreign_key_constraint};
+        # accessor is the inflation type (single/filter/multi)
+        if ($rel->{attrs}{accessor} !~ /^(?: single | filter )$/x) {
+            unless (our $warn_once->{"$result_class $relname"}++) {
+                warn "$result_class relationship $relname ignored since we only support 'single' accessors (not $rel->{attrs}{accessor}) at the moment\n";
+                Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
+            }
+            next;
+        }
+
+        # this is really a performance issue, so we could just warn
+        if (not $rel->{attrs}{is_foreign_key_constraint}) {
+            unless (our $warn_once->{"$result_class $relname"}++) {
+                warn "$result_class relationship $relname ignored since we only support foreign key constraints at the moment\n";
+                Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
+            }
+            next;
+        }
 
         my $cond = $rel->{cond};
         # https://metacpan.org/pod/DBIx::Class::Relationship::Base#add_relationship
         if (ref $cond ne 'HASH') { # eg need to add support for CODE refs
             # we'll may end up silencing this warning till we can offer better support
-            warn "$result_class relationship $relname cond value $cond not handled yet"
-                unless our $warn_once->{"$result_class $relname"}++;
+            unless (our $warn_once->{"$result_class $relname"}++) {
+                warn "$result_class relationship $relname cond value $cond not handled yet\n";
+                Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
+            }
             next;
         }
 
-        my $fieldname = $rel->{cond}{"foreign.id"}; # XXX id?
+        if (keys %$cond > 1) {
+            unless (our $warn_once->{"$result_class $relname"}++) {
+                warn "$result_class relationship $relname ignored since it has multiple conditions\n";
+                Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
+            }
+            next;
+        }
+
+        my $fieldname = (values %$cond)[0]; # first and only value
         $fieldname =~ s/^self\.// if $fieldname;
 
-        next unless $fieldname
-                and defined $data->{$fieldname};
+        if (not $fieldname) {
+            unless (our $warn_once->{"$result_class $relname"}++) {
+                warn "$result_class relationship $relname ignored since we can't determine a fieldname (foreign.id)\n";
+                Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
+            }
+            next;
+        }
 
-        my $linkurl = $self->uri_for(
-            result_class => $rel->{source},
-            id           => $data->{$fieldname}, # XXX id vs pk?
-        );
+
+        my $result_class = $rel->{source};
+        my $id = $data->{$fieldname}; # XXX id vs pk?
+        next if not defined $id; # no link because value is null
+
+        my $linkurl = $self->uri_for( result_class => $result_class, id => $id );
         if (not $linkurl) {
             warn "Result source $rel->{source} has no resource uri in this app so relations (like $result_class $relname) won't have _links for it.\n"
                 unless our $warn_once->{"$result_class $relname $rel->{source}"}++;
@@ -175,6 +209,7 @@ sub render_item_as_hal_hash {
 
     return $data;
 }
+
 
 sub router {
     return shift->request->env->{'plack.router'};

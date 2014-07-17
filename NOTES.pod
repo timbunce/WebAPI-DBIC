@@ -53,6 +53,10 @@ Things to do, or at least consider, before we stop being alpha:
 
     Review code for DBIx::Class sanity and best practice
 
+    Allow and prefer prefetch=me over prefetch=self?
+
+    Adopt Log::Any for logging and debug?
+
     Review code and docs for XXX / TODO /TBD markers
 
     Better test coverage, especially for roles

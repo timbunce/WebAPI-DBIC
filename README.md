@@ -49,6 +49,13 @@ JSON.
 
     $ git clone https://github.com/timbunce/WebAPI-DBIC.git
     $ cd WebAPI-DBIC
+
+    $ export WEBAPI_DBIC_SCHEMA=DummyLoadedSchema
+    $ plackup -Ilib -It/lib webapi-dbic-any.psgi
+    ... open a web browser on port 5000 to browse your new API
+
+Or try it with your own schema:
+
     $ export WEBAPI_DBIC_SCHEMA=Foo::Bar     # your own schema
     $ export WEBAPI_DBIC_HTTP_AUTH_TYPE=none # recommended
     $ export DBI_DSN=dbi:Driver:...          # your own database
@@ -56,6 +63,7 @@ JSON.
     $ export DBI_PASS=... # for initial connection, if needed
     $ plackup -Ilib webapi-dbic-any.psgi
     ... open a web browser on port 5000 to browse your new API
+
 
 # STATUS
 
