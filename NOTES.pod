@@ -19,8 +19,6 @@ See data_service_api.pod for (much) more detail.
 
 Urgent:
 
-    Fix auth for testing
-
     Fix missing _links in test schema
 
 Things to do, or at least consider, before we stop being alpha:

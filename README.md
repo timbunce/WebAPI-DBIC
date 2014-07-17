@@ -18,7 +18,8 @@ WebAPI::DBIC features include:
 
 * Supports safe robust multi-related-record CRUD transactions
 
-* Built on the strong foundations of L<Web::Machine>, L<Path::Router> and L<Plack>
+* Built on the strong foundations of [Web::Machine](https://metacpan.org/pod/Web::Machine),
+[Path::Router](https://metacpan.org/pod/Path::Router) and [Plack](https://metacpan.org/pod/Plack)
 
 * Built as fine-grained roles for maximum reusability and extensibility
 
@@ -65,6 +66,8 @@ documentation, tests etc.
 It's also likely to undergo a period of refactoring now there are more
 developers contributing and the code is being applied to more domains.
 
-Interested? Please get involved! See HOW TO GET HELP in the WebAPI::DBIC documentation.
+Interested? Please get involved!
+
+See HOW TO GET HELP in the WebAPI::DBIC documentation.
 
 
