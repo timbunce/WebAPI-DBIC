@@ -1,11 +1,12 @@
 package WebAPI::DBIC::Resource::Role::DBICException;
 
-use Moo::Role;
-
 use Carp qw(croak confess);
 use Scalar::Util qw(blessed);
 use Devel::Dwarn;
 use JSON ();
+
+use Moo::Role;
+
 
 requires 'response';
 

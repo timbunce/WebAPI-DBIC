@@ -1,9 +1,10 @@
 package WebAPI::DBIC::Resource::Role::SetRender;
 
-use Moo::Role;
-
 use Devel::Dwarn;
 use Carp qw(confess);
+
+use Moo::Role;
+
 
 requires 'render_item_as_plain_hash';
 requires 'render_item_as_hal_hash';

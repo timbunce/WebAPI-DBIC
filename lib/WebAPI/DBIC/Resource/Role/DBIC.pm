@@ -1,10 +1,10 @@
 package WebAPI::DBIC::Resource::Role::DBIC;
 
-use Moo::Role;
-
 use Carp qw(croak confess);
 use Devel::Dwarn;
 use JSON ();
+
+use Moo::Role;
 
 
 has set => (

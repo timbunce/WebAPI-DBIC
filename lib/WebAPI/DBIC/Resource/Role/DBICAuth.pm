@@ -1,14 +1,15 @@
 package WebAPI::DBIC::Resource::Role::DBICAuth;
 
-use Moo::Role;
 use Carp qw(confess);
 use Try::Tiny;
 
 use WebAPI::DBIC::Util qw(create_header);
 
+use Moo::Role;
+
+
 requires 'set';
 requires 'http_auth_type';
-
 
 sub connect_schema_as { # XXX sub rather than method?
     my ($self, $user, $pass) = @_;

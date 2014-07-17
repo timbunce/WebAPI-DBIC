@@ -2,10 +2,11 @@ package WebAPI::DBIC::Resource::Role::SetWritable;
 
 # Based on https://github.com/frioux/drinkup
 
-use Moo::Role;
-
 use Devel::Dwarn;
 use Carp qw(confess);
+
+use Moo::Role;
+
 
 requires 'render_set_as_plain';
 requires 'render_item_into_body';

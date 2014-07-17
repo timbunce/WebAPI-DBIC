@@ -1,8 +1,9 @@
 package WebAPI::DBIC::Role::JsonEncoder;
 
+use JSON::XS ();
+
 use Moo::Role;
 
-use JSON::XS ();
 
 has _json_encoder => (
    is => 'ro',

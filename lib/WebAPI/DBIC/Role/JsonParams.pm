@@ -4,10 +4,10 @@ package WebAPI::DBIC::Role::JsonParams;
 # except that any parameters named foo~json have their values
 # JSON decoded, so they can be arbitrary data structures.
 
-use Moo::Role;
-
 use Carp qw(croak);
 use JSON ();
+
+use Moo::Role;
 
 
 requires 'request';

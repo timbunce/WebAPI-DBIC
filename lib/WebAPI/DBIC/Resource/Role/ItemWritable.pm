@@ -1,9 +1,10 @@
 package WebAPI::DBIC::Resource::Role::ItemWritable;
 
-use Moo::Role;
-
 use Carp qw(croak confess);
 use Devel::Dwarn;
+
+use Moo::Role;
+
 
 requires 'render_item_into_body';
 requires 'decode_json';

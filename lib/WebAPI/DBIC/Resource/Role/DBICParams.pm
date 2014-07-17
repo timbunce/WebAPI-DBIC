@@ -1,9 +1,9 @@
 package WebAPI::DBIC::Resource::Role::DBICParams;
 
-use Moo::Role;
-
 use Carp;
 use Scalar::Util qw(blessed);
+
+use Moo::Role;
 
 
 requires 'set';

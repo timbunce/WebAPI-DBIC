@@ -1,7 +1,9 @@
 package WebAPI::DBIC::Machine;
 
-use Moo;
 use Sub::Quote 'quote_sub';
+
+use Moo;
+use namespace::clean;
 
 extends 'Web::Machine';
 

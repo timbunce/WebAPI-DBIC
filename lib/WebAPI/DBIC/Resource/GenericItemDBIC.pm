@@ -1,6 +1,7 @@
 package WebAPI::DBIC::Resource::GenericItemDBIC;
 
 use Moo;
+use namespace::clean;
 
 extends 'WebAPI::DBIC::Resource::Base';
 with    'WebAPI::DBIC::Role::JsonEncoder',

@@ -1,8 +1,9 @@
 package WebAPI::DBIC::Resource::Role::ItemInvoke;
 
+use Scalar::Util qw(blessed);
+
 use Moo::Role;
 
-use Scalar::Util qw(blessed);
 
 requires 'decode_json';
 requires 'encode_json';
