@@ -44,9 +44,6 @@ sub connect_schema_as { # XXX sub rather than method?
 sub is_authorized {
     my ($self, $auth_header) = @_;
 
-    my $auth_realm = $self->set->result_source->schema->storage->connect_info->[0] # dsn
-        or die "panic: no dsn set";
-
     my $http_auth_type = $self->http_auth_type || '';
     if ($http_auth_type =~ /^none/i) {
         # This role was included in the resource, so auth was desired, yet auth
@@ -57,6 +54,9 @@ sub is_authorized {
         return 1
     }
     elsif ($http_auth_type =~ /^basic/i) {
+
+        my $auth_realm = $self->set->result_source->schema->storage->connect_info->[0] # dsn
+            or die "panic: no dsn set";
 
         if ( $auth_header ) {
             return 1 if $self->connect_schema_as($auth_header->username, $auth_header->password);
