@@ -1,25 +1,4 @@
-=head1 DESCRIPTION
-
-Implements a HTTP REST API to DBIx::Class schema
-
-The API uses JSON for data encoding and uses the Hypertext Application Language
-(HAL) media type "application/hal+json". For more information see:
-
-    http://stateless.co/hal_specification.html
-
-Using HAL enables the use of a generic interactive "browser" for the API.
-A HAL browser is bundled with the API and the supplied webapi-dbic-any.psgi.
-Simply navigate to the root URL of the API with a web browser to access the
-"HAL browser".
-
-See data_service_api.pod for (much) more detail.
-
-
 =head1 TODO
-
-Urgent:
-
-    Fix missing _links in test schema
 
 Things to do, or at least consider, before we stop being alpha:
 
@@ -31,6 +10,8 @@ Things to do, or at least consider, before we stop being alpha:
     of Path::Router - though even that could be moved to a better home.
 
     Review authorization handling and explore alternatives.
+    Document 'basic auth on internet needs https', see also:
+    Also http://stackoverflow.com/questions/17530992/authentication-and-or-https-with-plack-psgi-poet-application/24808547#24808547
 
     Review Moo/Moose usage for best practice
 
@@ -49,11 +30,13 @@ Things to do, or at least consider, before we stop being alpha:
     Refactor param handling to abstract ~json both for requests *and* constructing
     link urls (where json data isn't fully handled at the moment, other than pass-thru).
 
+    Consider abstracting the interface to Path::Router so other routers can be used.
+
     Any security issues with allowing arbitrary json in parameters?
 
     Review code for DBIx::Class sanity and best practice
 
-    Allow and prefer prefetch=me over prefetch=self?
+    Allow (and prefer?) prefetch=me over prefetch=self?
 
     Adopt Log::Any for logging and debug?
 
@@ -107,7 +90,7 @@ Explore of HAL item caching using ESI or SSI
 
 The cached urls would need to include extra params like fields=...
 
-It's possibly better to use a surrogate key approach:
+So it's possibly better to use a surrogate key approach:
 
     http://www.hward.com/varnish-cache-invalidation-with-fastly-surrogate-keys
     https://www.varnish-cache.org/utility/secondary-hash-hash-ninja

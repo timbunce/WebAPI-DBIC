@@ -49,5 +49,4 @@ __END__
 This is just a basic utility module used internally by L<WebAPI::DBIC>.
 There is no real user servicable parts in here.
 
-=back
-
+=cut
