@@ -62,7 +62,7 @@ test '===== Get =====' => sub {
 
 after teardown => sub {
     my ($self) = @_;
-    diag "Bye!";
+    note "Bye!";
 };
 
 

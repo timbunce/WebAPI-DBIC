@@ -4,31 +4,36 @@ package WebAPI::DBIC;
 
 WebAPI::DBIC - A composable RESTful JSON+HAL API to DBIx::Class schemas using roles, Web::Machine and Path::Router
 
-=head1 SYNOPSIS
+=head1 STATUS
 
-    TBD - a one-line command to start a web service for a DBIx::Class schema
+The WebAPI::DBIC code has been in production use for over a year, however it's
+only recently been open sourced (July 2014) so it's still lacking in
+documentation, tests etc.
 
-plus
-
-    TBD - a few lines of code to do the same thing
+It's also likely to undergo a period of refactoring now there are more
+developers contributing and the code is being applied to more domains.
+Interested? Please get involved! See L</HOW TO GET HELP> below.
 
 =head1 DESCRIPTION
 
 WebAPI::DBIC provides the parts you need to build a feature-rich RESTful JSON web
-service API backed by DBIx::Class schemas. It also provides a PSGI file that
-gives you an instant web service for any DBIx::Class schema with a single command.
+service API backed by DBIx::Class schemas.
 
 WebAPI::DBIC features include:
 
-* Uses the JSON+HAL (Hypertext Application Language) lean hypermedia type
+* Use of the JSON+HAL (Hypertext Application Language) lean hypermedia type
 
-* Automatically detects and exposes relationships between result sets as C<_links> in HAL
+* Automatic detection and exposure of result set relationships as HAL C<_links>
 
 * Supports safe robust multi-related-record CRUD transactions
 
 * Built on the strong foundations of L<Web::Machine>, L<Path::Router> and L<Plack>
 
 * Built as fine-grained roles for maximum reusability and extensibility
+
+* A built-in copy of the generic HAL API browser application
+
+* An example command-line utility that gives you an instant web service for any DBIx::Class schema
 
 
 =head2 HAL - Hypertext Application Language
@@ -212,7 +217,5 @@ Web::Machine that WebAPI::DBIC is based on, and for offering to help with the
 work required to open source and release WebAPI::DBIC to CPAN. Without that,
 and further help from Fitz Elliott, WebAPI::DBIC might still be a closed source
 internal project.
-
-
 
 =cut
