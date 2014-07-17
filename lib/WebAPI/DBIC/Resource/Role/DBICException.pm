@@ -3,7 +3,7 @@ package WebAPI::DBIC::Resource::Role::DBICException;
 use Carp qw(croak confess);
 use Scalar::Util qw(blessed);
 use Devel::Dwarn;
-use JSON ();
+use JSON::MaybeXS qw(JSON);
 
 use Moo::Role;
 

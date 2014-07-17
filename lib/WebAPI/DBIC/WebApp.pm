@@ -9,7 +9,7 @@ use Plack::App::Path::Router;
 use Path::Router;
 use Module::Load;
 use Carp qw(croak confess);
-use JSON;
+use JSON::MaybeXS qw(JSON);
 
 use Devel::Dwarn;
 
@@ -78,7 +78,7 @@ sub hal_browser_app {
             if ($route->is_component_variable($c)) {
                 my $name = $route->get_component_name($c);
                 push @parts, "{/$name}";
-                $attr{templated} = JSON::true;
+                $attr{templated} = JSON->true;
             } else {
                 push @parts, "$c";
             }

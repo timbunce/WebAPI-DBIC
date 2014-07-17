@@ -2,7 +2,7 @@ package WebAPI::DBIC::Resource::Role::DBIC;
 
 use Carp qw(croak confess);
 use Devel::Dwarn;
-use JSON ();
+use JSON::MaybeXS qw(JSON);
 
 use Moo::Role;
 
@@ -169,7 +169,7 @@ sub render_item_as_hal_hash {
        $data->{_links}{curies} = [{
          name => $curie,
          href => "http://docs.acme.com/relations/{rel}", # XXX
-         templated => JSON::true,
+         templated => JSON->true,
        }];
    }
 

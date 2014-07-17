@@ -1,7 +1,6 @@
 requires 'Carp';
 requires 'HTTP::Throwable';
-requires 'JSON';
-requires 'JSON::XS';
+requires 'JSON::MaybeXS';
 requires 'List::Util';
 requires 'Module::Load';
 requires 'Moo';

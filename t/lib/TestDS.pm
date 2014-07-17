@@ -3,7 +3,7 @@
 use Test::Most;
 use Plack::Test;
 use Test::HTTP::Response;
-use JSON;
+use JSON::MaybeXS;
 use URI;
 use Devel::Dwarn;
 use Carp;

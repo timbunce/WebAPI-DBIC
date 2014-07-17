@@ -5,7 +5,7 @@ package WebAPI::DBIC::Role::JsonParams;
 # JSON decoded, so they can be arbitrary data structures.
 
 use Carp qw(croak);
-use JSON ();
+use JSON::MaybeXS qw(JSON);
 
 use Moo::Role;
 

@@ -2,7 +2,7 @@ package WebAPI::HTTP::Throwable::Factory;
 
 use parent 'HTTP::Throwable::Factory';
 use Carp qw(carp cluck);
-use JSON;
+use JSON::MaybeXS qw(JSON);
 
 sub extra_roles {
     return (

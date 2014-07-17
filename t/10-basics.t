@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 use Devel::Dwarn;
-use JSON;
+use JSON::MaybeXS;
 use Plack::Test;
 use Test::HTTP::Response;
 use Test::Most;

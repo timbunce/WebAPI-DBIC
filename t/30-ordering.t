@@ -3,7 +3,7 @@
 use Test::Most;
 use Plack::Test;
 use Test::HTTP::Response;
-use JSON;
+use JSON::MaybeXS;
 use Sort::Key qw(multikeysorter);
 use Carp;
 use Devel::Dwarn;
