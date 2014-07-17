@@ -25,6 +25,7 @@ use namespace::clean;
 
 has schema => (is => 'ro', required => 1);
 has writable => (is => 'ro', default => 1);
+has http_auth_type => (is => 'ro', default => 'Basic');
 has extra_routes => (is => 'ro', lazy => 1, builder => 1);
 has auto_routes => (is => 'ro', lazy => 1, builder => 1);
 
@@ -219,6 +220,7 @@ sub to_psgi_app {
                 my %resource_args = (
                     writable => $self->writable,
                     throwable => 'WebAPI::HTTP::Throwable::Factory',
+                    http_auth_type => $self->http_auth_type,
                 );
                 # perform any required setup for this request & params in @_
                 $getargs->($request, \%resource_args, @_) if $getargs;

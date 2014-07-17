@@ -16,6 +16,10 @@ has writable => (
    is => 'ro',
 );
 
+has http_auth_type => (
+   is => 'ro',
+);
+
 has prefetch => (
     is => 'rw',
     default => sub { {} },

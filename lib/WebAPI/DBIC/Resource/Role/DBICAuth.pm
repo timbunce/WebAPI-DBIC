@@ -7,9 +7,10 @@ use Try::Tiny;
 use WebAPI::DBIC::Util qw(create_header);
 
 requires 'set';
+requires 'http_auth_type';
 
 
-sub connect_schema_as { ## no critic (Subroutines::RequireArgUnpacking)
+sub connect_schema_as { # XXX sub rather than method?
     my ($self, $user, $pass) = @_;
     $_[2] = '...'; # hide password from stack trace
 
@@ -26,7 +27,7 @@ sub connect_schema_as { ## no critic (Subroutines::RequireArgUnpacking)
     my $err;
     try { $newschema->storage->dbh }
     catch {
-        # XXX we need to diferenciate between auth errors and other problems
+        # XXX we need to differentiate between auth errors and other problems
         warn "Error connecting to $ci_dsn: $_\n";
         $err = $_;
     };
@@ -42,11 +43,30 @@ sub connect_schema_as { ## no critic (Subroutines::RequireArgUnpacking)
 
 sub is_authorized {
     my ($self, $auth_header) = @_;
-    if ( $auth_header ) {
-        return 1 if $self->connect_schema_as($auth_header->username, $auth_header->password);
+
+    my $auth_realm = $self->set->result_source->schema->storage->connect_info->[0] # dsn
+        or die "panic: no dsn set";
+
+    my $http_auth_type = $self->http_auth_type || '';
+    if ($http_auth_type =~ /^none/i) {
+        # This role was included in the resource, so auth was desired, yet auth
+        # has been disabled. That seems worthy of a warning.
+        my $name = $self->set->result_source->result_class; # XXX the path would be better
+        warn "HTTP authentication configured but disabled for $name\n"
+            unless our $warn_once->{"http_auth_type $name"}++;
+        return 1
     }
-    my $auth_realm = $self->set->result_source->schema->storage->connect_info->[0]; # dsn
-    return create_header( 'WWWAuthenticate' => [ 'Basic' => ( realm => $auth_realm ) ] );
+    elsif ($http_auth_type =~ /^basic/i) {
+
+        if ( $auth_header ) {
+            return 1 if $self->connect_schema_as($auth_header->username, $auth_header->password);
+        }
+        return create_header( 'WWWAuthenticate' => [ 'Basic' => ( realm => $auth_realm ) ] );
+    }
+    else {
+        die "Unsupported value for http_auth_type: $http_auth_type";
+    }
+
 }
 
 

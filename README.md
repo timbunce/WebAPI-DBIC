@@ -3,7 +3,6 @@
 A composable RESTful JSON+HAL API to DBIx::Class schemas using roles, Web::Machine and Path::Router
 
 [![Build Status](https://secure.travis-ci.org/timbunce/WebAPI-DBIC.png)](http://travis-ci.org/timbunce/WebAPI-DBIC)
-
 [![Coverage Status](https://coveralls.io/repos/timbunce/WebAPI-DBIC/badge.png)](https://coveralls.io/r/timbunce/WebAPI-DBIC)
 
 # DESCRIPTION
@@ -40,9 +39,22 @@ easier to work with and therefore more attractive to client developers.
 
 A JavaScript "HAL Browser" is included in the WebAPI::DBIC distribution.
 
-APIs that adopt HAL can be easily served and consumed using open source
-libraries available for most major programming languages. It's also simple
-enough that you can just deal with it as you would any other JSON.
+APIs that adopt HAL can be easily served and consumed using [open source
+libraries available for most major programming languages](https://github.com/mikekelly/hal_specification/wiki/Libraries).
+It's also simple enough that you can just deal with it as you would any other
+JSON.  
+
+# QUICK START
+
+    $ git clone https://github.com/timbunce/WebAPI-DBIC.git
+    $ cd WebAPI-DBIC
+    $ export WEBAPI_DBIC_SCHEMA=Foo::Bar     # your own schema
+    $ export WEBAPI_DBIC_HTTP_AUTH_TYPE=none # recommended
+    $ export DBI_DSN=dbi:Driver:...          # your own database
+    $ export DBI_USER=... # for initial connection, if needed
+    $ export DBI_PASS=... # for initial connection, if needed
+    $ plackup -Ilib webapi-dbic-any.psgi
+    ... open a web browser on port 5000 to browse your new API
 
 # STATUS
 

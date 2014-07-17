@@ -1,23 +1,22 @@
 =head1 NAME
 
-webapi-dbic-any.psgi - instance WebAPI::DBIC browser for any DBIx::Class schema
+webapi-dbic-any.psgi - instant WebAPI::DBIC browser for any DBIx::Class schema
 
 =head1 SYNOPSIS
 
-    $ export WEBAPI_DBIC_SCHEMA=Foo::Bar
-    $ export WEBAPI_DBIC_WRITABLE=1 # optional
-    $ export DBI_DSN=dbi:Driver:...
-    $ export DBI_USER=... # optional, for initial connection
-    $ export DBI_PASS=... # optional, for initial connection
+    $ export WEBAPI_DBIC_SCHEMA=Foo::Bar     # your own schema
+    $ export WEBAPI_DBIC_HTTP_AUTH_TYPE=none # recommended
+    $ export DBI_DSN=dbi:Driver:...          # your own database
+    $ export DBI_USER=... # for initial connection, if needed
+    $ export DBI_PASS=... # for initial connection, if needed
     $ plackup webapi-dbic-any.psgi
     ... open a web browser on port 5000 to browse your new API
 
-You'll be asked to authenticate when you start exploring.
-Enter any username and password for now - auth is currently disabled
-so the DBI_USER/DBI_PASS credentials will be used. XXX
+The API provided by this .psgi file will be read-only unless the
+C<WEBAPI_DBIC_WRITABLE> env var is true.
 
-Note that only Basic Authentication is supported at the moment so the
-credentials entered via the browser will be sent in clear text over the network.
+For details on the C<WEBAPI_DBIC_HTTP_AUTH_TYPE> env var and security issues
+see C<http_auth_type> in L<WebAPI::DBIC::Resource::Role::DBICAuth>.
 
 =cut
 
@@ -37,6 +36,7 @@ my $schema = $schema_class->connect(); # uses DBI_DSN, DBI_USER, DBI_PASS env va
 my $app = WebAPI::DBIC::WebApp->new({
     schema   => $schema,
     writable => $ENV{WEBAPI_DBIC_WRITABLE}, # read-only if not set
+    http_auth_type => $ENV{WEBAPI_DBIC_HTTP_AUTH_TYPE} || 'Basic', # Basic is insecure
 })->to_psgi_app;
 
 my $app_prefix = "/webapi-dbic";
