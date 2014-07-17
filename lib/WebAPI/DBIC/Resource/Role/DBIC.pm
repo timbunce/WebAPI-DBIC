@@ -227,7 +227,7 @@ sub finish_request {
 
     my $error_data;
     # ... DBD::Pg::st execute failed: ERROR:  column "nonesuch" does not exist
-    if ($exception =~ m/DBD::Pg.*? \s+ failed:.*? \s+ column \s+ "?(.*?)"? \s+ (.*)/x) {
+    if ($exception =~ m/DBD::.*? \s+ failed:.*? \s+ column:? \s+ "?(.*?)"? \s+ (.*)/x) {
         $error_data = {
             status => 400,
             field => $1,
@@ -243,7 +243,8 @@ sub finish_request {
         };
     }
 
-    warn "finish_request is handling exception: $line1 (@{[ %{ $error_data||{} } ]})\n";
+    warn "finish_request is handling exception: $line1 (@{[ %{ $error_data||{} } ]})\n"
+        if $ENV{WEBAPI_DBIC_DEBUG};
 
     if ($error_data) {
 

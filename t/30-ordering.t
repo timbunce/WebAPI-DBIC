@@ -6,14 +6,24 @@ use Test::HTTP::Response;
 use JSON;
 use Sort::Key qw(multikeysorter);
 use Carp;
+use WebAPI::DBIC::WebApp;
 
 use Devel::Dwarn;
 
+use lib "t/lib";
 use lib "t";
 use TestDS;
 
+use Test::Roo;
+with 'TestRole::Schema';
 
-my $app = require WebAPI::DBIC::WebApp;
+
+local $SIG{__DIE__} = \&Carp::confess;
+
+after setup => sub {
+    my ($self) = @_;
+    $self->load_fixtures(qw(basic));
+};
 
 
 sub is_ordered {
@@ -40,63 +50,71 @@ sub hack_str {
 }
 
 
-note "===== Ordering =====";
+test "===== Ordering =====" => sub {
+    my ($self) = @_;
 
-my $base = "/person_types?rows=1000"; # rows count must include all rows in set for tests to pass
-my %person_types;
-my @person_types;
+    my $app = WebAPI::DBIC::WebApp->new({
+        schema => $self->schema,
+    })->to_psgi_app;
 
-test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.id" )));
-    my $set = is_set_with_embedded_key($data, "person_types", 2);
-    @person_types = @$set;
-    %person_types = map { $_->{id} => $_ } @person_types;
-    is ref $person_types{$_}, "HASH", "/person_types includes $_"
-        for (1..3);
-    ok $person_types{1}{name}, "/person_types data looks sane";
+
+    my $base = "/cd?rows=1000"; # rows count must include all rows in set for tests to pass
+    my %cds;
+    my @cds;
+
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.cdid" )));
+        my $set = is_set_with_embedded_key($data, "cd", 2);
+        @cds = @$set;
+        %cds = map { $_->{cdid} => $_ } @cds;
+        is ref $cds{$_}, "HASH", "/cd includes $_"
+            for (1..3);
+        ok $cds{1}{title}, "/cd data looks sane";
+    };
+
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.cdid%20desc" )));
+        my $set = is_set_with_embedded_key($data, "cd", 2);
+        is_deeply $set, [ reverse @cds], 'reversed';
+        is_ordered($set, sub { $_->{cdid} }, '-int');
+    };
+
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.title%20desc,cdid%20desc" )));
+        my $set = is_set_with_embedded_key($data, "cd", 2);
+        cmp_deeply $set, bag(@cds), 'same set of rows returned';
+        ok not eq_deeply $set, \@cds, 'order has changed from original';
+        # XXX the s/\./~/g is a hack to workaround an apparent difference between
+        # perl's lexical sorting and postgres character sorting
+        # eg they order danielle.carne and daniel.rabiner differently
+        is_ordered($set, sub { return hack_str($_->{title}), $_->{cdid} }, '-str', '-int');
+    };
+
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.title,cdid%20asc" )));
+        my $set = is_set_with_embedded_key($data, "cd", 2);
+        cmp_deeply $set, bag(@cds), 'same set of rows returned';
+        ok not eq_deeply $set, \@cds, 'order has changed from original';
+        is_ordered($set, sub { return hack_str($_->{title}), $_->{cdid} }, 'str', 'int');
+    };
+
+    note "===== Ordering with prefetch =====";
+
+    test_psgi $app, sub {
+        # the extra me.* param is to make this query be less expensive on our data set
+        my $data = dsresp_ok(shift->(dsreq( GET => "/cd?prefetch=artist&order=artist.name" )));
+        my $set = is_set_with_embedded_key($data, "cd", 2);
+        is_ordered($set, sub { hack_str($_->{_embedded}{artist}{name}) }, 'str');
+    };
+
+    test_psgi $app, sub {
+        # the extra me.* param is to make this query be less expensive
+        my $data = dsresp_ok(shift->(dsreq( GET => "/cd?prefetch=artist,genre&order=genre.name%20desc,artist.name%20asc" )));
+        my $set = is_set_with_embedded_key($data, "cd", 2);
+        cmp_ok scalar @$set, '>=', 5, 'matched sufficient records';
+        is_ordered($set, sub { lc $_->{_embedded}{genre}{name}, lc $_->{_embedded}{artist}{name} }, '-str', 'str');
+    };
 };
 
-test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.id%20desc" )));
-    my $set = is_set_with_embedded_key($data, "person_types", 2);
-    is_deeply $set, [ reverse @person_types], 'reversed';
-    is_ordered($set, sub { $_->{id} }, '-int');
-};
-
-test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.name%20desc,id%20desc" )));
-    my $set = is_set_with_embedded_key($data, "person_types", 2);
-    cmp_deeply $set, bag(@person_types), 'same set of rows returned';
-    ok not eq_deeply $set, \@person_types, 'order has changed from original';
-    # XXX the s/\./~/g is a hack to workaround an apparent difference between
-    # perl's lexical sorting and postgres character sorting
-    # eg they order danielle.carne and daniel.rabiner differently
-    is_ordered($set, sub { return hack_str($_->{name}), $_->{id} }, '-str', '-int');
-};
-
-test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.name,id%20asc" )));
-    my $set = is_set_with_embedded_key($data, "person_types", 2);
-    cmp_deeply $set, bag(@person_types), 'same set of rows returned';
-    ok not eq_deeply $set, \@person_types, 'order has changed from original';
-    is_ordered($set, sub { return hack_str($_->{name}), $_->{id} }, 'str', 'int');
-};
-
-note "===== Ordering with prefetch =====";
-
-test_psgi $app, sub {
-    # the extra me.* param is to make this query be less expensive on our data set
-    my $data = dsresp_ok(shift->(dsreq( GET => "/ecosystems_people?prefetch=client_auth&order=client_auth.username&me.client_auth.demo=1" )));
-    my $set = is_set_with_embedded_key($data, "ecosystems_people", 2);
-    is_ordered($set, sub { hack_str($_->{_embedded}{client_auth}{username}) }, 'str');
-};
-
-test_psgi $app, sub {
-    # the extra me.* param is to make this query be less expensive
-    my $data = dsresp_ok(shift->(dsreq( GET => "/ecosystems_people?prefetch=person,client_auth&order=person.last_name%20desc,client_auth.username%20asc&me.client_auth.demo=1" )));
-    my $set = is_set_with_embedded_key($data, "ecosystems_people", 2);
-    cmp_ok scalar @$set, '>=', 5, 'matched sufficient records';
-    is_ordered($set, sub { lc $_->{_embedded}{person}{last_name}, lc $_->{_embedded}{client_auth}{username} }, '-str', 'str');
-};
-
+run_me();
 done_testing();

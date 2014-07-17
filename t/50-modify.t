@@ -4,112 +4,128 @@ use Test::Most;
 use Plack::Test;
 use Test::HTTP::Response;
 use JSON;
+use WebAPI::DBIC::WebApp;
 
 use Devel::Dwarn;
 
+use lib "t/lib";
 use lib "t";
 use TestDS;
 
-my $test_key_string = "clients_dataservice";
+use Test::Roo;
+with 'TestRole::Schema';
 
-my $app = require WebAPI::DBIC::WebApp;
 
 local $SIG{__DIE__} = \&Carp::confess;
 
-note "===== Create - POST =====";
-
-my $item;
-
-my %person_types;
-my @new_ids;
-my $new_desc = "dummy desc ".time();
-
-test_psgi $app, sub {
-    my $data = dsresp_ok(shift->(dsreq( GET => "/person_types" )));
-    my $set = is_set_with_embedded_key($data, "person_types", 2);
-    %person_types = map { $_->{id} => $_ } @$set;
-    is ref $person_types{$_}, "HASH", "/person_types includes $_"
-        for (1..3);
-    ok $person_types{1}{name}, "/person_types data looks sane";
+after setup => sub {
+    my ($self) = @_;
+    $self->load_fixtures(qw(basic));
 };
 
-note "plain post";
-test_psgi $app, sub {
-    my $desc = "1 $new_desc";
-    my $res = shift->(dsreq( POST => "/person_types", [], {
-        name => $test_key_string,
-        description => $desc,
-    }));
-    my ($location, $data) = dsresp_created_ok($res);
-    is $data, undef, 'no data returned without prefetch';
-
-    $item = get_data($app, $location);
-    ok $item->{id}, 'new item has id'
-        or diag $item;
-    ok !$person_types{$item->{id}}, 'new item has new id';
-    is $item->{name}, $test_key_string;
-    is $item->{description}, $desc;
-
-    push @new_ids, $item->{id};
-};
-
-note "post with prefetch=self";
-test_psgi $app, sub {
-    my $desc = "2 $new_desc";
-    my $res = shift->(dsreq( POST => "/person_types?prefetch=self", [], {
-        name => $test_key_string,
-        description => $desc,
-    }));
-    my ($location, $data) = dsresp_created_ok($res);
-
-    $item = get_data($app, $location);
-    ok $item->{id}, 'new item has id';
-    ok !$person_types{$item->{id}}, 'new item has new id';
-    is $item->{name}, $test_key_string;
-    is $item->{description}, $desc;
-
-    eq_or_diff $data, $item, 'returned prefetch matches item at location';
-    push @new_ids, $item->{id};
-};
+my $test_key_string = "clients_dataservice";
 
 
-note "===== Update - PUT ====="; # uses previous $item
+test "===== Create - POST =====" => sub {
+    my ($self) = @_;
 
-note "put without prefetch=self";
-test_psgi $app, sub {
-    my $desc = "foo";
-    my $data = dsresp_ok(shift->(dsreq( PUT => "/person_types/$item->{id}", [], {
-        description => $desc,
-    })), 204);
-    is $data, undef, 'no response body';
-    $item = get_data($app, "/person_types/$item->{id}");
-    is $item->{description}, $desc;
-};
-
-note "put with prefetch=self";
-test_psgi $app, sub {
-    my $desc = "bar";
-    my $data = dsresp_ok(shift->(dsreq( PUT => "/person_types/$item->{id}?prefetch=self", [], {
-        description => $desc,
-    })), 200);
-    is ref $data, 'HASH', 'has response body';
-    is $data->{description}, $desc, 'prefetch response has updated description';
-
-    $item = get_data($app, "/person_types/$item->{id}");
-    eq_or_diff $data, $item, 'returned prefetch matches item at location';
-};
+    my $app = WebAPI::DBIC::WebApp->new({
+        schema => $self->schema,
+    })->to_psgi_app;
 
 
-note "===== Delete - DELETE =====";
+    my $item;
 
-for my $id (@new_ids) {
+    my %artists;
+    my @new_ids;
+    my $name = 'The Object-Relational Rapper';
+
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( DELETE => "/person_types/$id", [], {})), 204);
+        my $data = dsresp_ok(shift->(dsreq( GET => "/artist" )));
+        my $set = is_set_with_embedded_key($data, "artist", 2);
+        %artists = map { $_->{artistid} => $_ } @$set;
+        is ref $artists{$_}, "HASH", "/artist includes $_"
+            for (1..3);
+        ok $artists{1}{name}, "/artist data looks sane";
+    };
+
+    note "plain post";
+    test_psgi $app, sub {
+        my ($new_name, $rank) = qw(Funkicide 45);
+        my $res = shift->(dsreq( POST => "/artist", [], {
+            name => $new_name, rank => $rank,
+        }));
+        my ($location, $data) = dsresp_created_ok($res);
+        is $data, undef, 'no data returned without prefetch';
+
+        $item = get_data($app, $location);
+        ok $item->{artistid}, 'new item has id'
+            or diag $item;
+        ok !$artists{$item->{artistid}}, 'new item has new id';
+        is $item->{name}, $new_name;
+        is $item->{rank}, $rank;
+
+        push @new_ids, $item->{artistid};
+    };
+
+    note "post with prefetch=self";
+    test_psgi $app, sub {
+        my $rank = 12;
+        my $res = shift->(dsreq( POST => "/artist?prefetch=self", [], {
+            name => $name, rank => $rank,
+        }));
+        my ($location, $data) = dsresp_created_ok($res);
+
+        $item = get_data($app, $location);
+        ok $item->{artistid}, 'new item has id';
+        ok !$artists{$item->{artistid}}, 'new item has new id';
+        is $item->{name}, $name;
+        is $item->{rank}, $rank;
+
+        eq_or_diff $data, $item, 'returned prefetch matches item at location';
+        push @new_ids, $item->{artistid};
+    };
+
+
+    note "===== Update - PUT ====="; # uses previous $item
+
+    note "put without prefetch=self";
+    test_psgi $app, sub {
+        my $rank = 14;
+        my $data = dsresp_ok(shift->(dsreq( PUT => "/artist/$item->{artistid}", [], {
+            rank => $rank,
+        })), 204);
         is $data, undef, 'no response body';
+        $item = get_data($app, "/artist/$item->{artistid}");
+        is $item->{rank}, $rank;
     };
-    test_psgi $app, sub {
-        dsresp_ok(shift->(dsreq( GET => "/person_types/$id", [], {})), 404);
-    };
-}
 
+    note "put with prefetch=self";
+    test_psgi $app, sub {
+        my $rank = 72;
+        my $data = dsresp_ok(shift->(dsreq( PUT => "/artist/$item->{artistid}?prefetch=self", [], {
+            rank => $rank,
+        })), 200);
+        is ref $data, 'HASH', 'has response body';
+        is $data->{rank}, $rank, 'prefetch response has updated rank';
+
+        $item = get_data($app, "/artist/$item->{artistid}");
+        eq_or_diff $data, $item, 'returned prefetch matches item at location';
+    };
+
+
+    note "===== Delete - DELETE =====";
+
+    for my $id (@new_ids) {
+        test_psgi $app, sub {
+            my $data = dsresp_ok(shift->(dsreq( DELETE => "/artist/$id", [], {})), 204);
+            is $data, undef, 'no response body';
+        };
+        test_psgi $app, sub {
+            dsresp_ok(shift->(dsreq( GET => "/person_types/$id", [], {})), 404);
+        };
+    }
+};
+
+run_me();
 done_testing();

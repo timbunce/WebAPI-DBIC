@@ -18,13 +18,10 @@ use WebAPI::HTTP::Throwable::Factory;
 
 # pre-load some modules to improve shared memory footprint
 require DBIx::Class::SQLMaker;
-require DBIx::Class::Storage::DBI::Pg;
 
 use Moo;
 use namespace::clean;
 
-$ENV{PLACK_ENV} ||= 'production';
-my $in_production = ($ENV{PLACK_ENV} eq 'production');
 
 has schema => (is => 'ro', required => 1);
 has opt_writable => (is => 'ro', default => 1);
@@ -36,16 +33,23 @@ sub _build_auto_routes {
     my ($self) = @_;
 
     my @routes;
-    my %source_names = map { $_ => 1 } $self->schema->sources;
     for my $source_names ($self->schema->sources) {
+
         my $result_source = $self->schema->source($source_names);
-        next unless $result_source->name =~ /^[\w\.]+$/x;
-        #my %relationships;
-        for my $rel_name ($result_source->relationships) {
-            my $rel = $result_source->relationship_info($rel_name);
-        }
+        my $result_name = $result_source->name;
+        $result_name = $$result_name if (ref($result_name) eq 'SCALAR');
+
+        next unless $result_name =~ /^[\w\.]+$/x;
+
+        my %opts;
+        # this is a hack just to enable testing, eg t/60-invoke.t
+        push @{$opts{invokeable_on_item}}, 'get_column'
+            if $self->schema->resultset($result_source->source_name)
+                ->result_class =~ /^TestSchema::Result/;
+
+        # these become args to mk_generic_dbic_item_set_routes
         push @routes, [
-            $result_source->name => $result_source->source_name
+            $result_name => $result_source->source_name, %opts
         ];
     }
 
@@ -100,14 +104,17 @@ sub mk_generic_dbic_item_set_routes {
 
     my $rs = $self->schema->resultset($resultset);
 
-    warn sprintf "/%s => %s (%s)\n", $path, $resultset, $rs->result_class;
-
     # XXX might want to distinguish writable from non-writable (read-only) methods
     my $invokeable_on_set  = delete $opts{invokeable_on_set}  || [];
     my $invokeable_on_item = delete $opts{invokeable_on_item} || [];
     # disable all methods if not writable, for safety: (perhaps allow get_* methods)
     $invokeable_on_set  = undef unless $self->opt_writable;
     $invokeable_on_item = undef unless $self->opt_writable;
+
+    if ($ENV{WEBAPI_DBIC_DEBUG}) {
+        warn sprintf "Auto routes for /%s => resultset %s, result_class %s\n",
+            $path, $resultset, $rs->result_class;
+    }
 
     # regex to validate the id
     # XXX could check the data types of the PK fields, or simply remove this
@@ -182,6 +189,17 @@ sub to_psgi_app {
 
     my @routes = $self->all_routes;
 
+    if ($ENV{WEBAPI_DBIC_DEBUG}) {
+        my %routes = @routes;
+        warn sprintf "Routes for $self:\n";
+        for my $path (sort keys %routes) {
+            my $spec = $routes{$path};
+            warn sprintf "/%s => %s as %s\n", $path,
+                $spec->{route_defaults}{result_class},
+                $spec->{resource};
+        }
+    }
+
     my $router = Path::Router->new;
     while (my $r = shift @routes) {
         my $spec = shift @routes or confess "panic";
@@ -206,11 +224,11 @@ sub to_psgi_app {
                 $getargs->($request, \%resource_args, @_) if $getargs;
 
                 warn "Running machine for $resource_class (with @{[ keys %resource_args ]})\n"
-                    if $ENV{PLACK_ENV} eq 'development';
+                    if $ENV{WEBAPI_DBIC_DEBUG};
                 my $app = WebAPI::DBIC::Machine->new(
                     resource => $resource_class,
                     debris   => \%resource_args,
-                    tracing => !$in_production,
+                    tracing => $ENV{WEBAPI_DBIC_DEBUG},
                 )->to_app;
                 my $resp = eval { $app->($request->env) };
                 #Dwarn $resp;

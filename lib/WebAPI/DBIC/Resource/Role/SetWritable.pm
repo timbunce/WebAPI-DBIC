@@ -62,9 +62,15 @@ sub create_path {
 
 sub create_resource {
     my ($self, $data) = @_;
+
     my $item = $self->set->create($data);
+
+    # resync with what's (now) in the db to pick up defaulted fields etc
+    $item->discard_changes();
+
     # called here because create_path() is too late for Web::Machine
     $self->render_item_into_body($item) if $self->prefetch->{self};
+
     return $item;
 }
 
@@ -79,6 +85,9 @@ sub create_resources_from_hal {
     $schema->txn_do(sub {
 
         $item = $self->_create_embedded_resources($hal, $self->set->result_class);
+
+        # resync with what's (now) in the db to pick up defaulted fields etc
+        $item->discard_changes();
 
         # called here because create_path() is too late for Web::Machine
         # and we need it to happen inside the transaction for rollback=1 to work
