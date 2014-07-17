@@ -53,7 +53,7 @@ Things to do, or at least consider, before we stop being alpha:
 
     Review code for DBIx::Class sanity and best practice
 
-    Review code for XXX / TODO markers
+    Review code and docs for XXX / TODO /TBD markers
 
     Better test coverage, especially for roles
 
