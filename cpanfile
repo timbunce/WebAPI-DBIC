@@ -5,6 +5,7 @@ requires 'List::Util';
 requires 'Module::Runtime';
 requires 'Moo';
 requires 'namespace::clean';
+requires 'parent';
 requires 'Path::Router';
 requires 'Plack';
 requires 'Plack::App::File';

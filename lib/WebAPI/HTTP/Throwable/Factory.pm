@@ -1,10 +1,12 @@
 package WebAPI::HTTP::Throwable::Factory;
 
+use strict;
+use warnings;
+
+use parent 'HTTP::Throwable::Factory';
+
 use Carp qw(carp cluck);
 use JSON::MaybeXS qw(JSON);
-
-use Moo;
-extends 'HTTP::Throwable::Factory';
 
 
 sub extra_roles {
