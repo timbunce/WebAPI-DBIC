@@ -13,18 +13,13 @@ Things to do, or at least consider, before we stop being alpha:
     Document 'basic auth on internet needs https', see also:
     Also http://stackoverflow.com/questions/17530992/authentication-and-or-https-with-plack-psgi-poet-application/24808547#24808547
 
-    Review Moo/Moose usage for best practice
+    Review code for DBIx::Class sanity and best practice
+
+    Support CODE ref relationship conditions
 
     META - including RT or github issues?
 
-    Better error reporting (in HAL format)
-    Reconsider and/or polish HTTP::Throwable::Role::JSONBody
-    Handle and report parameter validation and db constraint errors in a way that
-    allows sufficient information to be returned to the caller e.g., to mark which
-    fields of a web form hold invalid values.
-
     consider how to handle non-integer primary keys, probably trivial.
-    consider how to handle multi-field primary keys, harder.
     also relates to improving the separation between resources and records
 
     Refactor param handling to abstract ~json both for requests *and* constructing
@@ -33,8 +28,6 @@ Things to do, or at least consider, before we stop being alpha:
     Consider abstracting the interface to Path::Router so other routers can be used.
 
     Any security issues with allowing arbitrary json in parameters?
-
-    Review code for DBIx::Class sanity and best practice
 
     Allow (and prefer?) prefetch=me over prefetch=self?
 
@@ -59,10 +52,20 @@ Other items:
 
     Refactor transaction handling.
 
+    Better error reporting (in HAL format)
+    Reconsider and/or polish HTTP::Throwable::Role::JSONBody
+    Handle and report parameter validation and db constraint errors in a way that
+    allows sufficient information to be returned to the caller e.g., to mark which
+    fields of a web form hold invalid values.
+
+    Review Moo usage for best practice
+
     Profiling, especially re the cost of constructing relationship links
     for each item. Much work could be cached to make it much cheaper.
 
     improve partial response support for prefetch
+
+    Consider how to handle multi-field primary keys and foreign keys
 
     Reconsider using or removing unused code from ::Util
     (I think only create_header is used at the moment)
