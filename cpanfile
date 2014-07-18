@@ -4,7 +4,6 @@ requires 'JSON::MaybeXS';
 requires 'List::Util';
 requires 'Module::Runtime';
 requires 'Moo';
-requires 'Moose';
 requires 'namespace::clean';
 requires 'Path::Router';
 requires 'Plack';

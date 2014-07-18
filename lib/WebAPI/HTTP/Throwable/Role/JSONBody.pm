@@ -1,6 +1,6 @@
 package WebAPI::HTTP::Throwable::Role::JSONBody;
 
-use Moose::Role;
+use Moo::Role;
 
 sub body { return shift->message }
 
@@ -15,7 +15,6 @@ sub body_headers {
 
 sub as_string { return shift->body }
 
-no Moose::Role;
 1;
 
 __END__
