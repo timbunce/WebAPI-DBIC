@@ -44,12 +44,25 @@ sub render_item_as_plain_hash {
 }
 
 
+sub id_for_key_values {
+    my $self = shift;
+    return undef if grep { not defined } @_; # return undef if any key field is undef
+    return join "-", @_; # XXX need to think more about multicolumn pks and fks
+}
+
+
+sub id_for_item {
+    my ($self, $item) = @_;
+    return $self->id_for_key_values(map { $item->get_column($_) } $item->result_source->primary_columns);
+}
+
+
 sub path_for_item {
     my ($self, $item) = @_;
 
     my $result_source = $item->result_source;
 
-    my $id = join "-", map { $item->get_column($_) } $result_source->primary_columns;
+    my $id = $self->id_for_item($item);
 
     my $url = $self->uri_for(id => $id, result_class => $result_source->result_class)
         or confess sprintf("panic: no route found to result_class %s id %s (%s)",
@@ -100,6 +113,89 @@ sub render_item_into_body {
 }
 
 
+sub _get_relationship_link_info {
+    my ($result_class, $relname) = @_;
+    my $rel = $result_class->relationship_info($relname);
+
+    my $cond = $rel->{cond};
+
+    # https://metacpan.org/pod/DBIx::Class::Relationship::Base#add_relationship
+    if (ref $cond ne 'HASH') { # eg need to add support for CODE refs
+        # we'll may end up silencing this warning till we can offer better support
+        unless (our $warn_once->{"$result_class $relname"}++) {
+            warn "$result_class relationship $relname cond value $cond not handled yet\n";
+            Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
+        }
+        return undef;
+    }
+
+    if (keys %$cond > 1) {
+        # if we loosen this constraint we might need to recheck it for some cases below
+        unless (our $warn_once->{"$result_class $relname"}++) {
+            warn "$result_class relationship $relname ignored since it has multiple conditions\n";
+            Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
+        }
+        return undef;
+    }
+
+    # TODO support and test more kinds of relationships
+    # TODO refactor
+
+    if ($rel->{attrs}{accessor} eq 'multi') {
+
+        # XXX are there any cases we're not dealing with here?
+
+        Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
+
+        my $foreign_key = (keys %$cond)[0];
+        $foreign_key =~ s/^foreign\.//
+            or warn "Odd, no 'foreign.' prefix on $foreign_key ($result_class, $relname)";
+
+        return {
+            result_class => $rel->{source},
+            id_fields => undef,
+            id_filter => $foreign_key,
+        };
+
+    }
+
+    # accessor is the inflation type (single/filter/multi)
+    if ($rel->{attrs}{accessor} !~ /^(?: single | filter )$/x) {
+        unless (our $warn_once->{"$result_class $relname"}++) {
+            warn "$result_class relationship $relname ignored since we only support 'single' accessors (not $rel->{attrs}{accessor}) at the moment\n";
+            Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
+        }
+        return undef;
+    }
+
+    # this is really a performance issue, so we could just warn
+    # but for now we won't even warn and we'll see how it goes
+    if ( 0 and not $rel->{attrs}{is_foreign_key_constraint}) {
+        unless (our $warn_once->{"$result_class $relname"}++) {
+            warn "$result_class relationship $relname ignored since we only support foreign key constraints at the moment\n";
+            Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
+        }
+        return undef;
+    }
+
+    my $fieldname = (values %$cond)[0]; # first and only value
+    $fieldname =~ s/^self\.// if $fieldname;
+
+    if (not $fieldname) {
+        unless (our $warn_once->{"$result_class $relname"}++) {
+            warn "$result_class relationship $relname ignored since we can't determine a fieldname (@{[ %$cond ]})\n";
+            Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
+        }
+        return undef;
+    }
+
+    return {
+        result_class => $rel->{source},
+        id_fields => [ $fieldname ],
+    };
+}
+
+
 sub render_item_as_hal_hash {
     my ($self, $item) = @_;
 
@@ -126,78 +222,43 @@ sub render_item_as_hal_hash {
     my $curie = (0) ? "r" : ""; # XXX we don't use CURIE syntax yet
 
     # add links for relationships
-    # XXX much of this relation selection logic could be pre-calculated and cached
     my $result_class = $item->result_class;
     for my $relname ($result_class->relationships) {
-        my $rel = $result_class->relationship_info($relname);
 
-        # TODO support more kinds of relationships
-        # TODO refactor
-        # TODO For 'multi' I think we 'just' need to link to the set (ie call uri_for()
-        # without an id param) and add a "?me.foo=..." to the url
+        # XXX much of this relation selection logic could be pre-calculated and cached
+        #Dwarn
+        my $rel_link_info = _get_relationship_link_info($result_class, $relname)
+            or next;
 
-        # accessor is the inflation type (single/filter/multi)
-        if ($rel->{attrs}{accessor} !~ /^(?: single | filter )$/x) {
-            unless (our $warn_once->{"$result_class $relname"}++) {
-                warn "$result_class relationship $relname ignored since we only support 'single' accessors (not $rel->{attrs}{accessor}) at the moment\n";
-                Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
-            }
-            next;
+        my @uri_for_args;
+        if ($rel_link_info->{id_fields}) { # link to an item (1-1)
+            my $id = $self->id_for_key_values(@{$data}{ @{ $rel_link_info->{id_fields} } });
+            next if not defined $id; # no link because value is null
+            push @uri_for_args, id => $id;
         }
 
-        # this is really a performance issue, so we could just warn
-        if (not $rel->{attrs}{is_foreign_key_constraint}) {
-            unless (our $warn_once->{"$result_class $relname"}++) {
-                warn "$result_class relationship $relname ignored since we only support foreign key constraints at the moment\n";
-                Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
-            }
-            next;
-        }
+        my $dst_class = $rel_link_info->{result_class} or die "panic";
+        push @uri_for_args, result_class => $dst_class;
 
-        my $cond = $rel->{cond};
-        # https://metacpan.org/pod/DBIx::Class::Relationship::Base#add_relationship
-        if (ref $cond ne 'HASH') { # eg need to add support for CODE refs
-            # we'll may end up silencing this warning till we can offer better support
-            unless (our $warn_once->{"$result_class $relname"}++) {
-                warn "$result_class relationship $relname cond value $cond not handled yet\n";
-                Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
-            }
-            next;
-        }
+        my $linkurl = $self->uri_for( @uri_for_args );
 
-        if (keys %$cond > 1) {
-            unless (our $warn_once->{"$result_class $relname"}++) {
-                warn "$result_class relationship $relname ignored since it has multiple conditions\n";
-                Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
-            }
-            next;
-        }
-
-        my $fieldname = (values %$cond)[0]; # first and only value
-        $fieldname =~ s/^self\.// if $fieldname;
-
-        if (not $fieldname) {
-            unless (our $warn_once->{"$result_class $relname"}++) {
-                warn "$result_class relationship $relname ignored since we can't determine a fieldname (foreign.id)\n";
-                Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
-            }
-            next;
-        }
-
-
-        my $result_class = $rel->{source};
-        my $id = $data->{$fieldname}; # XXX id vs pk?
-        next if not defined $id; # no link because value is null
-
-        my $linkurl = $self->uri_for( result_class => $result_class, id => $id );
         if (not $linkurl) {
-            warn "Result source $rel->{source} has no resource uri in this app so relations (like $result_class $relname) won't have _links for it.\n"
-                unless our $warn_once->{"$result_class $relname $rel->{source}"}++;
+            warn "Result source $dst_class has no resource uri in this app so relations (like $result_class $relname) won't have _links for it.\n"
+                unless our $warn_once->{"$result_class $relname $dst_class"}++;
             next;
         }
-        $data->{_links}{ ($curie?"$curie:":"") . $relname} = {
-            href => $self->add_params_to_url($linkurl, {}, {})->as_string
-        };
+
+        my %params;
+        $params{ "me.".$rel_link_info->{id_filter} } = $self->id_for_item($item)
+            if $rel_link_info->{id_filter};
+
+        my $href = $self->add_params_to_url(
+            $linkurl,
+            {},
+            \%params,
+        );
+
+        $data->{_links}{ ($curie?"$curie:":"") . $relname} = { href => $href->as_string };
     }
     if ($curie) {
        $data->{_links}{curies} = [{
@@ -216,14 +277,14 @@ sub router {
 }
 
 
-sub add_params_to_url {
+sub add_params_to_url { # XXX this is all a bit suspect
     my ($self, $base, $passthru_params, $override_params) = @_;
     $base || croak "no base";
 
     my $req_params = $self->request->query_parameters;
     my @params = (%$override_params);
 
-    # turns 'foo~json' into 'foo', and 'me.bar' into 'me'.
+    # XXX turns 'foo~json' into 'foo', and 'me.bar' into 'me'.
     my %override_param_basenames = map { (split(/\W/,$_,2))[0] => 1 } keys %$override_params;
 
     # TODO this logic should live elsewhere
@@ -237,8 +298,10 @@ sub add_params_to_url {
 
         push @params, $param => $req_params->get($param);
     }
+
     my $uri = URI->new($base);
     $uri->query_form(@params);
+
     return $uri;
 }
 

@@ -76,6 +76,8 @@ Other items:
     Perhaps allow DBIC resultset classes to define what default set of fields to use.
     Note effect on caching.
 
+    Support multiple $schema's? With cross-schema linking?
+
     Consider async?
 
     Look for further ideas in
