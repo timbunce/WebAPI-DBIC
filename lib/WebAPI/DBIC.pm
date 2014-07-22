@@ -59,7 +59,7 @@ See L<http://stateless.co/hal_specification.html> for more details.
 =head2 Web::Machine
 
 The L<Web::Machine> module provides a RESTful web framework modeled as a formal
-state machine. This is a rigorous and powerful approach, originally developed in Haskel and since ported to 
+state machine. This is a rigorous and powerful approach, originally developed in Haskel and since ported to Perl. 
 See L<https://raw.githubusercontent.com/basho/webmachine/develop/docs/http-headers-status-v3.png>
 for an image of the state machine.
 
