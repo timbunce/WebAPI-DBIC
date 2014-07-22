@@ -1,5 +1,17 @@
 =head1 TODO
 
+Things I (tim) plan to do in the first week of August if no one has got there first:
+
+    Wrap RA-ChinookDemo example into a nice shell script
+    Refactor key <-> id logic into a new ::Identity role
+        - add support and tests for multiple keys
+        - at least look into adding support for date/time keys (ie log table with id + dt keys)
+        - at least look into adding support for alternate keys (re record vs resource)
+    Refactor router interface, towards abstracting it to support others
+    Refactor exception/error handling a little (see notes below)
+    Add caching to relationship link creation
+    Look into at least basic support for documentation links in HAL
+
 Things to do, or at least consider, before we stop being alpha:
 
     Refactor ::WebApp
@@ -28,6 +40,8 @@ Things to do, or at least consider, before we stop being alpha:
     Consider abstracting the interface to Path::Router so other routers can be used.
 
     Any security issues with allowing arbitrary json in parameters?
+    Should we allow use of relationships in conditions that aren't exposed as routes?
+    (perhaps make that optional per class and default off, maybe allow via regex on relname)
 
     Allow (and prefer?) prefetch=me over prefetch=self?
 
@@ -59,6 +73,7 @@ Other items:
     fields of a web form hold invalid values.
 
     Review Moo usage for best practice
+    especially Roles and before/after/around
 
     Profiling, especially re the cost of constructing relationship links
     for each item. Much work could be cached to make it much cheaper.
@@ -86,7 +101,7 @@ Other items:
     Look for further ideas in
     https://metacpan.org/module/Catalyst::Controller::DBIC::API
 
-=head2 Caching
+=head2 HTTP Caching
 
 Explore of HAL item caching using ESI or SSI
 

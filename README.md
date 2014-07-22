@@ -66,6 +66,8 @@ Then try it out with your own schema:
     $ plackup -Ilib webapi-dbic-any.psgi
     ... open a web browser on port 5000 to browse your new API
 
+The API is read-only by default. To enable PUT, POST, DELETE etc, set the
+C<WEBAPI_DBIC_WRITABLE> environment variable.
 
 # STATUS
 
@@ -78,6 +80,6 @@ developers contributing and the code is being applied to more domains.
 
 Interested? Please get involved!
 
-See HOW TO GET HELP in the WebAPI::DBIC documentation.
+See HOW TO GET HELP in the [WebAPI::DBIC documentation](blob/master/lib/WebAPI/DBIC.pm).
 
 
