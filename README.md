@@ -14,12 +14,15 @@ WebAPI::DBIC features include:
 
 * Use of the JSON+HAL (Hypertext Application Language) lean hypermedia type
 
-* Automatic detection and exposure of result set relationships as HAL C<_links>
+* Automatic detection and exposure of result set relationships as HAL `_links`
 
 * Supports safe robust multi-related-record CRUD transactions
 
-* Built on the strong foundations of [Web::Machine](https://metacpan.org/pod/Web::Machine),
-[Path::Router](https://metacpan.org/pod/Path::Router) and [Plack](https://metacpan.org/pod/Plack)
+* Built on the strong foundations of
+[Web::Machine](https://metacpan.org/pod/Web::Machine),
+[Plack](https://metacpan.org/pod/Plack) and
+[Path::Router](https://metacpan.org/pod/Path::Router).
+(Support for interfacing with other routers is planned.)
 
 * Built as fine-grained roles for maximum reusability and extensibility
 
@@ -67,7 +70,7 @@ Then try it out with your own schema:
     ... open a web browser on port 5000 to browse your new API
 
 The API is read-only by default. To enable PUT, POST, DELETE etc, set the
-C<WEBAPI_DBIC_WRITABLE> environment variable.
+`WEBAPI_DBIC_WRITABLE` environment variable.
 
 # STATUS
 
