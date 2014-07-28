@@ -1,0 +1,9 @@
+Changes file for WebAPI::DBIC
+
+{{$NEXT}}
+
+  - Minor documentation and toolchain  fixes.
+
+0.001003  July 28 2014
+
+  - the first release
