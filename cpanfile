@@ -1,5 +1,7 @@
 requires 'Carp';
+requires 'DBIx::Class';
 requires 'HTTP::Throwable';
+requires 'HTTP::Headers::ActionPack';
 requires 'JSON::MaybeXS';
 requires 'List::Util';
 requires 'Module::Runtime';
@@ -16,6 +18,7 @@ requires 'Sub::Quote';
 requires 'Try::Tiny';
 requires 'URI';
 requires 'Web::Machine';
+requires 'Data::Dumper::Concise'; # for Dwarn
 
 on test => sub {
    requires 'DBIx::Class';
@@ -26,4 +29,5 @@ on test => sub {
    requires 'Test::More' => '0.98';
    requires 'Test::Most';
    requires 'Test::Roo';
+   requires 'Test::Pod';
 };
