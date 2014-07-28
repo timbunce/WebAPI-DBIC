@@ -1,5 +1,10 @@
 package WebAPI::DBIC;
 
+use strict; # keep our kwalitee up!
+use warnings;
+1;
+__END__
+
 =head1 NAME
 
 WebAPI::DBIC - A composable RESTful JSON+HAL API to DBIx::Class schemas using roles, Web::Machine and Path::Router
@@ -60,7 +65,9 @@ See L<http://stateless.co/hal_specification.html> for more details.
 =head2 Web::Machine
 
 The L<Web::Machine> module provides a RESTful web framework modeled as a formal
-state machine. This is a rigorous and powerful approach, originally developed in Haskel and since ported to 
+state machine. This is a rigorous and powerful approach, originally developed
+in Haskel and since ported to many other languages.
+
 See L<https://raw.githubusercontent.com/basho/webmachine/develop/docs/http-headers-status-v3.png>
 for an image of the state machine.
 
@@ -331,7 +338,7 @@ The "relation" links describe the relationships this resource has with other res
 TBD Currently only 1-1 relationships (e.g., belongs_to) are included. Also see L</prefetch>.
 
 
-=head2 GET Item Optional Parameters
+=head2 GET Item - Optional Parameters
 
 =head3 prefetch
 
