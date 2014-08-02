@@ -117,11 +117,6 @@ sub mk_generic_dbic_item_set_routes {
             $path, $resultset, $rs->result_class;
     }
 
-    # regex to validate the id
-    # XXX could check the data types of the PK fields, or simply remove this
-    # validation and let the resource handle whatever value comes
-    my $qr_id = qr/^-?\d+$/, # int, but allow for -1 etc
-
     my $qr_names = sub {
         my $names_r = join "|", map { quotemeta $_ } @_ or confess "panic";
         return qr/^(?:$names_r)$/x;
@@ -159,7 +154,7 @@ sub mk_generic_dbic_item_set_routes {
     } if @$invokeable_on_set;
 
     push @routes, "$path/:id" => { # item
-        validations => { id => $qr_id },
+        #validations => { },
         resource => 'WebAPI::DBIC::Resource::GenericItemDBIC',
         route_defaults => $route_defaults,
         getargs => $mk_getargs->('id'),
@@ -167,7 +162,6 @@ sub mk_generic_dbic_item_set_routes {
 
     push @routes, "$path/:id/invoke/:method" => { # method call on item
         validations => {
-            id => $qr_id,
             method => $qr_names->(@$invokeable_on_item),
         },
         resource => 'WebAPI::DBIC::Resource::GenericItemInvoke',
