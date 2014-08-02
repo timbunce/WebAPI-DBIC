@@ -7,6 +7,10 @@ use JSON::MaybeXS qw(JSON);
 use Moo::Role;
 
 
+requires 'id_for_key_values';
+requires 'id_for_item';
+
+
 has set => (
    is => 'rw',
    required => 1,
@@ -31,8 +35,7 @@ has throwable => (
 );
 
 
-# XXX probably shouldn't be a role, just functions, or perhaps a separate rendering object
-
+# XXX perhaps shouldn't be a role, just functions, or perhaps a separate rendering object
 # default render for DBIx::Class item
 # https://metacpan.org/module/DBIx::Class::Manual::ResultClass
 # https://metacpan.org/module/DBIx::Class::InflateColumn
@@ -41,19 +44,6 @@ sub render_item_as_plain_hash {
     my $data = { $item->get_columns }; # XXX ?
     # DateTimes
     return $data;
-}
-
-
-sub id_for_key_values {
-    my $self = shift;
-    return undef if grep { not defined } @_; # return undef if any key field is undef
-    return join "-", @_; # XXX need to think more about multicolumn pks and fks
-}
-
-
-sub id_for_item {
-    my ($self, $item) = @_;
-    return $self->id_for_key_values(map { $item->get_column($_) } $item->result_source->primary_columns);
 }
 
 
@@ -98,14 +88,15 @@ sub render_item_into_body {
     # XXX ought to be a cloned request, with tweaked url/params?
     my $item_request = $self->request;
 
-    # XXX shouldn't hard-code GenericItemDBIC here
+    # XXX shouldn't hard-code GenericItemDBIC here (should use router?)
     my $item_resource = WebAPI::DBIC::Resource::GenericItemDBIC->new(
         request => $item_request, response => $item_request->new_response,
         set => $self->set,
-        item => $item, id => undef, # XXX dummy id
+        item => $item,
+        id => undef, # XXX dummy id
         prefetch => $self->prefetch,
         throwable => $self->throwable,
-        #  XXX others?
+        #  XXX others? which and why? generalize
     );
     $self->response->body( $item_resource->to_json_as_hal );
 
