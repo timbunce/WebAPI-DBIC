@@ -7,7 +7,7 @@ use JSON::MaybeXS qw(JSON);
 use Moo::Role;
 
 
-requires 'id_for_key_values';
+requires 'id_from_key_values';
 requires 'id_for_item';
 requires 'uri_for';
 
@@ -207,8 +207,8 @@ sub render_item_as_hal_hash {
 
         my @uri_for_args;
         if ($rel_link_info->{id_fields}) { # link to an item (1-1)
-            my $id = $self->id_for_key_values(@{$data}{ @{ $rel_link_info->{id_fields} } });
-            next if not defined $id; # no link because value is null
+            my $id = $self->id_from_key_values(@{$data}{ @{ $rel_link_info->{id_fields} } });
+            next if not defined $id; # no link eg because value is null
             push @uri_for_args, id => $id;
         }
 

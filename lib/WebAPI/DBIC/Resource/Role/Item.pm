@@ -5,11 +5,13 @@ use Moo::Role;
 
 requires 'render_item_as_plain_hash';
 requires 'render_item_as_hal_hash';
+requires 'id_unique_constraint_name';
+requires 'key_values_from_id';
 requires 'encode_json';
 requires 'set';
 
 
-has id => (
+has id => (         # :id from url path
    is => 'ro',
    required => 1,
 );
@@ -22,7 +24,10 @@ has item => (
 
 sub _build_item {
     my $self = shift;
-    return $self->set->find($self->id);
+    return $self->set->find(
+        $self->key_values_from_id($self->id),
+        { key => $self->id_unique_constraint_name }
+    )
 }
 
 
