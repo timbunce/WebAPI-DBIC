@@ -2,7 +2,6 @@
 
 Things I (tim) plan to do in the first week of August if no one has got there first:
 
-    Wrap RA-ChinookDemo example into a nice shell script
     Refactor key <-> id logic into a new ::Identity role
         - add support and tests for multiple keys
         - at least look into adding support for date/time keys (ie log table with id + dt keys)
@@ -127,15 +126,7 @@ To update:
 
 =head2 Other Test Schemas
 
-Here's a procedure to test WebAPI::DBIC with the schema/data from
-RA::ChinookDemo (http://www.rapidapp.info/demos/chinook)
-Based on https://gist.github.com/vanstyn/c2e42944f8453a910ccf
-
-    git clone https://github.com/IntelliTree/RA-ChinookDemo.git
-    export PERLLIB=RA-ChinookDemo/lib
-    export WEBAPI_DBIC_SCHEMA=RA::ChinookDemo::DB
-    export WEBAPI_DBIC_HTTP_AUTH_TYPE=none
-    export DBI_DSN='dbi:SQLite:RA-ChinookDemo/chinook.db'
-    plackup -Ilib webapi-dbic-any.psgi
+See the run-chinook-demo.sh script for a quick way to run the code with the
+Chinook sample database from http://chinookdatabase.codeplex.com
 
 =cut
