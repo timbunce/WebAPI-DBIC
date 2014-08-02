@@ -6,6 +6,7 @@ use namespace::clean;
 extends 'WebAPI::DBIC::Resource::Base';
 with    'WebAPI::DBIC::Role::JsonEncoder',
         'WebAPI::DBIC::Role::JsonParams',
+        'WebAPI::DBIC::Resource::Role::Router',
         'WebAPI::DBIC::Resource::Role::Identity',
         'WebAPI::DBIC::Resource::Role::DBIC',
         'WebAPI::DBIC::Resource::Role::DBICException',

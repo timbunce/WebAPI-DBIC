@@ -2,16 +2,18 @@
 
 Things I (tim) plan to do in the first week of August if no one has got there first:
 
-    Refactor key <-> id logic into a new ::Identity role
-        - add support and tests for multiple keys
+    Extend new ::Identity role
+        - add support and tests for multiple simple keys
         - at least look into adding support for date/time keys (ie log table with id + dt keys)
-        - at least look into adding support for alternate keys (re record vs resource)
-    Refactor router interface, towards abstracting it to support others
-    Refactor exception/error handling a little (see notes below)
+        - at least look into adding support for alternate keys (re record vs resource) including PUT/POST
+    Document ::Router interface, re abstracting it to support others
     Add caching to relationship link creation
     Look into at least basic support for documentation links in HAL
+    Refactor exception/error handling a little (see notes below)
 
 Things to do, or at least consider, before we stop being alpha:
+
+    Support CODE ref relationship conditions
 
     Refactor ::WebApp
     - move HAL browser out somewhere and mount via .psgi file
@@ -25,8 +27,6 @@ Things to do, or at least consider, before we stop being alpha:
     Also http://stackoverflow.com/questions/17530992/authentication-and-or-https-with-plack-psgi-poet-application/24808547#24808547
 
     Review code for DBIx::Class sanity and best practice
-
-    Support CODE ref relationship conditions
 
     META - including RT or github issues?
 

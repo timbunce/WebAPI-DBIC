@@ -9,6 +9,7 @@ use Moo::Role;
 
 requires 'id_for_key_values';
 requires 'id_for_item';
+requires 'uri_for';
 
 
 has set => (
@@ -62,23 +63,6 @@ sub path_for_item {
         );
 
     return $url;
-}
-
-
-# Uses the router to find the route that matches the given parameter hash
-# returns nothing if there's no match, else
-# returns the absolute url in scalar context, or in list context it returns
-# the prefix (SCRIPT_NAME) and the relative url (from the router)
-sub uri_for { ## no critic (RequireArgUnpacking)
-    my $self = shift; # %pk in @_
-
-    my $url = $self->router->uri_for(@_)
-        or return;
-    my $prefix = $self->request->env->{SCRIPT_NAME};
-
-    return "$prefix/$url" unless wantarray;
-    return ($prefix, $url);
-
 }
 
 
@@ -260,11 +244,6 @@ sub render_item_as_hal_hash {
    }
 
     return $data;
-}
-
-
-sub router {
-    return shift->request->env->{'plack.router'};
 }
 
 
