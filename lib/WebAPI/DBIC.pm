@@ -33,7 +33,8 @@ WebAPI::DBIC features include:
 
 * Supports safe robust multi-related-record CRUD transactions
 
-* Built on the strong foundations of L<Web::Machine>, L<Path::Router> and L<Plack>
+* Built on the strong foundations of L<Web::Machine> and L<Plack>, with
+L<Path::Router> as the router. (We aim to support other routers soon.)
 
 * Built as fine-grained roles for maximum reusability and extensibility
 
@@ -202,7 +203,10 @@ L<WebAPI::DBIC::Resource::GenericItemDBIC>:
     extends 'WebAPI::DBIC::Resource::Base'; # is just Web::Machine::Resource
     with    'WebAPI::DBIC::Role::JsonEncoder',
             'WebAPI::DBIC::Role::JsonParams',
+            'WebAPI::DBIC::Resource::Role::Router',
+            'WebAPI::DBIC::Resource::Role::Identity',
             'WebAPI::DBIC::Resource::Role::DBIC',
+            'WebAPI::DBIC::Resource::Role::DBICException',
             'WebAPI::DBIC::Resource::Role::DBICAuth',
             'WebAPI::DBIC::Resource::Role::DBICParams',
             'WebAPI::DBIC::Resource::Role::Item',
@@ -222,6 +226,20 @@ L<WebAPI::DBIC::Machine.pm> a subclass of L<Web::Machine>.
 L<WebAPI::DBIC::WebApp> - this is the main app class and is most likely to
 change in the near future so isn't documented yet.
 
+
+=head1 LIMITATIONS
+
+Multi-column identities (e.g. primary keys) are not fully supported yet. Simple
+integer cases will work but the url path format is likely to change.
+
+Column inflation, e.g. DateTime, is not worked out yet.
+
+The only supported router is Path::Router at the moment.
+
+See also https://metacpan.org/pod/distribution/WebAPI-DBIC/NOTES.pod
+and https://github.com/timbunce/WebAPI-DBIC/issues
+
+If there's anything you specifically need, just ask!
 
 =head1 HOW TO GET HELP
 
