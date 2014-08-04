@@ -19,18 +19,17 @@ __PACKAGE__->add_columns(
         is_foreign_key  => 1,
         is_numeric      => 1,
     },
-    'datetime' => {
+    'gig_datetime' => {
         data_type       => 'varchar',
         size            => 30,
     },
 );
 
-__PACKAGE__->set_primary_key('artistid'); # Artists can't have more than one gig
-__PACKAGE__->set_primary_ket('datetime'); # Two gigs can't be at the same time.
+__PACKAGE__->set_primary_key(qw/artistid gig_datetime/);
 
 # SQLite doesn't support the DateTime data type. Thus we can't use
 # InflateColumn::DateTime so we have to do it manually here.
-__PACKAGE__->inflate_column('date' => {
+__PACKAGE__->inflate_column('gig_datetime' => {
     'inflate' => sub {
         my ($db_value, $gig) = @_;
 
@@ -46,3 +45,4 @@ __PACKAGE__->inflate_column('date' => {
 # Relationships
 __PACKAGE__->belongs_to(artist => 'TestSchema::Result::Artist', 'artistid');
 
+1;
