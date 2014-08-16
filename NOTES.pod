@@ -1,21 +1,16 @@
 =head1 TODO
 
-Things I (tim) plan to do in the first week of August if no one has got there first:
+This is all fairly random.
 
-    Extend new ::Identity role
-        - add support and tests for multiple simple keys
-        - at least look into adding support for date/time keys (ie log table with id + dt keys)
-        - at least look into adding support for alternate keys (re record vs resource) including PUT/POST
+Things to do, or at least consider, before we stop being alpha:
+
+    Test string keys, including unicode
     Document ::Router interface, re abstracting it to support others
-    Add caching to relationship link creation
     Look into at least basic support for documentation links in HAL
     Refactor exception/error handling a little (see notes below)
 
     Tweak test schema so FK field names don't match the PKs
-    Add tests for links being present and working
-
-
-Things to do, or at least consider, before we stop being alpha:
+    Add tests for links being present, correct, and working
 
     Support CODE ref relationship conditions
 
@@ -32,15 +27,10 @@ Things to do, or at least consider, before we stop being alpha:
 
     Review code for DBIx::Class sanity and best practice
 
-    META - including RT or github issues?
-
-    consider how to handle non-integer primary keys, probably trivial.
-    also relates to improving the separation between resources and records
+    Support non-primary unique constraint as identity
 
     Refactor param handling to abstract ~json both for requests *and* constructing
     link urls (where json data isn't fully handled at the moment, other than pass-thru).
-
-    Consider abstracting the interface to Path::Router so other routers can be used.
 
     Any security issues with allowing arbitrary json in parameters?
     Should we allow use of relationships in conditions that aren't exposed as routes?
@@ -88,7 +78,7 @@ Other items:
     Reconsider using or removing unused code from ::Util
     (I think only create_header is used at the moment)
 
-    use HAL CURIE prefix in link keys
+    use HAL CURIE prefix in link keys?
 
     make it easy to limit fields returned by default so new apps can adopt that
     as best practice - add to the code on demand, so we know the

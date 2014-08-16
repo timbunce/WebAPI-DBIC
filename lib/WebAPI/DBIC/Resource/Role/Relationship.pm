@@ -10,7 +10,14 @@ requires 'id_column_values_for_item';
 requires 'add_params_to_url';
 
 
-# XXX this should be cached
+our %_get_relationship_link_info_cache;
+
+sub _get_relationship_link_info_cached {
+    my $wrapped = $_get_relationship_link_info_cache{join "\t", @_} ||= [ _get_relationship_link_info(@_) ];
+    return $wrapped->[0];
+}
+
+
 sub _get_relationship_link_info {
     my ($result_class, $relname) = @_;
     my $rel = $result_class->relationship_info($relname);
@@ -182,7 +189,7 @@ sub get_url_for_item_relationship {
     my $result_class = $item->result_class;
 
     #Dwarn
-    my $rel_link_info = _get_relationship_link_info($result_class, $relname)
+    my $rel_link_info = _get_relationship_link_info_cached($result_class, $relname)
         or return undef;
 
     if (ref $rel_link_info eq 'CODE') {

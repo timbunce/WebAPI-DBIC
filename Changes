@@ -2,7 +2,10 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
-  - Much improved handling of tables with multi-field keys
+  - Added tests and test schema tables for multi-field keys (mfr++)
+  - Much improved handling of tables with multi-field keys /foo/key1/key2/keyN/
+  - Improved handling of code-ref based joins
+  - cached relationship _link building information
 
 0.001004  2014-07-28 11:42:41+02:00 Europe/Paris
 
