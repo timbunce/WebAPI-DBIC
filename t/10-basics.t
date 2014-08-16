@@ -67,14 +67,14 @@ test '===== Get - multi-field key =====' => sub {
     })->to_psgi_app;
 
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/gig/1=2014-01-01T01:01:01Z")));
+        my $data = dsresp_ok(shift->(dsreq( GET => "/gig/1/2014-01-01T01:01:01Z")));
         is_item($data, 1);
         is $data->{artistid}, 1, 'artistid';
         is $data->{gig_datetime}, '2014-01-01T01:01:01Z', 'gig_datetime';
     };
 
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/gig/2=2014-06-30T19:00:00Z")));
+        my $data = dsresp_ok(shift->(dsreq( GET => "/gig/2/2014-06-30T19:00:00Z")));
         is_item($data, 1);
         is $data->{artistid}, 2, 'artistid';
         is $data->{gig_datetime}, '2014-06-30T19:00:00Z', 'gig_datetime';

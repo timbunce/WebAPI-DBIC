@@ -3,6 +3,7 @@ package WebAPI::DBIC::Resource::Role::DBIC;
 use Carp qw(croak confess);
 use Devel::Dwarn;
 use JSON::MaybeXS qw(JSON);
+use Hash::Util qw(lock_keys);
 
 use Moo::Role;
 
@@ -48,18 +49,33 @@ sub render_item_as_plain_hash {
 }
 
 
+sub id_column_names_for_item {
+    my ($self, $item) = @_;
+    return $item->result_source->unique_constraint_columns( $self->id_unique_constraint_name );
+}
+
+sub id_column_values_for_item {
+    my ($self, $item) = @_;
+    return map { $item->get_column($_) } $self->id_column_names_for_item($item);
+}
+
+sub id_kvs_for_item {
+    my ($self, $item) = @_;
+    my @key_fields = $self->id_column_names_for_item($item);
+    my $idn = 0;
+    return map { ++$idn => $item->get_column($_) } @key_fields;
+}
+
 sub path_for_item {
     my ($self, $item) = @_;
 
     my $result_source = $item->result_source;
 
-    my $id = $self->id_for_item($item);
+    my @id_kvs = $self->id_kvs_for_item($item);
 
-    my $url = $self->uri_for(id => $id, result_class => $result_source->result_class)
-        or confess sprintf("panic: no route found to result_class %s id %s (%s)",
-            $result_source->result_class, $id, join(", ",
-                map { "$_=".$item->get_column($_) } $result_source->primary_columns
-            )
+    my $url = $self->uri_for( @id_kvs, result_class => $result_source->result_class)
+        or confess sprintf("panic: no route found to result_class %s (%s)",
+            $result_source->result_class, join(", ", @id_kvs)
         );
 
     return $url;
@@ -116,9 +132,17 @@ sub _get_relationship_link_info {
     # TODO support and test more kinds of relationships
     # TODO refactor
 
-    if ($rel->{attrs}{accessor} eq 'multi') {
+    my $link_info = { # what we'll return
+        result_class => $rel->{source},
+        id_fields => undef,
+        id_filter => undef,
+    };
+    lock_keys(%$link_info);
+
+    if ($rel->{attrs}{accessor} eq 'multi') { # a 1-to-many relationship
 
         # XXX are there any cases we're not dealing with here?
+        # such as multi-colum FKs
 
         Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
 
@@ -126,12 +150,11 @@ sub _get_relationship_link_info {
         $foreign_key =~ s/^foreign\.//
             or warn "Odd, no 'foreign.' prefix on $foreign_key ($result_class, $relname)";
 
-        return {
-            result_class => $rel->{source},
-            id_fields => undef,
-            id_filter => $foreign_key,
-        };
-
+        # express that we want to filter the many to match the key(s) of the 1
+        # here we list the names of the fields in the foreign table that correspond
+        # to the names of the id columns in the result_class table
+        $link_info->{id_filter} = [ $foreign_key ];
+        return $link_info;
     }
 
     # accessor is the inflation type (single/filter/multi)
@@ -145,7 +168,7 @@ sub _get_relationship_link_info {
 
     # this is really a performance issue, so we could just warn
     # but for now we won't even warn and we'll see how it goes
-    if ( 0 and not $rel->{attrs}{is_foreign_key_constraint}) {
+    if ( 0 and not $rel->{attrs}{is_foreign_key_constraint}) { # XXX disabled
         unless (our $warn_once->{"$result_class $relname"}++) {
             warn "$result_class relationship $relname ignored since we only support foreign key constraints at the moment\n";
             Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
@@ -164,10 +187,8 @@ sub _get_relationship_link_info {
         return undef;
     }
 
-    return {
-        result_class => $rel->{source},
-        id_fields => [ $fieldname ],
-    };
+    $link_info->{id_fields} = [ $fieldname ];
+    return $link_info;
 }
 
 
@@ -207,9 +228,9 @@ sub render_item_as_hal_hash {
 
         my @uri_for_args;
         if ($rel_link_info->{id_fields}) { # link to an item (1-1)
-            my $id = $self->id_from_key_values(@{$data}{ @{ $rel_link_info->{id_fields} } });
-            next if not defined $id; # no link eg because value is null
-            push @uri_for_args, id => $id;
+            my @id_kvs = @{$data}{ @{ $rel_link_info->{id_fields} } };
+            next if grep { not defined } @id_kvs; # no link because a key value is null
+            push @uri_for_args, map { $_ => shift @id_kvs } 1..@id_kvs;
         }
 
         my $dst_class = $rel_link_info->{result_class} or die "panic";
@@ -224,8 +245,13 @@ sub render_item_as_hal_hash {
         }
 
         my %params;
-        $params{ "me.".$rel_link_info->{id_filter} } = $self->id_for_item($item)
-            if $rel_link_info->{id_filter};
+        if (my $id_filter = $rel_link_info->{id_filter}) {
+            my @id_vals = $self->id_column_values_for_item($item);
+            die "panic" if @id_vals != @$id_filter;
+            for my $id_field (@$id_filter) {
+                $params{ "me.".$id_field } = shift @id_vals;
+            }
+        }
 
         my $href = $self->add_params_to_url(
             $linkurl,

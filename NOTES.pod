@@ -11,6 +11,10 @@ Things I (tim) plan to do in the first week of August if no one has got there fi
     Look into at least basic support for documentation links in HAL
     Refactor exception/error handling a little (see notes below)
 
+    Tweak test schema so FK field names don't match the PKs
+    Add tests for links being present and working
+
+
 Things to do, or at least consider, before we stop being alpha:
 
     Support CODE ref relationship conditions

@@ -131,11 +131,19 @@ sub mk_generic_dbic_item_set_routes {
     };
     my $mk_getargs = sub {
         my @params = @_;
+        # XXX we should try to generate more efficient code here
         return sub {
             my $req = shift;
             my $args = shift;
             $args->{set} = $rs; # closes over $rs above
-            $args->{$_} = shift for @params; # in path param name order
+            for (@params) { #in path param name order
+                if (m/^[0-9]+$/) { # an id field
+                    $args->{id}[$_-1] = shift @_;
+                }
+                else {
+                    $args->{$_} = shift @_;
+                }
+            }
         }
     };
     my @routes;
@@ -153,20 +161,27 @@ sub mk_generic_dbic_item_set_routes {
         getargs => $mk_getargs->('method'),
     } if @$invokeable_on_set;
 
-    push @routes, "$path/:id" => { # item
+
+    my $item_resource_class = 'WebAPI::DBIC::Resource::GenericItemDBIC';
+    use_module $item_resource_class;
+    my @key_fields = $rs->result_source->unique_constraint_columns( $item_resource_class->id_unique_constraint_name );
+    my @idn_fields = 1 .. @key_fields;
+    my $item_path_spec = join "/", map { ":$_" } @idn_fields;
+
+    push @routes, "$path/$item_path_spec" => { # item
         #validations => { },
-        resource => 'WebAPI::DBIC::Resource::GenericItemDBIC',
+        resource => $item_resource_class,
         route_defaults => $route_defaults,
-        getargs => $mk_getargs->('id'),
+        getargs => $mk_getargs->(@idn_fields),
     };
 
-    push @routes, "$path/:id/invoke/:method" => { # method call on item
+    push @routes, "$path/$item_path_spec/invoke/:method" => { # method call on item
         validations => {
             method => $qr_names->(@$invokeable_on_item),
         },
         resource => 'WebAPI::DBIC::Resource::GenericItemInvoke',
         route_defaults => $route_defaults,
-        getargs => $mk_getargs->('id', 'method'),
+        getargs => $mk_getargs->(@idn_fields, 'method'),
     } if @$invokeable_on_item;
 
     return @routes;

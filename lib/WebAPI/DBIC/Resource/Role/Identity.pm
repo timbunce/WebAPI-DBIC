@@ -2,16 +2,16 @@ package WebAPI::DBIC::Resource::Role::Identity;
 
 use Moo::Role;
 
-use Carp qw(confess);
+use Carp qw(carp confess);
 
 
+requires 'set';
 requires 'item';
 
 
-has id_unique_constraint_name => (
-   is => 'ro',
-   default => 'primary',
-);
+sub id_unique_constraint_name { # called as static method
+   return 'primary',
+}
 
 
 sub id_from_key_values {
@@ -31,12 +31,7 @@ sub key_values_from_id {
 sub id_for_item {
     my ($self, $item) = @_;
 
-    # Note that we're using the unique_constraint_name from the instance
-    # but we're not using the item of the instance because, eg, the $item
-    # may be a new item. This is a little suspect. We possibly ought to create
-    # a new instance of the resource and use that. Meanwhile we'll be cautious:
-    confess "panic: mixed item result_class"
-        if $self->item and $item->result_source->result_class ne $self->item->result_source->result_class;
+    carp "id_for_item called (change to id_kvs_for_item)";
 
     my $unique_constraint_name = $self->id_unique_constraint_name;
 
