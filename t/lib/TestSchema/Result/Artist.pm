@@ -48,10 +48,7 @@ __PACKAGE__->has_many(
 __PACKAGE__->has_many(
   cds_cref_cond => 'TestSchema::Result::CD',
   sub {
-    # This is for test purposes only. A regular user does not
-    # need to sanity check the passed-in arguments, this is what
-    # the tests are for :)
-    my $args = &check_customcond_args;
+    my $args = shift;
 
     return (
       { "$args->{foreign_alias}.artist" => { '=' => { -ident => "$args->{self_alias}.artistid"} },
@@ -66,10 +63,7 @@ __PACKAGE__->has_many(
 __PACKAGE__->has_many(
   cds_80s => 'TestSchema::Result::CD',
   sub {
-    # This is for test purposes only. A regular user does not
-    # need to sanity check the passed-in arguments, this is what
-    # the tests are for :)
-    my $args = &check_customcond_args;
+    my $args = shift;
 
     return (
       { "$args->{foreign_alias}.artist" => { '=' => \ "$args->{self_alias}.artistid" },
@@ -87,10 +81,7 @@ __PACKAGE__->has_many(
 __PACKAGE__->has_many(
   cds_84 => 'TestSchema::Result::CD',
   sub {
-    # This is for test purposes only. A regular user does not
-    # need to sanity check the passed-in arguments, this is what
-    # the tests are for :)
-    my $args = &check_customcond_args;
+    my $args = shift;
 
     return (
       { "$args->{foreign_alias}.artist" => { -ident => "$args->{self_alias}.artistid" },
@@ -108,10 +99,7 @@ __PACKAGE__->has_many(
 __PACKAGE__->has_many(
   cds_90s => 'TestSchema::Result::CD',
   sub {
-    # This is for test purposes only. A regular user does not
-    # need to sanity check the passed-in arguments, this is what
-    # the tests are for :)
-    my $args = &check_customcond_args;
+    my $args = shift;
 
     return (
       { "$args->{foreign_alias}.artist" => { -ident => "$args->{self_alias}.artistid" },
@@ -133,10 +121,7 @@ __PACKAGE__->has_many(
 __PACKAGE__->has_many(
     cds_without_genre => 'TestSchema::Result::CD',
     sub {
-        # This is for test purposes only. A regular user does not
-        # need to sanity check the passed-in arguments, this is what
-        # the tests are for :)
-        my $args = &check_customcond_args;
+        my $args = shift;
 
         return (
           {

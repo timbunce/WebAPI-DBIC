@@ -3,7 +3,6 @@ package WebAPI::DBIC::Resource::Role::DBIC;
 use Carp qw(croak confess);
 use Devel::Dwarn;
 use JSON::MaybeXS qw(JSON);
-use Hash::Util qw(lock_keys);
 
 use Moo::Role;
 
@@ -11,6 +10,11 @@ use Moo::Role;
 requires 'id_from_key_values';
 requires 'id_for_item';
 requires 'uri_for';
+requires 'throwable';
+requires 'request';
+requires 'response';
+requires 'get_url_for_item_relationship';
+requires 'id_unique_constraint_name';
 
 
 has set => (
@@ -22,18 +26,9 @@ has writable => (
    is => 'ro',
 );
 
-has http_auth_type => (
-   is => 'ro',
-);
-
 has prefetch => (
     is => 'rw',
     default => sub { {} },
-);
-
-has throwable => (
-    is => 'rw',
-    required => 1,
 );
 
 
@@ -104,94 +99,6 @@ sub render_item_into_body {
 }
 
 
-sub _get_relationship_link_info {
-    my ($result_class, $relname) = @_;
-    my $rel = $result_class->relationship_info($relname);
-
-    my $cond = $rel->{cond};
-
-    # https://metacpan.org/pod/DBIx::Class::Relationship::Base#add_relationship
-    if (ref $cond ne 'HASH') { # eg need to add support for CODE refs
-        # we'll may end up silencing this warning till we can offer better support
-        unless (our $warn_once->{"$result_class $relname"}++) {
-            warn "$result_class relationship $relname cond value $cond not handled yet\n";
-            Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
-        }
-        return undef;
-    }
-
-    if (keys %$cond > 1) {
-        # if we loosen this constraint we might need to recheck it for some cases below
-        unless (our $warn_once->{"$result_class $relname"}++) {
-            warn "$result_class relationship $relname ignored since it has multiple conditions\n";
-            Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
-        }
-        return undef;
-    }
-
-    # TODO support and test more kinds of relationships
-    # TODO refactor
-
-    my $link_info = { # what we'll return
-        result_class => $rel->{source},
-        id_fields => undef,
-        id_filter => undef,
-    };
-    lock_keys(%$link_info);
-
-    if ($rel->{attrs}{accessor} eq 'multi') { # a 1-to-many relationship
-
-        # XXX are there any cases we're not dealing with here?
-        # such as multi-colum FKs
-
-        Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
-
-        my $foreign_key = (keys %$cond)[0];
-        $foreign_key =~ s/^foreign\.//
-            or warn "Odd, no 'foreign.' prefix on $foreign_key ($result_class, $relname)";
-
-        # express that we want to filter the many to match the key(s) of the 1
-        # here we list the names of the fields in the foreign table that correspond
-        # to the names of the id columns in the result_class table
-        $link_info->{id_filter} = [ $foreign_key ];
-        return $link_info;
-    }
-
-    # accessor is the inflation type (single/filter/multi)
-    if ($rel->{attrs}{accessor} !~ /^(?: single | filter )$/x) {
-        unless (our $warn_once->{"$result_class $relname"}++) {
-            warn "$result_class relationship $relname ignored since we only support 'single' accessors (not $rel->{attrs}{accessor}) at the moment\n";
-            Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
-        }
-        return undef;
-    }
-
-    # this is really a performance issue, so we could just warn
-    # but for now we won't even warn and we'll see how it goes
-    if ( 0 and not $rel->{attrs}{is_foreign_key_constraint}) { # XXX disabled
-        unless (our $warn_once->{"$result_class $relname"}++) {
-            warn "$result_class relationship $relname ignored since we only support foreign key constraints at the moment\n";
-            Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
-        }
-        return undef;
-    }
-
-    my $fieldname = (values %$cond)[0]; # first and only value
-    $fieldname =~ s/^self\.// if $fieldname;
-
-    if (not $fieldname) {
-        unless (our $warn_once->{"$result_class $relname"}++) {
-            warn "$result_class relationship $relname ignored since we can't determine a fieldname (@{[ %$cond ]})\n";
-            Dwarn $rel if $ENV{WEBAPI_DBIC_DEBUG};
-        }
-        return undef;
-    }
-
-    $link_info->{id_fields} = [ $fieldname ];
-    return $link_info;
-}
-
-
 sub render_item_as_hal_hash {
     my ($self, $item) = @_;
 
@@ -218,48 +125,12 @@ sub render_item_as_hal_hash {
     my $curie = (0) ? "r" : ""; # XXX we don't use CURIE syntax yet
 
     # add links for relationships
-    my $result_class = $item->result_class;
-    for my $relname ($result_class->relationships) {
+    for my $relname ($item->result_class->relationships) {
 
-        # XXX much of this relation selection logic could be pre-calculated and cached
-        #Dwarn
-        my $rel_link_info = _get_relationship_link_info($result_class, $relname)
+        my $url = $self->get_url_for_item_relationship($item, $relname)
             or next;
 
-        my @uri_for_args;
-        if ($rel_link_info->{id_fields}) { # link to an item (1-1)
-            my @id_kvs = @{$data}{ @{ $rel_link_info->{id_fields} } };
-            next if grep { not defined } @id_kvs; # no link because a key value is null
-            push @uri_for_args, map { $_ => shift @id_kvs } 1..@id_kvs;
-        }
-
-        my $dst_class = $rel_link_info->{result_class} or die "panic";
-        push @uri_for_args, result_class => $dst_class;
-
-        my $linkurl = $self->uri_for( @uri_for_args );
-
-        if (not $linkurl) {
-            warn "Result source $dst_class has no resource uri in this app so relations (like $result_class $relname) won't have _links for it.\n"
-                unless our $warn_once->{"$result_class $relname $dst_class"}++;
-            next;
-        }
-
-        my %params;
-        if (my $id_filter = $rel_link_info->{id_filter}) {
-            my @id_vals = $self->id_column_values_for_item($item);
-            die "panic" if @id_vals != @$id_filter;
-            for my $id_field (@$id_filter) {
-                $params{ "me.".$id_field } = shift @id_vals;
-            }
-        }
-
-        my $href = $self->add_params_to_url(
-            $linkurl,
-            {},
-            \%params,
-        );
-
-        $data->{_links}{ ($curie?"$curie:":"") . $relname} = { href => $href->as_string };
+        $data->{_links}{ ($curie?"$curie:":"") . $relname} = { href => $url->as_string };
     }
     if ($curie) {
        $data->{_links}{curies} = [{

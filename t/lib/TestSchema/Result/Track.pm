@@ -51,14 +51,11 @@ __PACKAGE__->grouping_column ('cd');
 __PACKAGE__->belongs_to( cd => 'TestSchema::Result::CD', undef, {
     proxy => { cd_title => 'title' },
 });
+
 # custom condition coderef
 __PACKAGE__->belongs_to( cd_cref_cond => 'TestSchema::Result::CD',
 sub {
-  # This is for test purposes only. A regular user does not
-  # need to sanity check the passed-in arguments, this is what
-  # the tests are for :)
-  my $args = &check_customcond_args;
-
+  my $args = shift;
   return (
     {
       "$args->{foreign_alias}.cdid" => { -ident => "$args->{self_alias}.cd" },
@@ -84,10 +81,7 @@ __PACKAGE__->might_have( cd_single => 'TestSchema::Result::CD', 'single_track' )
 __PACKAGE__->has_many (
   next_tracks => __PACKAGE__,
   sub {
-    # This is for test purposes only. A regular user does not
-    # need to sanity check the passed-in arguments, this is what
-    # the tests are for :)
-    my $args = &check_customcond_args;
+    my $args = shift;
 
     return (
       { "$args->{foreign_alias}.cd"       => { -ident => "$args->{self_alias}.cd" },
