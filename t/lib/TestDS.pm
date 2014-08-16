@@ -22,6 +22,8 @@ $Carp::Verbose = 1;
 
 $ENV{PLACK_ENV} ||= 'development'; # ensure env var is set
 
+$| = 1;
+
 sub _get_authorization_user_pass {
     return( $ENV{DBI_USER}||"", $ENV{DBI_PASS}||"" );
 }

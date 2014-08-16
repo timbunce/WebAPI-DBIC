@@ -24,10 +24,10 @@ has item => (
 
 sub _build_item {
     my $self = shift;
-    return $self->set->find(
-        $self->key_values_from_id($self->id),
-        { key => $self->id_unique_constraint_name }
-    )
+    #warn $self->id;
+    my @keys = $self->key_values_from_id($self->id);
+    #warn "@keys";
+    return $self->set->find( @keys, { key => $self->id_unique_constraint_name } );
 }
 
 

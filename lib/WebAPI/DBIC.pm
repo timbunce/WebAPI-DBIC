@@ -227,7 +227,7 @@ L<WebAPI::DBIC::WebApp> - this is the main app class and is most likely to
 change in the near future so isn't documented yet.
 
 
-=head1 LIMITATIONS
+=head1 LIMITATIONS AND OUTSTANDING DESIGN ISSUES
 
 Multi-column identities (e.g. primary keys) are not fully supported yet. Simple
 integer cases will work but the url path format is likely to change.

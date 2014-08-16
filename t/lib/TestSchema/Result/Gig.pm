@@ -12,7 +12,7 @@ use base qw(DBIx::Class::Core);
 
 __PACKAGE__->load_components(qw(InflateColumn::DateTime));
 
-__PACKAGE__->table('gigs');
+__PACKAGE__->table('gig');
 __PACKAGE__->add_columns(
     'artistid' => {
         data_type       => 'Integer',

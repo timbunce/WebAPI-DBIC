@@ -17,13 +17,13 @@ has id_unique_constraint_name => (
 sub id_from_key_values {
     my $self = shift;
     return undef if grep { not defined } @_; # return undef if any key field is undef
-    return join "-", @_; # XXX need to think more about multicolumn pks and fks
+    return join "=", @_; # XXX need to think more about multicolumn pks and fks
 }
 
 
 sub key_values_from_id {
     my ($self, $id) = @_;
-    my @vals = split /-/, $id; # XXX need to think more about multicolumn pks and fks
+    my @vals = split /=/, $id; # XXX need to think more about multicolumn pks and fks
     return @vals;
 }
 

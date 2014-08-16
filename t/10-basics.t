@@ -23,7 +23,7 @@ after setup => sub {
 
 local $SIG{__DIE__} = \&Carp::confess;
 
-test '===== Get =====' => sub {
+test '===== Get - single field key =====' => sub {
     my ($self) = @_;
 
     my $app = WebAPI::DBIC::WebApp->new({
@@ -49,22 +49,6 @@ test '===== Get =====' => sub {
         eq_or_diff $data, $artist{$data->{artistid}}, 'data matches';
     };
 
-    # TODO: Add tests (seperate?) for Timezone handling (specifically in the response)
-    # so 2014-07-01T20:30:00-01:00 should probably return dates as UTC -01:00 rather than UTC
-    test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/gig/1/2014-07-01T19:30:00Z")));
-        is_item($data, 1);
-        is $data->{artistid}, 1, 'artistid';
-        is $data->{gig_datetime}, '2014-07-01T19:30:00Z', 'gig_datetime';
-    };
-
-    test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/gig/1/2014-06-30T19:00:00Z")));
-        is_item($data, 1);
-        is $data->{artistid}, 1, 'artistid';
-        is $data->{gig_datetime}, '2014-06-30T19:30:00Z', 'gig_datetime';
-    };
-
     test_psgi $app, sub {
         my $data = dsresp_ok(shift->(dsreq( GET => "/artist/2" )));
         is_item($data, 3);
@@ -74,6 +58,29 @@ test '===== Get =====' => sub {
 
 };
 
+
+test '===== Get - multi-field key =====' => sub {
+    my ($self) = @_;
+
+    my $app = WebAPI::DBIC::WebApp->new({
+        schema => $self->schema,
+    })->to_psgi_app;
+
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq( GET => "/gig/1=2014-01-01T01:01:01Z")));
+        is_item($data, 1);
+        is $data->{artistid}, 1, 'artistid';
+        is $data->{gig_datetime}, '2014-01-01T01:01:01Z', 'gig_datetime';
+    };
+
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq( GET => "/gig/2=2014-06-30T19:00:00Z")));
+        is_item($data, 1);
+        is $data->{artistid}, 2, 'artistid';
+        is $data->{gig_datetime}, '2014-06-30T19:00:00Z', 'gig_datetime';
+    };
+
+};
 
 
 after teardown => sub {
