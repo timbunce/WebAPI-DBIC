@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+0.001005  2014-08-17 00:43:49+01:00 Europe/Dublin (TRIAL RELEASE)
+
   - Added tests and test schema tables for multi-field keys (mfr++)
   - Much improved handling of tables with multi-field keys /foo/key1/key2/keyN/
   - Improved handling of code-ref based joins
