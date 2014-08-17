@@ -2,6 +2,10 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+  - Abstracted the router interface.
+  - Renamed some classes.
+  - Added more documentation.
+
 0.001005  2014-08-17 00:43:49+01:00 Europe/Dublin (TRIAL RELEASE)
 
   - Added tests and test schema tables for multi-field keys (mfr++)

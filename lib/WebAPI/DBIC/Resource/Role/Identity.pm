@@ -17,8 +17,6 @@ sub id_unique_constraint_name { # called as static method
 
 sub id_column_names_for_item { # local
     my ($self, $item) = @_;
-    # would be nice to avoid the need for a $item here then we could cache this
-    # via a lazy attribute
     return $item->result_source->unique_constraint_columns( $self->id_unique_constraint_name );
 }
 

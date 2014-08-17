@@ -183,38 +183,51 @@ have their values JSON decoded, so they can be arbitrary data structures.
 
 =head2 Resource Classes
 
-To make building typical applications easier, WebAPI::DBIC provides three
+To make building typical applications easier, WebAPI::DBIC provides four
 pre-defined resource classes:
 
-L<WebAPI::DBIC::Resource::GenericItem> for resources represented by an
-individual DBIx::Class row.
+L<WebAPI::DBIC::Resource::GenericCore> is a base class that consumes all the
+general-purpose resource roles.
 
-L<WebAPI::DBIC::Resource::GenericSet> for resources represented by a
-DBIx::Class result set.
+L<WebAPI::DBIC::Resource::GenericItem> subclasses GenericCore and consumes
+extra roles for resources represented by an individual DBIx::Class row.
 
-L<WebAPI::DBIC::Resource::GenericItemInvoke> for resources that represent a
-specific method call on an item resource.
+L<WebAPI::DBIC::Resource::GenericSet> subclasses GenericCore and consumes extra
+roles for resources represented by a DBIx::Class result set.
+
+L<WebAPI::DBIC::Resource::GenericItemInvoke> subclasses GenericCore and
+consumes extra roles for resources that represent a specific method call on an
+item resource.
 
 These classes are I<very> simple because all the work is done by the various
 roles they consume. For example, here's the entire code for
-L<WebAPI::DBIC::Resource::GenericItem>:
+L<WebAPI::DBIC::Resource::GenericCore>:
 
-    package WebAPI::DBIC::Resource::GenericItem;
+    package WebAPI::DBIC::Resource::GenericCore;
     use Moo;
-    extends 'WebAPI::DBIC::Resource::Base'; # is just Web::Machine::Resource
+    extends 'WebAPI::DBIC::Resource::Base';
     with    'WebAPI::DBIC::Role::JsonEncoder',
             'WebAPI::DBIC::Role::JsonParams',
             'WebAPI::DBIC::Resource::Role::Router',
             'WebAPI::DBIC::Resource::Role::Identity',
+            'WebAPI::DBIC::Resource::Role::Relationship',
             'WebAPI::DBIC::Resource::Role::DBIC',
             'WebAPI::DBIC::Resource::Role::DBICException',
             'WebAPI::DBIC::Resource::Role::DBICAuth',
             'WebAPI::DBIC::Resource::Role::DBICParams',
-            'WebAPI::DBIC::Resource::Role::Item',
-            'WebAPI::DBIC::Resource::Role::ItemWritable',
             ;
     1;
 
+and L<WebAPI::DBIC::Resource::GenericItem>:
+
+    package WebAPI::DBIC::Resource::GenericSet;
+    use Moo;
+    extends 'WebAPI::DBIC::Resource::GenericCore';
+    with    'WebAPI::DBIC::Resource::Role::SetRender',
+            'WebAPI::DBIC::Resource::Role::Set',
+            'WebAPI::DBIC::Resource::Role::SetWritable',
+            ;
+    1;
 
 =head2 Other Classes
 
@@ -222,18 +235,11 @@ A few other classes are provided:
 
 L<WebAPI::DBIC::Util.pm> provides a few general utilities.
 
-L<WebAPI::DBIC::Machine.pm> a subclass of L<Web::Machine>.
-
 L<WebAPI::DBIC::WebApp> - this is the main app class and is most likely to
 change in the near future so isn't documented yet.
 
 
 =head1 LIMITATIONS AND OUTSTANDING DESIGN ISSUES
-
-Multi-column identities (e.g. primary keys) are not fully supported yet. Simple
-integer cases will work but the url path format is likely to change.
-
-Column inflation, e.g. DateTime, is not worked out yet.
 
 The only supported router is Path::Router at the moment.
 
@@ -354,7 +360,9 @@ would include
 
 The "relation" links describe the relationships this resource has with other resources.
 
-TBD Currently only 1-1 relationships (e.g., belongs_to) are included. Also see L</prefetch>.
+Currently only 1-1 relationships (e.g., belongs_to) are and simple 1-N
+(has_many) relationships are supported and get C<_links>.
+Also see L</prefetch>.
 
 
 =head2 GET Item - Optional Parameters
