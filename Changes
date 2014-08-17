@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+0.001006  2014-08-17 16:04:19+01:00 Europe/Dublin
+
   - Abstracted the router interface.
   - Renamed some classes.
   - Added more documentation.
