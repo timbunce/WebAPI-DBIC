@@ -89,8 +89,8 @@ sub render_item_into_body {
     # XXX ought to be a cloned request, with tweaked url/params?
     my $item_request = $self->request;
 
-    # XXX shouldn't hard-code GenericItemDBIC here (should use router?)
-    my $item_resource = WebAPI::DBIC::Resource::GenericItemDBIC->new(
+    # XXX shouldn't hard-code GenericItem here (should use router?)
+    my $item_resource = WebAPI::DBIC::Resource::GenericItem->new(
         request => $item_request, response => $item_request->new_response,
         set => $self->set,
         item => $item,

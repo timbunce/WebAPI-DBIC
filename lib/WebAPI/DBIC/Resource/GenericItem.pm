@@ -1,8 +1,8 @@
-package WebAPI::DBIC::Resource::GenericItemDBIC;
+package WebAPI::DBIC::Resource::GenericItem;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::GenericItemDBIC - a set of roles to implement a generic DBIC item resource
+WebAPI::DBIC::Resource::GenericItem - a set of roles to implement a generic DBIC item resource
 
 =cut
 

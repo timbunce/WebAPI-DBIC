@@ -186,7 +186,7 @@ have their values JSON decoded, so they can be arbitrary data structures.
 To make building typical applications easier, WebAPI::DBIC provides three
 pre-defined resource classes:
 
-L<WebAPI::DBIC::Resource::GenericItemDBIC> for resources represented by an
+L<WebAPI::DBIC::Resource::GenericItem> for resources represented by an
 individual DBIx::Class row.
 
 L<WebAPI::DBIC::Resource::GenericSetDBIC> for resources represented by a
@@ -197,9 +197,9 @@ specific method call on an item resource.
 
 These classes are I<very> simple because all the work is done by the various
 roles they consume. For example, here's the entire code for
-L<WebAPI::DBIC::Resource::GenericItemDBIC>:
+L<WebAPI::DBIC::Resource::GenericItem>:
 
-    package WebAPI::DBIC::Resource::GenericItemDBIC;
+    package WebAPI::DBIC::Resource::GenericItem;
     use Moo;
     extends 'WebAPI::DBIC::Resource::Base'; # is just Web::Machine::Resource
     with    'WebAPI::DBIC::Role::JsonEncoder',

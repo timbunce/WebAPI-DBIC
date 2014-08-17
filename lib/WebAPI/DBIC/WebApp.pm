@@ -166,7 +166,7 @@ sub mk_generic_dbic_item_set_routes {
     } if @$invokeable_on_set;
 
 
-    my $item_resource_class = 'WebAPI::DBIC::Resource::GenericItemDBIC';
+    my $item_resource_class = 'WebAPI::DBIC::Resource::GenericItem';
     use_module $item_resource_class;
     my @key_fields = $rs->result_source->unique_constraint_columns( $item_resource_class->id_unique_constraint_name );
     my @idn_fields = 1 .. @key_fields;
