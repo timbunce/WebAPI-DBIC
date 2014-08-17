@@ -7,13 +7,12 @@ __END__
 
 =head1 NAME
 
-WebAPI::DBIC - A composable RESTful JSON+HAL API to DBIx::Class schemas using roles, Web::Machine and Path::Router
+WebAPI::DBIC - A composable RESTful JSON+HAL API to DBIx::Class schemas using roles and Web::Machine
 
 =head1 STATUS
 
 The WebAPI::DBIC code has been in production use since early 2013, however it's
-only recently been open sourced (July 2014) so it's still lacking in
-documentation, tests etc.
+only recently been open sourced (July 2014) so it's still lacking in documentation.
 
 It's also likely to undergo a period of refactoring now there are more
 developers contributing and the code is being applied to more domains.
@@ -37,6 +36,8 @@ WebAPI::DBIC features include:
 L<Path::Router> as the router. (We aim to support other routers soon.)
 
 * Built as fine-grained roles for maximum reusability and extensibility
+
+* The resource roles can be added to your existing application
 
 * A built-in copy of the generic HAL API browser application
 
