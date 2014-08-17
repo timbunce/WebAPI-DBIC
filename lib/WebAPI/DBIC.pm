@@ -189,7 +189,7 @@ pre-defined resource classes:
 L<WebAPI::DBIC::Resource::GenericItem> for resources represented by an
 individual DBIx::Class row.
 
-L<WebAPI::DBIC::Resource::GenericSetDBIC> for resources represented by a
+L<WebAPI::DBIC::Resource::GenericSet> for resources represented by a
 DBIx::Class result set.
 
 L<WebAPI::DBIC::Resource::GenericItemInvoke> for resources that represent a

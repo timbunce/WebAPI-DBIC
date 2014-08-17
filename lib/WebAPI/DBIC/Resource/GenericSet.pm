@@ -1,8 +1,8 @@
-package WebAPI::DBIC::Resource::GenericSetDBIC;
+package WebAPI::DBIC::Resource::GenericSet;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::GenericSetDBIC - a set of roles to implement a generic DBIC set resource
+WebAPI::DBIC::Resource::GenericSet - a set of roles to implement a generic DBIC set resource
 
 =cut
 

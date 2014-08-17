@@ -153,7 +153,7 @@ sub mk_generic_dbic_item_set_routes {
     my @routes;
 
     push @routes, "$path" => { # set (aka collection)
-        resource_class => 'WebAPI::DBIC::Resource::GenericSetDBIC',
+        resource_class => 'WebAPI::DBIC::Resource::GenericSet',
         route_defaults => $route_defaults,
         getargs => $mk_getargs->(),
     };
