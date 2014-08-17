@@ -706,4 +706,29 @@ stringified.)
 Note that this default behaviour is liable to change. If you want to make
 method calls like this you should define your own resource based on the one provided.
 
+=head1 INTEGRATING
+
+=head2 Catalyst
+
+As with any PSGI application, WebAPI::DBIC can integrate into Catalyst fairly
+simply with L<Catalyst::Action::FromPSGI>.  Here's an example integration:
+
+ package MyApp::Controller::HelloName;
+ 
+ use base 'Catalyst::Controller';
+ 
+ sub api : Path('/api') ActionClass('FromPSGI') {
+   my ($self, $c) = @_;
+   
+   WebAPI::DBIC::WebApp->new({
+     schema   => $c->model('DB')->schema,
+     writable => 0,
+     http_auth_type => 'none', # will use Catalyst's auth for the given path
+                               # consider leveraging chaining or another
+                               # ActionRole for auth
+   })->to_psgi_app
+ }
+ 
+ 1;
+
 =cut
