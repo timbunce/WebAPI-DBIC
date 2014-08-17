@@ -13,14 +13,12 @@ use JSON::MaybeXS qw(JSON);
 use Moo::Role;
 
 
-requires 'id_from_key_values';
-requires 'id_for_item';
 requires 'uri_for';
 requires 'throwable';
 requires 'request';
 requires 'response';
 requires 'get_url_for_item_relationship';
-requires 'id_unique_constraint_name';
+requires 'id_kvs_for_item';
 
 
 has set => (
@@ -49,23 +47,6 @@ sub render_item_as_plain_hash {
     return $data;
 }
 
-
-sub id_column_names_for_item {
-    my ($self, $item) = @_;
-    return $item->result_source->unique_constraint_columns( $self->id_unique_constraint_name );
-}
-
-sub id_column_values_for_item {
-    my ($self, $item) = @_;
-    return map { $item->get_column($_) } $self->id_column_names_for_item($item);
-}
-
-sub id_kvs_for_item {
-    my ($self, $item) = @_;
-    my @key_fields = $self->id_column_names_for_item($item);
-    my $idn = 0;
-    return map { ++$idn => $item->get_column($_) } @key_fields;
-}
 
 sub path_for_item {
     my ($self, $item) = @_;
