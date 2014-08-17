@@ -5,7 +5,6 @@ package WebAPI::DBIC::WebApp;
 use strict;
 use warnings;
 
-use WebAPI::DBIC::Router;
 use Module::Runtime qw(use_module);
 use Carp qw(croak confess);
 use JSON::MaybeXS qw(JSON);
@@ -27,6 +26,12 @@ has writable => (is => 'ro', default => 1);
 has http_auth_type => (is => 'ro', default => 'Basic');
 has extra_routes => (is => 'ro', lazy => 1, builder => 1);
 has auto_routes => (is => 'ro', lazy => 1, builder => 1);
+has router_class => (is => 'ro', builder => 1);
+
+sub _build_router_class {
+    require WebAPI::DBIC::Router;
+    return 'WebAPI::DBIC::Router';
+}
 
 sub _build_extra_routes { [] }
 sub _build_auto_routes {
@@ -196,7 +201,7 @@ sub all_routes {
 sub to_psgi_app {
     my ($self) = @_;
 
-    my $router = WebAPI::DBIC::Router->new;
+    my $router = $self->router_class->new;
 
     my @routes = $self->all_routes;
 
@@ -206,7 +211,7 @@ sub to_psgi_app {
         $self->add_webapi_dbic_route($router, $path, $spec);
     }
 
-    $router->add_route('', target => \&hal_browser_app);
+    $router->add_route(path => '', target => \&hal_browser_app);
 
     return $router->to_psgi_app; # return Plack app
 }
@@ -216,7 +221,7 @@ sub add_webapi_dbic_route {
     my ($self, $router, $path, $spec) = @_;
 
     if ($ENV{WEBAPI_DBIC_DEBUG}) {
-        warn sprintf "/%s => %s as %s\n", $path,
+        warn sprintf "/%s => result_class=%s, via %s\n", $path,
             $spec->{route_defaults}{result_class},
             $spec->{resource_class};
     }
@@ -260,7 +265,7 @@ sub add_webapi_dbic_route {
         return $resp;
     };
 
-    $router->add_webapi_dbic_route(
+    $router->add_route(
         path        => $path,
         validations => $spec->{validations} || {},
         defaults    => $spec->{route_defaults},
