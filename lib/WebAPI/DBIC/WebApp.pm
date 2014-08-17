@@ -11,7 +11,7 @@ use JSON::MaybeXS qw(JSON);
 
 use Devel::Dwarn;
 
-use WebAPI::DBIC::Machine;
+use Web::Machine;
 use WebAPI::HTTP::Throwable::Factory;
 
 # pre-load some modules to improve shared memory footprint
@@ -231,7 +231,7 @@ sub add_webapi_dbic_route {
     use_module $resource_class;
     
     # this sub acts as the interface between the router and
-    # the WebAPI::DBIC::Machine instance handling the resource for that url path
+    # the Web::Machine instance handling the resource for that url path
     my $target = sub {
         my $request = shift; # url args remain in @_
 
@@ -244,14 +244,14 @@ sub add_webapi_dbic_route {
         warn "$path: running machine for $resource_class (with @{[ keys %resource_args ]})\n"
             if $ENV{WEBAPI_DBIC_DEBUG};
 
-        my $app = WebAPI::DBIC::Machine->new(
+        my $app = Web::Machine->new(
             resource => $resource_class,
-            debris   => {
+            resource_args => [
                 writable => $self->writable,
                 http_auth_type => $self->http_auth_type,
                 throwable => 'WebAPI::HTTP::Throwable::Factory',
                 %resource_args,
-            },
+            ],
             tracing => $ENV{WEBAPI_DBIC_DEBUG},
         )->to_app;
 
