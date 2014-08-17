@@ -1,5 +1,18 @@
 package WebAPI::DBIC::Resource::Role::Item;
 
+=head1 NAME
+
+WebAPI::DBIC::Resource::Role::Item - methods related to handling requests for item resources
+
+=head1 DESCRIPTION
+
+Handles GET and HEAD requests for requests representing individual resources,
+e.g. a single row of a database table.
+
+Supports the C<application/hal+json> and C<application/json> content types.
+
+=cut
+
 use Moo::Role;
 
 

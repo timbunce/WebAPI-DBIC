@@ -1,5 +1,11 @@
 package WebAPI::DBIC::Resource::Role::ItemInvoke;
 
+=head1 NAME
+
+WebAPI::DBIC::Resource::Role::ItemInvoke - methods for resources representing method calls on item resources
+
+=cut
+
 use Scalar::Util qw(blessed);
 
 use Moo::Role;

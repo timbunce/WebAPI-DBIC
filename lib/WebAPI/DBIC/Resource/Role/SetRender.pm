@@ -1,5 +1,12 @@
 package WebAPI::DBIC::Resource::Role::SetRender;
 
+=head1 NAME
+
+WebAPI::DBIC::Resource::Role::SetRender - methods for rendering resources as JSON
+
+=cut
+
+
 use Devel::Dwarn;
 use Carp qw(confess);
 

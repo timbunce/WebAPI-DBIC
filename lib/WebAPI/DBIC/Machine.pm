@@ -1,5 +1,11 @@
 package WebAPI::DBIC::Machine;
 
+=head1 NAME
+
+WebAPI::DBIC::Machine - a subclass of Web::Machine for WebAPI::DBIC
+
+=cut
+
 use Sub::Quote 'quote_sub';
 
 use Moo;

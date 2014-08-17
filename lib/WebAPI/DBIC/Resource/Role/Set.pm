@@ -1,6 +1,17 @@
 package WebAPI::DBIC::Resource::Role::Set;
 
-# Based on https://github.com/frioux/drinkup
+=head1 NAME
+
+WebAPI::DBIC::Resource::Role::Set - methods related to handling requests for set resources
+
+=head1 DESCRIPTION
+
+Handles GET and HEAD requests for requests representing set resources, e.g.
+the rows of a database table.
+
+Supports the C<application/hal+json> and C<application/json> content types.
+
+=cut
 
 use Moo::Role;
 

@@ -1,5 +1,11 @@
 package WebAPI::DBIC::Resource::Role::Identity;
 
+=head1 NAME
+
+WebAPI::DBIC::Resource::Role::Identity - methods related to the identity of resources
+
+=cut
+
 use Moo::Role;
 
 use Carp qw(carp confess);

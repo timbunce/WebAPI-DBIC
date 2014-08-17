@@ -1,5 +1,11 @@
 package WebAPI::DBIC::Resource::Role::DBIC;
 
+=head1 NAME
+
+WebAPI::DBIC::Resource::Role::DBIC - a role with core methods for DBIx::Class resources
+
+=cut
+
 use Carp qw(croak confess);
 use Devel::Dwarn;
 use JSON::MaybeXS qw(JSON);

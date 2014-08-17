@@ -1,5 +1,11 @@
 package WebAPI::DBIC::Resource::Role::DBICException;
 
+=head1 NAME
+
+WebAPI::DBIC::Resource::Role::DBICException - methods for handling exceptions from resources
+
+=cut
+
 use Carp qw(croak confess);
 use Scalar::Util qw(blessed);
 use Devel::Dwarn;

@@ -1,16 +1,27 @@
 package WebAPI::DBIC::Role::JsonParams;
 
-# provides a param() method that returns query parameters
-# except that any parameters named foo~json have their values
-# JSON decoded, so they can be arbitrary data structures.
+=head1 NAME
 
-use Carp qw(croak);
-use JSON::MaybeXS qw(JSON);
+WebAPI::DBIC::Resource::Role::JsonParams - provides a param method that handles JSON
+
+=head1 DESCRIPTION
+
+Provides methods to handle request parameters that have an encoding specified.
+
+For example, given a request like C<</foo?bar~json={k:"hello"}>> the C<bar>
+parameter will be a reference to a hash containing a single element.
+
+=cut
 
 use Moo::Role;
 
+use Carp qw(croak);
+use Hash::MultiValue;
+use JSON::MaybeXS qw(JSON);
+
 
 requires 'request';
+
 
 my $json = JSON->new->allow_nonref;
 

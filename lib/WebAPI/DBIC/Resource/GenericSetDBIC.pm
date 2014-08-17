@@ -1,5 +1,11 @@
 package WebAPI::DBIC::Resource::GenericSetDBIC;
 
+=head1 NAME
+
+WebAPI::DBIC::Resource::GenericSetDBIC - a set of roles to implement a generic DBIC set resource
+
+=cut
+
 use Moo;
 use namespace::clean;
 

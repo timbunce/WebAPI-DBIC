@@ -1,5 +1,11 @@
 package WebAPI::DBIC::Resource::Role::ItemWritable;
 
+=head1 NAME
+
+WebAPI::DBIC::Resource::Role::ItemWritable - methods handling requests to update item resources
+
+=cut
+
 use Carp qw(croak confess);
 use Devel::Dwarn;
 

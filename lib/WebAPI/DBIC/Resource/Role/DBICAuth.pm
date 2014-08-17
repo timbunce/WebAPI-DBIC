@@ -1,5 +1,11 @@
 package WebAPI::DBIC::Resource::Role::DBICAuth;
 
+=head1 NAME
+
+WebAPI::DBIC::Resource::Role::DBICAuth - methods for authentication and authorization
+
+=cut
+
 use Carp qw(confess);
 use Try::Tiny;
 

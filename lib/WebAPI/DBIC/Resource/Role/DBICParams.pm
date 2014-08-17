@@ -1,5 +1,11 @@
 package WebAPI::DBIC::Resource::Role::DBICParams;
 
+=head1 NAME
+
+WebAPI::DBIC::Resource::Role::DBICParams - methods for handling url parameters
+
+=cut
+
 use Carp;
 use Scalar::Util qw(blessed);
 
