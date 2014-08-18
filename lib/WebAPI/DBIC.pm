@@ -37,6 +37,8 @@ L<Path::Router> as the router. (We aim to support other routers soon.)
 
 * Built as fine-grained roles for maximum reusability and extensibility
 
+* Integrates with other L<Plack> based applications.
+
 * The resource roles can be added to your existing application
 
 * A built-in copy of the generic HAL API browser application
@@ -236,17 +238,48 @@ A few other classes are provided:
 L<WebAPI::DBIC::Util.pm> provides a few general utilities.
 
 L<WebAPI::DBIC::WebApp> - this is the main app class and is most likely to
-change in the near future so isn't documented yet.
+change in the near future so isn't documented much yet.
 
 
-=head1 LIMITATIONS AND OUTSTANDING DESIGN ISSUES
+=head1 TRANSPARENCY
 
-The only supported router is Path::Router at the moment.
+WebAPI::DBIC aims to be a fairly 'transparent' layer between your
+L<DBIx::Class> schema and the JSON that's generated and received.
 
-See also https://metacpan.org/pod/distribution/WebAPI-DBIC/NOTES.pod
-and https://github.com/timbunce/WebAPI-DBIC/issues
+So it's the responibility of your schema to return data in the format you want
+in your generated URLs and JSON, and to accept data in the format that arrives
+in requests from clients.
 
-If there's anything you specifically need, just ask!
+For an example of how to handle dates using L<DateTime> nicely, see:
+
+  https://blog.afoolishmanifesto.com/posts/solution-on-how-to-serialize-dates-nicely/
+
+
+=head1 INTEGRATING
+
+=head2 Catalyst
+
+As with any PSGI application, WebAPI::DBIC can integrate into Catalyst fairly
+simply with L<Catalyst::Action::FromPSGI>.  Here's an example integration:
+
+ package MyApp::Controller::HelloName;
+
+ use base 'Catalyst::Controller';
+
+ sub api : Path('/api') ActionClass('FromPSGI') {
+   my ($self, $c) = @_;
+
+   WebAPI::DBIC::WebApp->new({
+     schema   => $c->model('DB')->schema,
+     writable => 0,
+     http_auth_type => 'none', # will use Catalysts auth for the given path
+                               # consider leveraging chaining or another
+                               # ActionRole for auth
+   })->to_psgi_app
+ }
+
+ 1;
+
 
 =head1 HOW TO GET HELP
 
@@ -264,6 +297,10 @@ If there's anything you specifically need, just ask!
 
 =back
 
+See also https://metacpan.org/pod/distribution/WebAPI-DBIC/NOTES.pod
+and https://github.com/timbunce/WebAPI-DBIC/issues
+
+If there's anything you specifically need, just ask!
 
 =head1 CREDITS
 
@@ -318,7 +355,7 @@ http://tools.ietf.org/html/rfc6570
 
     GET ~/resources/:id
 
-returns 
+returns
 
     {
         _links: { ... }  # optional
@@ -429,12 +466,12 @@ allows paging of the set but doesn't include links in the embedded resources.
 
     GET ~/ecosystems
 
-returns 
+returns
 
     {
         _links: { ... },  # optional
         _meta: { ... },   # optional
-        _embedded: { 
+        _embedded: {
             ecosystems => [
                 { ... }, ...
             ]
@@ -705,30 +742,5 @@ stringified.)
 
 Note that this default behaviour is liable to change. If you want to make
 method calls like this you should define your own resource based on the one provided.
-
-=head1 INTEGRATING
-
-=head2 Catalyst
-
-As with any PSGI application, WebAPI::DBIC can integrate into Catalyst fairly
-simply with L<Catalyst::Action::FromPSGI>.  Here's an example integration:
-
- package MyApp::Controller::HelloName;
- 
- use base 'Catalyst::Controller';
- 
- sub api : Path('/api') ActionClass('FromPSGI') {
-   my ($self, $c) = @_;
-   
-   WebAPI::DBIC::WebApp->new({
-     schema   => $c->model('DB')->schema,
-     writable => 0,
-     http_auth_type => 'none', # will use Catalyst's auth for the given path
-                               # consider leveraging chaining or another
-                               # ActionRole for auth
-   })->to_psgi_app
- }
- 
- 1;
 
 =cut
