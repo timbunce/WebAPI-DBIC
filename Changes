@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+0.001007  2014-08-18 12:04:57+01:00 Europe/Dublin
+
   - Add Catalyst integration example (Arthur Axel fREW Schmidt)
   - Switch from Module::Pluggable to Test::Compile for t/00-compile.t
   - Doc updates re router vs app integration, and transparency.
