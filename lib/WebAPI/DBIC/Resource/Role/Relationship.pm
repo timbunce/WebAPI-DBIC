@@ -209,7 +209,7 @@ sub get_url_for_item_relationship {
 
     my @uri_for_args;
     if ($rel_link_info->{id_fields}) { # link to an item (1-1)
-        my @id_kvs = map { $item->get_column($_) } @{ $rel_link_info->{id_fields} };
+        my @id_kvs = map { $item->$_ } @{ $rel_link_info->{id_fields} }; # XXX factor out
         return undef if grep { not defined } @id_kvs; # no link because a key value is null
         push @uri_for_args, map { $_ => shift @id_kvs } 1..@id_kvs;
     }

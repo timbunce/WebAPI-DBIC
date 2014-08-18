@@ -6,6 +6,8 @@ use warnings;
 
 use base qw(DBIx::Class::Core);
 
+use DateTime::Format::SQLite;
+
 # A Test schema result class for Gigs at a venue.
 # Designed for testing dual primary keys where one is a
 # datetime

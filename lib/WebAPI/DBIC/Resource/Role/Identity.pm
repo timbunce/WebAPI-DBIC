@@ -22,14 +22,14 @@ sub id_column_names_for_item { # local
 
 sub id_column_values_for_item { # used by ::Relationship
     my ($self, $item) = @_;
-    return map { $item->get_column($_) } $self->id_column_names_for_item($item);
+    return map { $item->$_ } $self->id_column_names_for_item($item);
 }
 
 sub id_kvs_for_item { # used by path_for_item
     my ($self, $item) = @_;
     my @key_fields = $self->id_column_names_for_item($item);
     my $idn = 0;
-    return map { ++$idn => $item->get_column($_) } @key_fields;
+    return map { ++$idn => $item->$_ } @key_fields;
 }
 
 

@@ -20,6 +20,6 @@ has _json_encoder => (
    },
 );
 
-sub _build_json_encoder { return JSON->new->ascii }
+sub _build_json_encoder { return JSON->new->ascii->convert_blessed }
 
 1;

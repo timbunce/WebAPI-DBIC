@@ -31,4 +31,5 @@ on test => sub {
    requires 'Test::Roo';
    requires 'Test::Pod';
    requires 'Test::Compile';
+   requires 'DateTime::Format::SQLite';
 };

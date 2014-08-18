@@ -42,7 +42,7 @@ has prefetch => (
 # https://metacpan.org/module/DBIx::Class::InflateColumn
 sub render_item_as_plain_hash {
     my ($self, $item) = @_;
-    my $data = { $item->get_columns }; # XXX ?
+    my $data = { $item->get_inflated_columns };
     # DateTimes
     return $data;
 }
