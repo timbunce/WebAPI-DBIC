@@ -30,4 +30,5 @@ on test => sub {
    requires 'Test::Most';
    requires 'Test::Roo';
    requires 'Test::Pod';
+   requires 'Test::Compile';
 };
