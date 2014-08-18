@@ -5,11 +5,11 @@ This is all fairly random.
 Things to do, or at least consider, before we stop being alpha:
 
     Test string keys, including unicode
-    Document ::Router interface, re abstracting it to support others
     Look into at least basic support for documentation links in HAL
-    Refactor exception/error handling a little (see notes below)
+    Profiling
 
     Tweak test schema so FK field names don't match the PKs
+    Test using a non-pk indentity eg genre name
     Add tests for links being present, correct, and working
 
     Support CODE ref relationship conditions
