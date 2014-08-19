@@ -255,7 +255,41 @@ For an example of how to handle dates using L<DateTime> nicely, see:
   https://blog.afoolishmanifesto.com/posts/solution-on-how-to-serialize-dates-nicely/
 
 
-=head1 INTEGRATING
+=head1 COMPARISONS
+
+This section provides links to similar modules with a few notes about how they
+differ from WebAPI::DBIC.
+
+=head2 ... others? ...
+
+=head2 App::AutoCRUD
+
+L<App::AutoCRUD> provides an automatically generated I<HTML> interface to a
+database, including search forms. It can export data in various formats
+including JSON but isn't designed as a JSON API, so it's not directly
+comparable to WebAPI::DBIC. See also L<RapidApp>.
+
+App::AutoCRUD doesn't use DBIx::Class, it uses DBIx::DataModel (a UML-based ORM
+framework), but creates the model on the fly. That doesn't let you build
+business logic into the schema model the way you can with DBIx::Class.
+
+=head2 RapidApp
+
+To quote the documentation: L<RapidApp> is an extension to L<Catalyst> - the
+Perl MVC framework. It provides a feature-rich extended development stack, as
+well as easy access to common out-of-the-box application paradigms, such as
+powerful CRUD-based front-ends for DBIx::Class models, user access and
+authorization, RESTful URL navigation schemes, pure Ajax interfaces with no
+browser page loads, templating engine with front-side CMS features, declarative
+configuration layers, and more.
+
+It's not designed as a JSON API and doesn't use HAL, so it's not directly
+comparable to WebAPI::DBIC.
+
+=head1 INTEGRATIONS
+
+This section provides information on how to integrate WebAPI::DBIC with
+existing applications.
 
 =head2 Catalyst
 
@@ -271,15 +305,22 @@ simply with L<Catalyst::Action::FromPSGI>.  Here's an example integration:
 
    WebAPI::DBIC::WebApp->new({
      schema   => $c->model('DB')->schema,
-     writable => 0,
-     http_auth_type => 'none', # will use Catalysts auth for the given path
+     writable => 0,            # set true if desired
+     http_auth_type => 'none', # will use Catalysts' auth for the given path
                                # consider leveraging chaining or another
                                # ActionRole for auth
    })->to_psgi_app
  }
 
- 1;
+=head2 Dancer
 
+I<I'd welcome any information you could contribute here.>
+
+=head2 Mojolicious
+
+I<I'd welcome any information you could contribute here.>
+
+=head2 ...
 
 =head1 HOW TO GET HELP
 
