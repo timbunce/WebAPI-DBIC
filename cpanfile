@@ -1,3 +1,4 @@
+# https://metacpan.org/pod/distribution/Module-CPANfile/lib/cpanfile.pod
 requires 'Carp';
 requires 'DBIx::Class';
 requires 'HTTP::Throwable';
@@ -5,7 +6,7 @@ requires 'HTTP::Headers::ActionPack';
 requires 'JSON::MaybeXS';
 requires 'List::Util';
 requires 'Module::Runtime';
-requires 'Moo';
+requires 'Moo', '1.001000';
 requires 'namespace::clean';
 requires 'parent';
 requires 'Path::Router';
@@ -30,5 +31,5 @@ on test => sub {
    requires 'Test::Most';
    requires 'Test::Roo';
    requires 'Test::Pod';
-   requires 'Test::Compile';
+   requires 'Test::Compile', 'v1.1.0';
 };
