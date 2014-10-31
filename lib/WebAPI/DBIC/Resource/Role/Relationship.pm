@@ -75,6 +75,8 @@ sub _get_relationship_link_info {
 
             # XXX herein we attempt the insane task of mapping SQL::Abstract conditions
             # into something usable by WebAPI::DBIC - this is a total hack
+            # There is a better way: https://github.com/timbunce/WebAPI-DBIC/issues/8
+            # but it requires DBIC 0.082801+ (2014-10-05)
 
             for my $crosstable_cond_key (keys %$crosstable_cond) {
                 my $cond = $crosstable_cond->{$crosstable_cond_key};
