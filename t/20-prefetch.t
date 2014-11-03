@@ -57,6 +57,8 @@ test "===== Prefetch =====" => sub {
         }
     };
 
+    TODO: {
+    local $TODO = "Filtering primary resource based on columns in prefetched resources not yet implemented";
     # Only handle filter of the SET based on the PREFETCH. DBIC won't allow filtering of the PREFETCH on an ITEM
     # as the WHERE clause is added to the whole select statement. IF custom where clauses are needed on the right
     # hand side of the join then these should be implemented as custom relationships
@@ -110,6 +112,7 @@ test "===== Prefetch =====" => sub {
             }
         }
     };
+    } # end TODO
 
     note "prefetch with query on ambiguous field";
     # just check that a 'artist is ambiguous' error isn't generated
