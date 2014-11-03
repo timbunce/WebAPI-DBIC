@@ -3,6 +3,8 @@ Changes file for WebAPI::DBIC
 {{$NEXT}}
 
   - Added skip_dirty_check to WebAPI::DBIC::Resource::Role::ItemWritable
+  - Added a COMPARISONS section to docs (and renamed INTEGRATING to INTEGRATIONS)
+  - Added minimum versions to some prerequisites in cpanfile
 
 0.001007  2014-08-18 12:04:57+01:00 Europe/Dublin
 
