@@ -65,8 +65,11 @@ sub handle_request_params {
             my ($param, $value) = @$spec;
 
             my $method = "_handle_${basename}_param";
-            die "The $param parameter is not supported by the $self resource\n"
-                unless $self->can($method);
+            unless ($self->can($method)) {
+                my $dym = "";
+                $dym = " (did you mean me.$param?)" if $param =~ m/./;
+                die "The $param parameter is not supported by the $self resource$dym\n";
+            }
             $self->$method($value, $param);
         }
     }
