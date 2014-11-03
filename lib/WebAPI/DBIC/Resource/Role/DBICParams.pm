@@ -8,6 +8,7 @@ WebAPI::DBIC::Resource::Role::DBICParams - methods for handling url parameters
 
 use Carp;
 use Scalar::Util qw(blessed);
+use Try::Tiny;
 
 use Moo::Role;
 
@@ -45,6 +46,8 @@ sub handle_request_params {
 
     my %queue;
     for my $param ($self->param) {
+        next if $param eq ""; # ignore empty parameters
+
         my @v = $self->param($param);
         # XXX we don't handle multiple params which appear more than once
         die "Multiple $param parameters are not supported\n" if @v > 1;
@@ -116,28 +119,39 @@ sub _handle_me_param {
 sub _handle_prefetch_param {
     my ($self, $value) = @_;
 
-    my %prefetch = map { $_ => {} } split(',', $value||"");
+    my %prefetch = (ref $value)
+        ? %$value # eg &prefetch.json={...}
+        : map { $_ => {} } split(',', $value||"");
     return unless %prefetch;
 
     my $result_class = $self->set->result_class;
+    my @errors;
     for my $prefetch (keys %prefetch) {
 
         next if $prefetch eq 'self'; # used in POST/PUT handling
 
-        my $rel = $result_class->relationship_info($prefetch);
-
-        # limit to simple single/filter relationships, e.g., belongs_to
-        $self->throwable->throw_bad_request(400, errors => [{
-                    $prefetch => "not a valid relationship",
-                    _meta => {
-                        relationship => $rel,
-                        relationships => [ $result_class->relationships ]
-                    }, # XXX
-                }])
-            unless $rel
-                and $rel->{attrs}{accessor} =~ m/^(?:single|filter)$/ # sanity
-                and $rel->{attrs}{is_foreign_key_constraint};     # safety/speed
+        my $rel;
+        try {
+            $rel = $result_class->relationship_info($prefetch);
+            local $SIG{__DIE__}; # avoid strack trace from these dies:
+            die "no relationship with that name"
+                if not $rel;
+            die "relationship is $rel->{attrs}{accessor} but only single and filter are supported\n"
+                if not $rel->{attrs}{accessor} =~ m/^(?:single|filter)$/ # sanity
+        }
+        catch {
+            push @errors, {
+                $prefetch => $_,
+                _meta => {
+                    relationship => $rel,
+                    relationships => [ $result_class->relationships ]
+                }, # XXX
+            };
+        }
     }
+
+    $self->throwable->throw_bad_request(400, errors => \@errors)
+        if @errors;
 
     # XXX hack?: perhaps use {embedded}{$key} = sub { ... };
     # see lib/WebAPI/DBIC/Resource/Role/DBIC.pm
