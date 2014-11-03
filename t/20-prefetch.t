@@ -57,17 +57,70 @@ test "===== Prefetch =====" => sub {
         }
     };
 
+    # Only handle filter of the SET based on the PREFETCH. DBIC won't allow filtering of the PREFETCH on an ITEM
+    # as the WHERE clause is added to the whole select statement. IF custom where clauses are needed on the right
+    # hand side of the join then these should be implemented as custom relationships
+    # https://metacpan.org/pod/DBIx::Class::ResultSet#PREFETCHING
+
+    # Should only return CDs whose artist is Caterwauler McCrae
+    # CD->search({artist.name => 'Caterwauler McCrae']}, {prefetch => 'artist'})
+    note "filter on prefetch with string";
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq( GET => "/cd?prefetch=artist&artist.name='Caterwauler McCrae'")));
+        my $set = is_set_with_embedded_key($data, "cd", 3, 3);
+        for my $item (@$set) {
+            my $embedded = has_embedded($item, 1, 1);
+            is ref $embedded->{artist}, 'HASH', "has embedded artist";
+            is $embedded->{artist}{name}, 'Caterwauler McCrae', 'artist has the correct name';
+        }
+    };
+
+    # Should return the all CDs whose artist name ends wth McCrae
+    # CD->search({artist.name => {'LIKE' => '%McCrae'}}, {prefetch => 'artist'})
+    note "filter on prefetch with JSON";
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq( GET => "/cd?prefetch=artist&artist.name~json=\"{'like':'%McCrae'}\"")));
+        my $set = is_set_with_embedded_key($data, "cd", 3, 3);
+        for my $item (@$set) {
+            my $embedded = has_embedded($item, 1, 1);
+            is ref $embedded->{artist}, 'HASH', "has embessed artist";
+            like $embedded->{artist}{name}, /McCrae$/, 'artist has the correct name';
+        }
+    };
+
+    # Return all artists who have a CD created after 1997 who's producer is Matt S Trout
+    # Artist->search({cds.year => ['>', '1997'], producers.name => 'Matt S Trout'}, {prefetch => [{cds => producers}]})
+    note "filter on nested prefetch";
+    test_psgi $app, sub {
+        my $data = dsresp_ok(
+            shift->(
+                dsreq( GET => "/artist?&prefetch=cds,cds.producers&cds.year~json=\"{'>':'1997'}\"&producers.name='Matt S Trout'")
+            )
+        );
+        my $set = is_set_with_embedded_key($data, "artist", 1, 1);
+        for my $item (@$set) {
+            my $embedded = has_embedded($item, 2, 2);
+            is ref $embedded->{cds}, 'ARRAY', "has embedded cds";
+            for my $cd (@{$embedded->{cds}}){
+                cmp_ok $cd->{year}, '>', '1997', 'CD year after 1997';
+            }
+            is ref $embedded->{producers}, 'ARRAY', "has embedded producers";
+            for my $producer (@{$embedded->{producers}}){
+                is $producer->{name} => 'Matt S Trout', 'has correct producer';
+            }
+        }
+    };
+
     note "prefetch with query on ambiguous field";
     # just check that a 'artist is ambiguous' error isn't generated
     test_psgi $app, sub {
-        dsresp_ok(shift->(dsreq( GET => "/cd?me.artist=1&prefetch=artist" )));
+        dsresp_ok(shift->(dsreq( GET => "/cd/?me.artist=1&prefetch=artist" )));
     };
 
     note "prefetch on invalid name";
     test_psgi $app, sub {
         my $data = dsresp_ok(shift->(dsreq( GET => "/cd/1?prefetch=nonesuch" )), 400);
     };
-
 
     TODO: {
     local $TODO = "partial response of prefetched items is not implemented yet";
