@@ -55,6 +55,7 @@ sub dsreq {
     }
     note("$method $uri");
     my $req = HTTP::Request->new($method => $uri, $headers, $content);
+    note $req->as_string if $ENV{WEBAPI_DBIC_DEBUG};
     return $req;
 }
 
