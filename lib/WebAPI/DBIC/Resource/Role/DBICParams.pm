@@ -52,29 +52,30 @@ sub handle_request_params {
         # XXX we don't handle multiple params which appear more than once
         die "Multiple $param parameters are not supported\n" if @v > 1;
 
-        (my $basename = $param) =~ s/\..*//; # 'me.id' => 'me'
+        # parameters with names containing a '.' are assumed to be search criteria
+        # this covers both 'me.field=foo' and 'relname.field=bar'
+        if ($param =~ /^\w+\.\w+/) {
+            $param =~ s/^me\.(\w+\.\w+)/$1/; # handle deprecated 'me.relname.fieldname' form
+            $queue{search_criteria}->{$param} = $v[0];
+            next;
+        }
+        die "Explicit search_criteria param not allowed"
+            if $param eq 'search_criteria';
 
-        push @{ $queue{$basename} }, [ $param, $v[0] ];
-
+        $queue{$param} = $v[0];
     }
 
     # call handlers in desired order, then any remaining ones
     my %done;
-    for my $basename ($self->get_param_order, keys %queue) {
-        next if $done{$basename}++;
+    for my $param ($self->get_param_order, keys %queue) {
+        next if $done{$param}++;
+        my $value = delete $queue{$param};
 
-        my $specs = $queue{$basename} || [ [ $basename, undef ] ];
-        for my $spec (@$specs) {
-            my ($param, $value) = @$spec;
-
-            my $method = "_handle_${basename}_param";
-            unless ($self->can($method)) {
-                my $dym = "";
-                $dym = " (did you mean me.$param?)" if $param =~ m/./;
-                die "The $param parameter is not supported by the $self resource$dym\n";
-            }
-            $self->$method($value, $param);
+        my $method = "_handle_${param}_param";
+        unless ($self->can($method)) {
+            die "The $param parameter is not supported by the $self resource\n";
         }
+        $self->$method($value, $param);
     }
 
     return 0;
@@ -105,13 +106,9 @@ sub _handle_with_param { }
 sub _handle_rollback_param { }
 
 
-sub _handle_me_param {
-    my ($self, $value, $param) = @_;
-    # we use me.relation.field=... to refer to relations via this param
-    # so the param can be recognized by the leading 'me.'
-    # but we strip off the leading 'me.' if there's a me.foo.bar
-    $param =~ s/^me\.//x if $param =~ m/^me\.\w+\.\w+/x;
-    $self->set( $self->set->search_rs({ $param => $value }) );
+sub _handle_search_criteria_param {
+    my ($self, $value) = @_;
+    $self->set( $self->set->search_rs($value) );
     return;
 }
 

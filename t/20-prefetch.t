@@ -66,7 +66,7 @@ test "===== Prefetch =====" => sub {
     # CD->search({artist.name => 'Caterwauler McCrae']}, {prefetch => 'artist'})
     note "filter on prefetch with string";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/cd?prefetch=artist&me.artist.name=Caterwauler+McCrae")));
+        my $data = dsresp_ok(shift->(dsreq( GET => "/cd?prefetch=artist&artist.name=Caterwauler+McCrae")));
         my $set = is_set_with_embedded_key($data, "cd", 3, 3);
         for my $item (@$set) {
             my $embedded = has_embedded($item, 1, 1);
@@ -79,7 +79,7 @@ test "===== Prefetch =====" => sub {
     # CD->search({artist.name => {'LIKE' => '%McCrae'}}, {prefetch => 'artist'})
     note "filter on prefetch with JSON";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => '/cd?prefetch=artist&me.artist.name~json={"like":"%McCrae"}')));
+        my $data = dsresp_ok(shift->(dsreq( GET => '/cd?prefetch=artist&artist.name~json={"like":"%McCrae"}')));
         my $set = is_set_with_embedded_key($data, "cd", 3, 3);
         for my $item (@$set) {
             my $embedded = has_embedded($item, 1, 1);
@@ -96,7 +96,7 @@ test "===== Prefetch =====" => sub {
     test_psgi $app, sub {
         my $data = dsresp_ok(
             shift->(
-                dsreq( GET => '/artist?prefetch~json={"cds":"producers"}&me.cds.year~json={">":"1997"}&me.producers.name=Matt+S+Trout')
+                dsreq( GET => '/artist?prefetch~json={"cds":"producers"}&cds.year~json={">":"1997"}&producers.name=Matt+S+Trout')
             )
         );
         my $set = is_set_with_embedded_key($data, "artist", 1, 1);
