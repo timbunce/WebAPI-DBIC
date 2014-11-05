@@ -14,6 +14,7 @@ with    'WebAPI::DBIC::Resource::Role::SetRender',
         'WebAPI::DBIC::Resource::Role::Set',
         'WebAPI::DBIC::Resource::Role::SetHAL',
         'WebAPI::DBIC::Resource::Role::SetWritable',
+        'WebAPI::DBIC::Resource::Role::SetWritableHAL',
         ;
 
 1;
