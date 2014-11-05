@@ -9,20 +9,19 @@ requires 'Module::Runtime';
 requires 'Moo', '1.001000';
 requires 'namespace::clean';
 requires 'parent';
-requires 'Path::Router';
-requires 'Plack';
+requires 'Path::Router', '0.13';
+requires 'Plack', '1.0033';
 requires 'Plack::App::File';
-requires 'Plack::App::Path::Router';
+requires 'Plack::App::Path::Router', '0.06';
 requires 'Scalar::Util';
 requires 'Sub::Exporter';
 requires 'Sub::Quote';
 requires 'Try::Tiny';
 requires 'URI';
-requires 'Web::Machine';
+requires 'Web::Machine', '0.15';
 requires 'Data::Dumper::Concise'; # for Dwarn
 
 on test => sub {
-   requires 'DBIx::Class';
    requires 'Module::Pluggable';
    requires 'Sort::Key';
    requires 'Test::DBIx::Class';
