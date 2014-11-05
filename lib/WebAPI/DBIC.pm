@@ -141,10 +141,6 @@ L<WebAPI::DBIC::Resource::Role::DBIC> is responsible for interfacing with
 L<DBIx::Class>, 'rendering' individual records as resource data structures.
 It also interfaces with Path::Router to handle relationship linking.
 
-L<WebAPI::DBIC::Resource::Role::SetRender> is responsible for rendering an
-entire result set as either plain JSON or JSON+HAL by iterating over the
-individual items. For JSON+HAL it adds the paging links.
-
 L<WebAPI::DBIC::Resource::Role::Set> is responsible for accepting GET and HEAD
 requests for set resources (collections) and returning the results as JSON or JSON+HAL.
 
@@ -225,8 +221,7 @@ and L<WebAPI::DBIC::Resource::GenericItem>:
     package WebAPI::DBIC::Resource::GenericSet;
     use Moo;
     extends 'WebAPI::DBIC::Resource::GenericCore';
-    with    'WebAPI::DBIC::Resource::Role::SetRender',
-            'WebAPI::DBIC::Resource::Role::Set',
+    with    'WebAPI::DBIC::Resource::Role::Set',
             'WebAPI::DBIC::Resource::Role::SetWritable',
             ;
     1;

@@ -17,7 +17,7 @@ use Moo::Role;
 
 
 requires 'encode_json';
-requires 'render_set_as_plain';
+requires 'render_item_as_plain_hash';
 
 
 has content_types_provided => (
@@ -31,5 +31,14 @@ sub _build_content_types_provided {
 sub to_plain_json { return $_[0]->encode_json($_[0]->render_set_as_plain($_[0]->set)) }
 
 sub allowed_methods { return [ qw(GET HEAD) ] }
+
+# Avoid complaints about $set:
+## no critic (NamingConventions::ProhibitAmbiguousNames)
+
+sub render_set_as_plain {
+    my ($self, $set) = @_;
+    my $set_data = [ map { $self->render_item_as_plain_hash($_) } $set->all ];
+    return $set_data;
+}
 
 1;
