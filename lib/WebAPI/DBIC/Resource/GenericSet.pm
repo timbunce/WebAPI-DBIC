@@ -12,6 +12,7 @@ use namespace::clean;
 extends 'WebAPI::DBIC::Resource::GenericCore';
 with    'WebAPI::DBIC::Resource::Role::SetRender',
         'WebAPI::DBIC::Resource::Role::Set',
+        'WebAPI::DBIC::Resource::Role::SetHAL',
         'WebAPI::DBIC::Resource::Role::SetWritable',
         ;
 
