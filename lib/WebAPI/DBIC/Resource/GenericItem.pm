@@ -11,8 +11,10 @@ use namespace::clean;
 
 extends 'WebAPI::DBIC::Resource::GenericCore';
 with    'WebAPI::DBIC::Resource::Role::Item',
-        'WebAPI::DBIC::Resource::Role::ItemHAL',
         'WebAPI::DBIC::Resource::Role::ItemWritable',
+        # Enable HAL support:
+        'WebAPI::DBIC::Resource::Role::DBIC_HAL',
+        'WebAPI::DBIC::Resource::Role::ItemHAL',
         'WebAPI::DBIC::Resource::Role::ItemWritableHAL',
         ;
 

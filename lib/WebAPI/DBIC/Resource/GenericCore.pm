@@ -16,7 +16,6 @@ with    'WebAPI::DBIC::Role::JsonEncoder',
         'WebAPI::DBIC::Resource::Role::Identity',
         'WebAPI::DBIC::Resource::Role::Relationship',
         'WebAPI::DBIC::Resource::Role::DBIC',
-        'WebAPI::DBIC::Resource::Role::DBIC_HAL', # XXX move out?
         'WebAPI::DBIC::Resource::Role::DBICException',
         'WebAPI::DBIC::Resource::Role::DBICAuth',
         'WebAPI::DBIC::Resource::Role::DBICParams',
