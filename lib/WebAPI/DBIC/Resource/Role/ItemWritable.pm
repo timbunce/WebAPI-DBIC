@@ -34,10 +34,13 @@ has _pre_update_resource_method => (
     is => 'rw',
 );
 
+has content_types_accepted => (
+    is => 'lazy',
+);
 
-sub content_types_accepted { return [
-    {'application/json'     => 'from_plain_json'}
-] }
+sub _build_content_types_accepted {
+    return [ {'application/json' => 'from_plain_json'} ]
+}
 
 
 sub from_plain_json {

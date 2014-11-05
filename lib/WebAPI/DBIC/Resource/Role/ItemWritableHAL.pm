@@ -2,7 +2,7 @@ package WebAPI::DBIC::Resource::Role::ItemWritableHAL;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::Role::ItemWritable - methods handling HAL requests to update item resources
+WebAPI::DBIC::Resource::Role::ItemWritableHAL - methods handling HAL requests to update item resources
 
 =cut
 
@@ -18,13 +18,12 @@ requires 'request';
 requires '_pre_update_resource_method';
 
 
-around 'content_types_accepted' => sub { # XXX change to _builder
+around '_build_content_types_accepted' => sub {
     my $orig = shift;
     my $self = shift;
-    return [
-        {'application/hal+json' => 'from_hal_json'},
-        @{ $self->$orig() }
-    ];
+    my $types = $self->$orig();
+    unshift @$types, { 'application/hal+json' => 'from_hal_json' };
+    return $types;
 };
 
 
