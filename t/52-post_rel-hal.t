@@ -8,6 +8,7 @@ use Devel::Dwarn;
 
 use lib "t/lib";
 use TestDS;
+use TestDS_HAL;
 use WebAPI::DBIC::WebApp;
 
 use Test::Roo;
@@ -42,7 +43,7 @@ test "===== Create item, with embedded items, by POST to set =====" => sub {
     my $item;
 
     test_psgi $app, sub { # create, with embedded, only location returned
-        my $res = shift->(dsreq( POST => "/track?rollback=1", [], $track_with_embedded_cd));
+        my $res = shift->(dsreq_hal( POST => "/track?rollback=1", [], $track_with_embedded_cd));
         my ($location, $data) = dsresp_created_ok($res);
         like $location, qr{^/track/\d+$}, 'returns reasonable Location';
         is $data, undef, 'returns no data'
@@ -52,7 +53,7 @@ test "===== Create item, with embedded items, by POST to set =====" => sub {
 
 
     test_psgi $app, sub { # create, with embedded, return self
-        my $res = shift->(dsreq( POST => "/track?rollback=1&prefetch=self", [], $track_with_embedded_cd));
+        my $res = shift->(dsreq_hal( POST => "/track?rollback=1&prefetch=self", [], $track_with_embedded_cd));
         my ($location, $track) = dsresp_created_ok($res);
         like $location, qr{^/track/\d+$}, 'returns reasonable Location';
 
@@ -67,7 +68,7 @@ test "===== Create item, with embedded items, by POST to set =====" => sub {
 
 
     test_psgi $app, sub { # create, with embedded, return self and disc
-        my $res = shift->(dsreq( POST => "/track?rollback=1&prefetch=self,disc", [], $track_with_embedded_cd));
+        my $res = shift->(dsreq_hal( POST => "/track?rollback=1&prefetch=self,disc", [], $track_with_embedded_cd));
         my ($location, $track) = dsresp_created_ok($res);
         like $location, qr{^/track/\d+$}, 'returns reasonable Location';
 

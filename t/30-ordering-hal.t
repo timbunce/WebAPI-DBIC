@@ -10,6 +10,7 @@ use Devel::Dwarn;
 
 use lib "t/lib";
 use TestDS;
+use TestDS_HAL;
 use WebAPI::DBIC::WebApp;
 
 use Test::Roo;
@@ -61,8 +62,9 @@ test "===== Ordering =====" => sub {
     my @cds;
 
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.cdid" )));
-        my $set = is_set_with_embedded_key($data, "cd", 2);
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "$base&order=me.cdid" )));
+        my $set = has_hal_embedded_list($data, "cd", 2)
+            or return;
         @cds = @$set;
         %cds = map { $_->{cdid} => $_ } @cds;
         is ref $cds{$_}, "HASH", "/cd includes $_"
@@ -71,15 +73,15 @@ test "===== Ordering =====" => sub {
     };
 
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.cdid%20desc" )));
-        my $set = is_set_with_embedded_key($data, "cd", 2);
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "$base&order=me.cdid%20desc" )));
+        my $set = has_hal_embedded_list($data, "cd", 2);
         is_deeply $set, [ reverse @cds], 'reversed';
         is_ordered($set, sub { $_->{cdid} }, '-int');
     };
 
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.title%20desc,cdid%20desc" )));
-        my $set = is_set_with_embedded_key($data, "cd", 2);
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "$base&order=me.title%20desc,cdid%20desc" )));
+        my $set = has_hal_embedded_list($data, "cd", 2);
         cmp_deeply $set, bag(@cds), 'same set of rows returned';
         ok not eq_deeply $set, \@cds, 'order has changed from original';
         # XXX the s/\./~/g is a hack to workaround an apparent difference between
@@ -89,8 +91,8 @@ test "===== Ordering =====" => sub {
     };
 
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "$base&order=me.title,cdid%20asc" )));
-        my $set = is_set_with_embedded_key($data, "cd", 2);
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "$base&order=me.title,cdid%20asc" )));
+        my $set = has_hal_embedded_list($data, "cd", 2);
         cmp_deeply $set, bag(@cds), 'same set of rows returned';
         ok not eq_deeply $set, \@cds, 'order has changed from original';
         is_ordered($set, sub { return hack_str($_->{title}), $_->{cdid} }, 'str', 'int');
@@ -100,15 +102,15 @@ test "===== Ordering =====" => sub {
 
     test_psgi $app, sub {
         # the extra me.* param is to make this query be less expensive on our data set
-        my $data = dsresp_ok(shift->(dsreq( GET => "/cd?prefetch=artist&order=artist.name" )));
-        my $set = is_set_with_embedded_key($data, "cd", 2);
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd?prefetch=artist&order=artist.name" )));
+        my $set = has_hal_embedded_list($data, "cd", 2);
         is_ordered($set, sub { hack_str($_->{_embedded}{artist}{name}) }, 'str');
     };
 
     test_psgi $app, sub {
         # the extra me.* param is to make this query be less expensive
-        my $data = dsresp_ok(shift->(dsreq( GET => "/cd?prefetch=artist,genre&order=genre.name%20desc,artist.name%20asc" )));
-        my $set = is_set_with_embedded_key($data, "cd", 2);
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd?prefetch=artist,genre&order=genre.name%20desc,artist.name%20asc" )));
+        my $set = has_hal_embedded_list($data, "cd", 2);
         cmp_ok scalar @$set, '>=', 5, 'matched sufficient records';
         is_ordered($set, sub { lc $_->{_embedded}{genre}{name}, lc $_->{_embedded}{artist}{name} }, '-str', 'str');
     };

@@ -470,6 +470,8 @@ Here the _embedded person is a resource, not an array of resources, because the
 relationship is 1-1. For 1-N relationships the value of the _embedded key would
 be an array that contains the relevant resource records.
 
+Only works for response types that support embedded data, e.g, C<application/hal+json>.
+
 =head3 fields
 
 Partial responses:

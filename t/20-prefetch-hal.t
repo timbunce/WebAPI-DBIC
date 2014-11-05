@@ -8,6 +8,7 @@ use Devel::Dwarn;
 
 use lib "t/lib";
 use TestDS;
+use TestDS_HAL;
 use WebAPI::DBIC::WebApp;
 
 use Test::Roo;
@@ -35,9 +36,9 @@ test "===== Prefetch =====" => sub {
 
     note "prefetch on item";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/cd/1?prefetch=artist,genre" )));
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd/1?prefetch=artist,genre" )));
         my $item = is_item($data, 1,1);
-        my $embedded = has_embedded($data, 2,2);
+        my $embedded = has_hal_embedded($data, 2,2);
         is ref $embedded->{genre}, 'HASH', "has embedded genreid";
         is $embedded->{genre}{genreid}, $data->{genreid}, 'genreid matches';
         is ref $embedded->{artist}, 'HASH', "has embedded artistid";
@@ -46,10 +47,10 @@ test "===== Prefetch =====" => sub {
 
     note "prefetch on set";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/cd?rows=2&page=1&prefetch=artist,genre" )));
-        my $set = is_set_with_embedded_key($data, "cd", 2,2);
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd?rows=2&page=1&prefetch=artist,genre" )));
+        my $set = has_hal_embedded_list($data, "cd", 2,2);
         for my $item (@$set) {
-            my $embedded = has_embedded($item, 2,2);
+            my $embedded = has_hal_embedded($item, 2,2);
             is ref $embedded->{genre}, 'HASH', "has embedded genreid";
             is $embedded->{genre}{genreid}, $item->{genreid}, 'genreid matches';
             is ref $embedded->{artist}, 'HASH', "has embedded person_id";
@@ -66,10 +67,10 @@ test "===== Prefetch =====" => sub {
     # CD->search({artist.name => 'Caterwauler McCrae']}, {prefetch => 'artist'})
     note "filter on prefetch with string";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/cd?prefetch=artist&artist.name=Caterwauler+McCrae")));
-        my $set = is_set_with_embedded_key($data, "cd", 3, 3);
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd?prefetch=artist&artist.name=Caterwauler+McCrae")));
+        my $set = has_hal_embedded_list($data, "cd", 3, 3);
         for my $item (@$set) {
-            my $embedded = has_embedded($item, 1, 1);
+            my $embedded = has_hal_embedded($item, 1, 1);
             is ref $embedded->{artist}, 'HASH', "has embedded artist";
             is $embedded->{artist}{name}, 'Caterwauler McCrae', 'artist has the correct name';
         }
@@ -79,10 +80,10 @@ test "===== Prefetch =====" => sub {
     # CD->search({artist.name => {'LIKE' => '%McCrae'}}, {prefetch => 'artist'})
     note "filter on prefetch with JSON";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => '/cd?prefetch=artist&artist.name~json={"like":"%McCrae"}')));
-        my $set = is_set_with_embedded_key($data, "cd", 3, 3);
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => '/cd?prefetch=artist&artist.name~json={"like":"%McCrae"}')));
+        my $set = has_hal_embedded_list($data, "cd", 3, 3);
         for my $item (@$set) {
-            my $embedded = has_embedded($item, 1, 1);
+            my $embedded = has_hal_embedded($item, 1, 1);
             is ref $embedded->{artist}, 'HASH', "has embessed artist";
             like $embedded->{artist}{name}, qr/McCrae$/, 'artist has the correct name';
         }
@@ -96,12 +97,12 @@ test "===== Prefetch =====" => sub {
     test_psgi $app, sub {
         my $data = dsresp_ok(
             shift->(
-                dsreq( GET => '/artist?prefetch~json={"cds":"producers"}&cds.year~json={">":"1997"}&producers.name=Matt+S+Trout')
+                dsreq_hal( GET => '/artist?prefetch~json={"cds":"producers"}&cds.year~json={">":"1997"}&producers.name=Matt+S+Trout')
             )
         );
-        my $set = is_set_with_embedded_key($data, "artist", 1, 1);
+        my $set = has_hal_embedded_list($data, "artist", 1, 1);
         for my $item (@$set) {
-            my $embedded = has_embedded($item, 2, 2);
+            my $embedded = has_hal_embedded($item, 2, 2);
             is ref $embedded->{cds}, 'ARRAY', "has embedded cds";
             for my $cd (@{$embedded->{cds}}){
                 cmp_ok $cd->{year}, '>', '1997', 'CD year after 1997';
@@ -117,12 +118,12 @@ test "===== Prefetch =====" => sub {
     note "prefetch with query on ambiguous field";
     # just check that a 'artist is ambiguous' error isn't generated
     test_psgi $app, sub {
-        dsresp_ok(shift->(dsreq( GET => "/cd/?me.artist=1&prefetch=artist" )));
+        dsresp_ok(shift->(dsreq_hal( GET => "/cd/?me.artist=1&prefetch=artist" )));
     };
 
     note "prefetch on invalid name";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/cd/1?prefetch=nonesuch" )), 400);
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd/1?prefetch=nonesuch" )), 400);
     };
 
     TODO: {
@@ -130,9 +131,9 @@ test "===== Prefetch =====" => sub {
 
     note "prefetch on item with partial response of prefetched item";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/cd/1?prefetch=artist,genre&fields=cdid,artist.artistid,genre.genreid" )));
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd/1?prefetch=artist,genre&fields=cdid,artist.artistid,genre.genreid" )));
         my $item = is_item($data, 1,1);
-        my $embedded = has_embedded($data, 2,2);
+        my $embedded = has_hal_embedded($data, 2,2);
         is ref $embedded->{genre}, 'HASH', "has embedded genreid";
         is $embedded->{genre}{genreid}, $data->{genreid}, 'genreid matches';
         is ref $embedded->{artist}, 'HASH', "has embedded artistid";
@@ -144,10 +145,10 @@ test "===== Prefetch =====" => sub {
 
     note "prefetch on set with partial response of prefetched items";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/cd?rows=2&page=1&prefetch=artist,genre&fields=id,genre.genreid,artist.artistid" )));
-        my $set = is_set_with_embedded_key($data, "cd", 2,2);
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd?rows=2&page=1&prefetch=artist,genre&fields=id,genre.genreid,artist.artistid" )));
+        my $set = has_hal_embedded_list($data, "cd", 2,2);
         for my $item (@$set) {
-            my $embedded = has_embedded($item, 2,2);
+            my $embedded = has_hal_embedded($item, 2,2);
             is ref $embedded->{genre}, 'HASH', "has embedded genreid";
             is $embedded->{genre}{id}, $item->{genreid}, 'genreid matches';
             is ref $embedded->{artist}, 'HASH', "has embedded artistid";

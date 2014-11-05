@@ -8,6 +8,7 @@ use Devel::Dwarn;
 
 use lib "t/lib";
 use TestDS;
+use TestDS_HAL;
 use WebAPI::DBIC::WebApp;
 
 use Test::Roo;
@@ -37,8 +38,8 @@ test "===== Create - POST =====" => sub {
     my $name = 'The Object-Relational Rapper';
 
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/artist" )));
-        my $set = is_set_with_embedded_key($data, "artist", 2);
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/artist" )));
+        my $set = has_hal_embedded_list($data, "artist", 2);
         %artists = map { $_->{artistid} => $_ } @$set;
         is ref $artists{$_}, "HASH", "/artist includes $_"
             for (1..3);
@@ -48,7 +49,7 @@ test "===== Create - POST =====" => sub {
     note "plain post";
     test_psgi $app, sub {
         my ($new_name, $rank) = qw(Funkicide 45);
-        my $res = shift->(dsreq( POST => "/artist", [], {
+        my $res = shift->(dsreq_hal( POST => "/artist", [], {
             name => $new_name, rank => $rank,
         }));
         my ($location, $data) = dsresp_created_ok($res);
@@ -67,7 +68,7 @@ test "===== Create - POST =====" => sub {
     note "post with prefetch=self";
     test_psgi $app, sub {
         my $rank = 12;
-        my $res = shift->(dsreq( POST => "/artist?prefetch=self", [], {
+        my $res = shift->(dsreq_hal( POST => "/artist?prefetch=self", [], {
             name => $name, rank => $rank,
         }));
         my ($location, $data) = dsresp_created_ok($res);
@@ -78,6 +79,7 @@ test "===== Create - POST =====" => sub {
         is $item->{name}, $name;
         is $item->{rank}, $rank;
 
+        delete $data->{_links};
         eq_or_diff $data, $item, 'returned prefetch matches item at location';
         push @new_ids, $item->{artistid};
     };
@@ -88,7 +90,7 @@ test "===== Create - POST =====" => sub {
     note "put without prefetch=self";
     test_psgi $app, sub {
         my $rank = 14;
-        my $data = dsresp_ok(shift->(dsreq( PUT => "/artist/$item->{artistid}", [], {
+        my $data = dsresp_ok(shift->(dsreq_hal( PUT => "/artist/$item->{artistid}", [], {
             rank => $rank,
         })), 204);
         is $data, undef, 'no response body';
@@ -99,13 +101,15 @@ test "===== Create - POST =====" => sub {
     note "put with prefetch=self";
     test_psgi $app, sub {
         my $rank = 72;
-        my $data = dsresp_ok(shift->(dsreq( PUT => "/artist/$item->{artistid}?prefetch=self", [], {
+        my $data = dsresp_ok(shift->(dsreq_hal( PUT => "/artist/$item->{artistid}?prefetch=self", [], {
             rank => $rank,
         })), 200);
         is ref $data, 'HASH', 'has response body';
         is $data->{rank}, $rank, 'prefetch response has updated rank';
 
         $item = get_data($app, "/artist/$item->{artistid}");
+
+        delete $data->{_links};
         eq_or_diff $data, $item, 'returned prefetch matches item at location';
     };
 
@@ -114,11 +118,11 @@ test "===== Create - POST =====" => sub {
 
     for my $id (@new_ids) {
         test_psgi $app, sub {
-            my $data = dsresp_ok(shift->(dsreq( DELETE => "/artist/$id", [], {})), 204);
+            my $data = dsresp_ok(shift->(dsreq_hal( DELETE => "/artist/$id", [], {})), 204);
             is $data, undef, 'no response body';
         };
         test_psgi $app, sub {
-            dsresp_ok(shift->(dsreq( GET => "/person_types/$id", [], {})), 404);
+            dsresp_ok(shift->(dsreq_hal( GET => "/person_types/$id", [], {})), 404);
         };
     }
 };

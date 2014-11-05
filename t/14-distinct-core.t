@@ -30,12 +30,9 @@ test "===== GET distinct =====" => sub {
 
 
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/cd?fields=year&order=year&distinct=1" )));
-        my $set = is_set_with_embedded_key($data, "cd", 4, 4);
-        for my $item (@$set) {
-            is keys %$item, 1, 'has one element';
-            ok exists $item->{year}, 'has status element';
-        }
+        my $resp = shift->(dsreq( GET => "/cd?fields=year&order=year&distinct=1" ));
+        my $data = dsresp_ok($resp);
+        cmp_deeply($data, [ { year => 1997 }, { year => 1998 }, { year => 1999 }, { year => 2001 } ]);
     };
 
 };

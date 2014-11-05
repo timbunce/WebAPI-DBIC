@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+package TestDS;
 
 use Test::Most;
 use Plack::Test;
@@ -13,16 +13,18 @@ use parent 'Exporter';
 
 our @EXPORT = qw(
     url_query
-    dsreq dsresp_json_data dsresp_ok
-    is_set_with_embedded_key is_item
+    dsreq dsresp_json_data dsresp_ok dsresp_created_ok
     get_data
+    is_item
 );
+
 
 $Carp::Verbose = 1;
 
 $ENV{PLACK_ENV} ||= 'development'; # ensure env var is set
 
 $| = 1;
+
 
 sub _get_authorization_user_pass {
     return( $ENV{DBI_USER}||"", $ENV{DBI_PASS}||"" );
@@ -44,10 +46,12 @@ sub dsreq {
     my ($method, $uri, $headers, $data) = @_;
 
     $headers = HTTP::Headers->new(@{$headers||[]});
-    $headers->init_header('Content-Type' => 'application/hal+json');
-    $headers->init_header('Accept' => 'application/hal+json,application/json');
+    $headers->init_header('Content-Type' => 'application/json')
+        unless $headers->header('Content-Type');
+    $headers->init_header('Accept' => 'application/json')
+        unless $headers->header('Accept');
     $headers->authorization_basic(_get_authorization_user_pass())
-        if not $headers->header('Authorization');
+        unless $headers->header('Authorization');
 
     my $content;
     if ($data) {
@@ -94,19 +98,16 @@ sub dsresp_created_ok {
     return ($location, $data);
 }
 
-sub is_set_with_embedded_key {
-    my ($data, $key, $min, $max) = @_;
+
+sub is_error {
+    my ($data, $attributes) = @_;
     local $Test::Builder::Level = $Test::Builder::Level + 1;
-    is ref $data->{_embedded}, "HASH", 'has _embedded hash';
-    my $set = $data->{_embedded}{$key};
-    if (is ref $set, "ARRAY", "_embedded has $key") {
-        cmp_ok scalar @$set, '>=', $min, "set has at least $min items"
-            if defined $min;
-        cmp_ok scalar @$set, '<=', $max, "set has at most $max items"
-            if defined $max;
-    }
-    return $set;
+    is ref $data, 'HASH', "data isn't a hash";
+    cmp_ok scalar keys %$data, '>=', $attributes, "set has less than $attributes attributes"
+        if defined $attributes;
+    return $data;
 }
+
 
 sub is_item {
     my ($data, $attributes) = @_;
@@ -117,27 +118,6 @@ sub is_item {
     return $data;
 }
 
-sub has_embedded {
-    my ($data, $min, $max) = @_;
-    local $Test::Builder::Level = $Test::Builder::Level + 1;
-    is ref $data, 'HASH', "data isn't a hash";
-    is ref $data->{_embedded}, 'HASH', "_embedded isn't hash" or diag $data;
-    my $e = $data->{_embedded};
-    cmp_ok scalar keys %$e, '>=', $min, "set has less than $min attributes"
-        if $min;
-    cmp_ok scalar keys %$e, '<=', $max, "set has more than $max attributes"
-        if $max;
-    return $e;
-}
-
-sub is_error {
-    my ($data, $attributes) = @_;
-    local $Test::Builder::Level = $Test::Builder::Level + 1;
-    is ref $data, 'HASH', "data isn't a hash";
-    cmp_ok scalar keys %$data, '>=', $attributes, "set has less than $attributes attributes"
-        if defined $attributes;
-    return $data;
-}
 
 sub get_data {
     my ($app, $url) = @_;

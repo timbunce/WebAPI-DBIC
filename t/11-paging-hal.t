@@ -10,6 +10,7 @@ use Devel::Dwarn;
 
 use lib "t/lib";
 use TestDS;
+use TestDS_HAL;
 use WebAPI::DBIC::WebApp;
 
 use Test::Roo;
@@ -34,8 +35,8 @@ test "===== Paging =====" => sub {
     my %artist;
 
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/artist" )));
-        my $set = is_set_with_embedded_key($data, "artist", 2);
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/artist" )));
+        my $set = has_hal_embedded_list($data, "artist", 2);
         %artist = map { $_->{artistid} => $_ } @$set;
         is ref $artist{$_}, "HASH", "/artist includes $_"
             for (1..3);
@@ -45,8 +46,9 @@ test "===== Paging =====" => sub {
     for my $rows_param (1,2,3) {
         note "rows $rows_param, page 1 implied";
         test_psgi $app, sub {
-            my $data = dsresp_ok(shift->(dsreq( GET => "/artist?rows=$rows_param" )));
-            my $set = is_set_with_embedded_key($data, "artist", $rows_param, $rows_param);
+            my $data = dsresp_ok(shift->(dsreq_hal( GET => "/artist?rows=$rows_param" )));
+            my $set = has_hal_embedded_list($data, "artist", $rows_param, $rows_param)
+                or return;
 
             eq_or_diff $set->[$_], $artist{$_+1}, 'record matches'
                 for 0..$rows_param-1;
@@ -68,8 +70,9 @@ test "===== Paging =====" => sub {
                 $url .= "&with=count" if $with_count;
                 $url .= "&page=$page";
 
-                my $data = dsresp_ok(shift->(dsreq( GET => $url )));
-                my $set = is_set_with_embedded_key($data, "artist", 2, 2);
+                my $data = dsresp_ok(shift->(dsreq_hal( GET => $url )));
+                my $set = has_hal_embedded_list($data, "artist", 2, 2)
+                    or return;
 
                 eq_or_diff $set->[$_], $artist{ (($page-1)*2) + $_ + 1}, 'record matches'
                     for 0..1;
@@ -99,8 +102,9 @@ test "===== Paging =====" => sub {
 
     note "me.* param pass-thru";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/artist?me.artistid=1" )));
-        my $set = is_set_with_embedded_key($data, "artist", 1);
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/artist?me.artistid=1" )));
+        my $set = has_hal_embedded_list($data, "artist", 1)
+            or return;
         ok $data->{_links}{self}{href}, 'has $data->{_links}{self}{href}';
         my $uri = URI->new($data->{_links}{self}{href});
         is $uri->query_param('me.artistid'), 1, 'me.artistid param passed through'

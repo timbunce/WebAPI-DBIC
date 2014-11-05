@@ -33,10 +33,7 @@ test "===== Get with fields param =====" => sub {
 
     test_psgi $app, sub {
         my $data = dsresp_ok(shift->(dsreq( GET => "/artist?fields=artistid,name" )));
-        my $set = is_set_with_embedded_key($data, "artist", 2);
-        %artist = map { $_->{artistid} => $_ } @$set;
-        is ref $artist{$_}, "HASH", "/artist includes $_"
-            for (1..3);
+        %artist = map { $_->{artistid} => $_ } @$data;
         ok $artist{1}{name}, "/artist data looks sane";
         ok !exists $artist{1}{rank}, 'rank fields not preset';
     };

@@ -72,7 +72,8 @@ sub render_item_into_body {
 
     # XXX shouldn't hard-code GenericItem here (should use router?)
     my $item_resource = WebAPI::DBIC::Resource::GenericItem->new(
-        request => $item_request, response => $item_request->new_response,
+        request  => $item_request,
+        response => $item_request->new_response,
         set => $self->set,
         item => $item,
         id => undef, # XXX dummy id
@@ -80,7 +81,17 @@ sub render_item_into_body {
         throwable => $self->throwable,
         #  XXX others? which and why? generalize
     );
-    $self->response->body( $item_resource->to_json_as_hal ); # XXX
+
+    # XXX temporary hack
+    my $body;
+    if ($item_request->headers->header('Accept') =~ /hal\+json/) {
+        $body = $item_resource->to_json_as_hal;
+    }
+    else {
+        $body = $item_resource->to_json_as_plain;
+    }
+
+    $self->response->body($body);
 
     return;
 }

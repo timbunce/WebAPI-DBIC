@@ -8,6 +8,7 @@ use Devel::Dwarn;
 
 use lib "t/lib";
 use TestDS;
+use TestDS_HAL;
 use WebAPI::DBIC::WebApp;
 
 use Test::Roo;
@@ -33,8 +34,8 @@ test "===== Paging =====" => sub {
     my %artists;
 
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/artist" )));
-        my $set = is_set_with_embedded_key($data, "artist", 2);
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/artist" )));
+        my $set = has_hal_embedded_list($data, "artist", 2);
         %artists = map { $_->{artistid} => $_ } @$set;
         is ref $artists{$_}, "HASH", "/artist includes $_"
             for (1..3);
@@ -42,13 +43,13 @@ test "===== Paging =====" => sub {
     };
 
     test_psgi $app, sub {
-        dsresp_ok(shift->(dsreq( GET => "/artist?me.nonesuch=42" )), 400);
+        dsresp_ok(shift->(dsreq_hal( GET => "/artist?me.nonesuch=42" )), 400);
     };
 
     for my $id (2,3) {
         test_psgi $app, sub {
-            my $data = dsresp_ok(shift->(dsreq( GET => "/artist?me.artistid=$id" )));
-            my $set = is_set_with_embedded_key($data, "artist", 1,1);
+            my $data = dsresp_ok(shift->(dsreq_hal( GET => "/artist?me.artistid=$id" )));
+            my $set = has_hal_embedded_list($data, "artist", 1,1);
             eq_or_diff $set->[0], $artists{$id}, 'record matches';
         };
     }
@@ -56,8 +57,8 @@ test "===== Paging =====" => sub {
 
     subtest "search by json array" => sub {
         test_psgi $app, sub {
-            my $data = dsresp_ok(shift->(dsreq( GET => url_query("/artist", "me.artistid~json"=>[1,3]) )));
-            my $set = is_set_with_embedded_key($data, "artist", 2,2);
+            my $data = dsresp_ok(shift->(dsreq_hal( GET => url_query("/artist", "me.artistid~json"=>[1,3]) )));
+            my $set = has_hal_embedded_list($data, "artist", 2,2);
             eq_or_diff $set->[0], $artists{1}, 'record matches';
             eq_or_diff $set->[1], $artists{3}, 'record matches';
         };
@@ -65,8 +66,8 @@ test "===== Paging =====" => sub {
 
     subtest "search by json hash" => sub {
         test_psgi $app, sub {
-            my $data = dsresp_ok(shift->(dsreq( GET => url_query("/artist", "me.artistid~json"=>{ "<=", 2 }) )));
-            my $set = is_set_with_embedded_key($data, "artist", 2,2);
+            my $data = dsresp_ok(shift->(dsreq_hal( GET => url_query("/artist", "me.artistid~json"=>{ "<=", 2 }) )));
+            my $set = has_hal_embedded_list($data, "artist", 2,2);
             eq_or_diff $set->[0], $artists{1}, 'record matches';
             eq_or_diff $set->[1], $artists{2}, 'record matches';
         };
