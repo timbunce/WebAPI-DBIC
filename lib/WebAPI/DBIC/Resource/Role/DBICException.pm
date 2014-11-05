@@ -81,13 +81,15 @@ sub handle_web_machine_exception {
         # create response
         # XXX would be nice to create an exception object that can as_psgi()
         # then reuse the handling of that above
+        # XXX would also be good to adopt a more formal error structure, such as
+        # application/vnd.error+json => https://github.com/blongden/vnd.error
         my $json = JSON->new->ascii->pretty;
         my $response = $self->response;
         $response->status($error_data->{status});
         my $body = $json->encode($error_data);
         $response->body($body);
         $response->content_length(length $body);
-        $response->content_type('application/hal+json');
+        $response->content_type('application/json');
     }
     else {
         warn "Exception: $line1\n"
