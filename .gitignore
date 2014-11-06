@@ -3,3 +3,4 @@ WebAPI-DBIC-*.*.tar*
 temp-test-db
 RA-ChinookDemo/
 *.swp
+.build/
