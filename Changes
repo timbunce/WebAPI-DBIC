@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+  - Major refactoring to separate out HAL support ready for JSON API.
+
 0.001008  2014-11-03 21:05:28+00:00 Europe/Dublin
 
   - Improved error reporting for prefetch attribute.
