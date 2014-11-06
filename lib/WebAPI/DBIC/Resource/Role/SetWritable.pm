@@ -77,7 +77,8 @@ sub create_resource {
     $item->discard_changes();
 
     # called here because create_path() is too late for Web::Machine
-    $self->render_item_into_body($item) if $self->prefetch->{self};
+    $self->render_item_into_body(item => $item)
+        if $self->prefetch->{self};
 
     return $item;
 }

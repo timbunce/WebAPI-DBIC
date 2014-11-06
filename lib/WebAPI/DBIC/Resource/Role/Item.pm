@@ -29,7 +29,7 @@ has id => (         # array of 1 or more key values from url path
 );
 
 has item => (
-   is => 'ro',
+   is => 'rw', # XXX
    lazy => 1,
    builder => '_build_item'
 );

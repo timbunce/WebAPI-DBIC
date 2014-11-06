@@ -64,27 +64,45 @@ sub path_for_item {
 }
 
 
-sub render_item_into_body {
-    my ($self, $item) = @_;
 
-    # XXX ought to be a cloned request, with tweaked url/params?
-    my $item_request = $self->request;
+# used for recursive rendering
+sub web_machine_resource {
+    my ($self, %resource_args) = @_;
 
     # XXX shouldn't hard-code GenericItem here (should use router?)
-    my $item_resource = WebAPI::DBIC::Resource::GenericItem->new(
-        request  => $item_request,
-        response => $item_request->new_response,
-        set => $self->set,
-        item => $item,
-        id => undef, # XXX dummy id
-        prefetch => $self->prefetch,
+    my $resource_class = ($resource_args{item})
+        ? 'WebAPI::DBIC::Resource::GenericItem'
+        : 'WebAPI::DBIC::Resource::GenericSet';
+
+    my $resource = $resource_class->new(
+        request  => $self->request,
+        response => $self->request->new_response,
         throwable => $self->throwable,
+        prefetch  => {}, # don't propagate prefetch by default
+        set => undef,
+        id => undef,
         #  XXX others? which and why? generalize
+        %resource_args
     );
+
+    return $resource;
+}
+
+
+sub render_item_into_body {
+    my ($self, %resource_args) = @_;
+
+    my $item_resource = $self;
+    # if an item has been specified then we assume that it's not $self->item
+    # and probably relates to a different resource, so we create one for it
+    # that doesn't have the request params set, eg prefetch
+    if ($resource_args{item}) {
+        $item_resource = $self->web_machine_resource( %resource_args );
+    }
 
     # XXX temporary hack
     my $body;
-    if ($item_request->headers->header('Accept') =~ /hal\+json/) {
+    if ($self->request->headers->header('Accept') =~ /hal\+json/) {
         $body = $item_resource->to_json_as_hal;
     }
     else {

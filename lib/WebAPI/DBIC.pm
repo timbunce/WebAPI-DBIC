@@ -433,8 +433,6 @@ would include
 
 The "relation" links describe the relationships this resource has with other resources.
 
-Currently only 1-1 relationships (e.g., belongs_to) are and simple 1-N
-(has_many) relationships are supported and get C<_links>.
 Also see L</prefetch>.
 
 
@@ -598,8 +596,8 @@ The me.* parameters are only passed-through in paging links.
 
     ?prefetch=person,client_auth
 
-The resource may have 1-1 relationships with other resources.
-(E.g., a "belongs_to" relationship in DBIx::Class terminology.)
+The resource may have 1-1 and 1-N relationships with other resources.
+(E.g., "belongs_to" and "has_many" relationships in DBIx::Class terminology.)
 
 The relevant instances of related resources can be fetched and returned along
 with the requested resource by listing the relationships in a prefetch parameter.

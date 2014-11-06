@@ -116,14 +116,17 @@ sub _handle_search_criteria_param {
 sub _handle_prefetch_param {
     my ($self, $value) = @_;
 
-    my %prefetch = (ref $value)
-        ? %$value # eg &prefetch.json={...}
-        : map { $_ => {} } split(',', $value||"");
-    return unless %prefetch;
+    # eg &prefetch=foo,bar  or  &prefetch.json={...}
+    my $prefetch = (ref $value)
+        ? $value
+        : { map { $_ => {} } split(',', $value||"") };
+
+    return unless %$prefetch;
 
     my $result_class = $self->set->result_class;
+
     my @errors;
-    for my $prefetch (keys %prefetch) {
+    for my $prefetch (keys %$prefetch) {
 
         next if $prefetch eq 'self'; # used in POST/PUT handling
 
@@ -133,8 +136,8 @@ sub _handle_prefetch_param {
             local $SIG{__DIE__}; # avoid strack trace from these dies:
             die "no relationship with that name"
                 if not $rel;
-            die "relationship is $rel->{attrs}{accessor} but only single and filter are supported\n"
-                if not $rel->{attrs}{accessor} =~ m/^(?:single|filter)$/ # sanity
+            die "relationship is $rel->{attrs}{accessor} but only single, filter and multi are supported\n"
+                if not $rel->{attrs}{accessor} =~ m/^(?:single|filter|multi)$/ # sanity
         }
         catch {
             push @errors, {
@@ -152,11 +155,11 @@ sub _handle_prefetch_param {
 
     # XXX hack?: perhaps use {embedded}{$key} = sub { ... };
     # see lib/WebAPI/DBIC/Resource/Role/DBIC.pm
-    $self->prefetch({ %prefetch });
+    $self->prefetch({ %$prefetch }); # include self, even if deleted below
 
-    delete $prefetch{self};
-    $self->set( $self->set->search_rs(undef, { prefetch => [ keys %prefetch ] }))
-        if %prefetch;
+    delete $prefetch->{self};
+    $self->set( $self->set->search_rs(undef, { prefetch => $prefetch }))
+        if %$prefetch;
 
     return;
 }

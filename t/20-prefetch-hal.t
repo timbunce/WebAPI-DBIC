@@ -89,31 +89,73 @@ test "===== Prefetch =====" => sub {
         }
     };
 
+
+    # Return all artists and all cds
+    # Artist->search({}, {prefetch => 'cds'})
+    note "multi type relation (has_many) in prefetch on set";
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => '/artist?prefetch=cds&rows=2')));
+        my $artists = has_hal_embedded_list($data, 'artist', 2,2);
+        for my $artist (@$artists) {
+            # { _embedded => { cds => { _embedded => [ {...}, ... ], }  }, artistid => 1, ... }
+            my $cds = has_hal_embedded_list($artist, "cds", 1, 3);
+            for my $cd (@$cds) {
+               is $cd->{artist} => $artist->{artistid}, 'cd has the correct artistid';
+            }
+        }
+    };
+
+    # Return artist 1 and all cds
+    # Artist->search({artistid => 1}, {prefetch => 'cds'})
+    note "multi type relation (has_many) in prefetch on item";
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => '/artist/1?prefetch=cds')));
+        my $item = is_item($data,1,1);
+        my $cds = has_hal_embedded_list($item, "cds", 1, 3);
+        for my $cd (@$cds) {
+            is $cd->{artist} => $data->{artistid}, 'cd has the correct artistid';
+        }
+    };
+
     TODO: {
-    local $TODO = "multi relationships are not handled yet";
+    local $TODO = "complex prefetch requests are not handled yet";
+
+    # Return all cds and all producers
+    # cd->search({}, {prefetch => {cd_to_producers => 'producer'})
+    # many_to_many relationships are not true db relationships. As such you can't use a many_to_many
+    # in a prefetch but must traverse the join.
+    note "multi type relation (many_to_many) in prefetch on item";
+    test_psgi $app, sub {
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => '/cd/1?prefetch~json={"cd_to_producer":"producer"}')));
+        my $item = is_item($data,1,1);
+        my $producers = has_hal_embedded_list($item, 'producers', 2, 2);
+        my $cd_to_producers = has_hal_embedded_list($item, 'cd_to_producers', 2, 2);
+    };
+
     # Return all artists who have a CD created after 1997 who's producer is Matt S Trout
     # Artist->search({cds.year => ['>', '1997'], producers.name => 'Matt S Trout'}, {prefetch => [{cds => producers}]})
     note "filter on nested prefetch";
     test_psgi $app, sub {
         my $data = dsresp_ok(
             shift->(
-                dsreq_hal( GET => '/artist?prefetch~json={"cds":"producers"}&cds.year~json={">":"1997"}&producers.name=Matt+S+Trout')
+                dsreq_hal( GET => '/artist?prefetch~json={"cds":"producers"}&cds.year~json={">":"1997"}&producers.name=Matt+S+Trout&rows=2')
             )
         );
         my $set = has_hal_embedded_list($data, "artist", 1, 1);
         for my $item (@$set) {
-            my $embedded = has_hal_embedded($item, 2, 2);
-            is ref $embedded->{cds}, 'ARRAY', "has embedded cds";
-            for my $cd (@{$embedded->{cds}}){
+            Dwarn
+            my $cds = has_hal_embedded_list($item, 'cds', 2, 2);
+            for my $cd (@$cds) {
                 cmp_ok $cd->{year}, '>', '1997', 'CD year after 1997';
             }
-            is ref $embedded->{producers}, 'ARRAY', "has embedded producers";
-            for my $producer (@{$embedded->{producers}}){
+            my $producers = []; # XXX
+            for my $producer (@$producers){
                 is $producer->{name} => 'Matt S Trout', 'has correct producer';
             }
         }
     };
-    } # end TODO
+    }
+
 
     note "prefetch with query on ambiguous field";
     # just check that a 'artist is ambiguous' error isn't generated
