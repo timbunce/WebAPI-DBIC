@@ -442,6 +442,7 @@ Also see L</prefetch>.
 
     prefetch=relationship
     prefetch=relationship1,relationship2
+    prefetch~json={"relationship1: {"relationship_on_relationship1":"relationship_on_relationship_on_relationship1"}}
 
 The prefetch parameter enables one or more related resources to be fetched and
 embedded in the response. For example:
@@ -466,7 +467,13 @@ would return:
 
 Here the _embedded person is a resource, not an array of resources, because the
 relationship is 1-1. For 1-N relationships the value of the _embedded key would
-be an array that contains the relevant resource records.
+be an array that contains the relevant resource records. Any arbitary depth of
+prefetching is supported in the same way as DBIx::Class. 
+
+NOTE: many_to_many relationships can't be supported as they are not true relatioships
+the related data should be prefetched using the has_many relatioships and their join
+table.
+    prefetch~json{"resultset1":{"has_many_to_join_table":"has_many_from_join_table"}}
 
 Only works for response types that support embedded data, e.g, C<application/hal+json>.
 

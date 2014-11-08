@@ -30,26 +30,7 @@ sub render_item_as_hal_hash {
         href => $self->add_params_to_url($itemurl, {}, {})->as_string,
     };
 
-    while (my ($prefetch, $info) = each %{ $self->prefetch || {} }) {
-        next if $prefetch eq 'self';
-
-        my $subitem = $item->$prefetch();
-        # XXX perhaps render_item_as_hal_hash but requires cloned WM, eg without prefetch
-        # If we ever do render_item_as_hal_hash then we need to ensure that "a link
-        # inside an embedded resource implicitly relates to that embedded
-        # resource and not the parent."
-        # See http://blog.stateless.co/post/13296666138/json-linking-with-hal
-        if (not defined $subitem) {
-            $data->{_embedded}{$prefetch} = undef; # show an explicit null from a prefetch
-        }
-        elsif ($subitem->isa('DBIx::Class::ResultSet')) { # one-to-many rel
-            my $rel_set_resource = $self->web_machine_resource(set => $subitem, item => undef);
-            $data->{_embedded}{$prefetch} = $rel_set_resource->render_set_as_list_of_hal($subitem);
-        }
-        else {
-            $data->{_embedded}{$prefetch} = $self->render_item_as_plain_hash($subitem);
-        }
-    }
+    $self->_render_prefetch($item, $data, $_) for @{$self->prefetch//[]};
 
     my $curie = (0) ? "r" : ""; # XXX we don't use CURIE syntax yet
 
@@ -72,6 +53,35 @@ sub render_item_as_hal_hash {
     return $data;
 }
 
+sub _render_prefetch {
+    my ($self, $item, $data, $prefetch) = @_;
+
+    while (my ($rel, $sub_rel) = each %{$prefetch}){
+        next if $rel eq 'self';
+
+        my $subitem = $item->$rel();
+
+        # XXX perhaps render_item_as_hal_hash but requires cloned WM, eg without prefetch
+        # If we ever do render_item_as_hal_hash then we need to ensure that "a link
+        # inside an embedded resource implicitly relates to that embedded
+        # resource and not the parent."
+        # See http://blog.stateless.co/post/13296666138/json-linking-with-hal
+        if (not defined $subitem) {
+            $data->{_embedded}{$rel} = undef; # show an explicit null from a prefetch
+        }
+        elsif ($subitem->isa('DBIx::Class::ResultSet')) { # one-to-many rel
+            my $rel_set_resource = $self->web_machine_resource(
+                set         => $subitem,
+                item        => undef,
+                prefetch    => ref $sub_rel eq 'ARRAY' ? $sub_rel : [$sub_rel],
+            );
+            $data->{_embedded}{$rel} = $rel_set_resource->render_set_as_list_of_hal($subitem);
+        }
+        else {
+            $data->{_embedded}{$rel} = $self->render_item_as_plain_hash($subitem);
+        }
+    }
+}
 
 sub render_set_as_list_of_hal {
     my ($self, $set, $render_method) = @_;

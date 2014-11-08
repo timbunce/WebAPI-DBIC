@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+  - Added support for arbitrary depth and complexity of prefetch param
+
 0.001010  2014-11-12 14:05:00+00:00 Europe/Dublin (TRIAL RELEASE)
 
   - Prefetch now supports has_many relationships on item and set resources.
