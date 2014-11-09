@@ -131,7 +131,8 @@ sub _handle_prefetch_param {
     $self->prefetch( $prefetch ); # include self, even if deleted below
     $prefetch = [grep { !defined $_->{self}} @$prefetch];
 
-    $self->set( $self->set->search_rs(undef, { prefetch => $prefetch }))
+    my $prefetch_or_join = $self->param('fields') ? 'join' : 'prefetch';
+    $self->set( $self->set->search_rs(undef, { $prefetch_or_join => $prefetch }))
         if scalar @$prefetch;
 
     return;
@@ -226,14 +227,6 @@ sub _handle_fields_param {
             parameter => "invalid fields clause",
             _meta => { fields => $field, }, # XXX
         }]) if not defined $field;
-        # sadly columns=>[...] doesn't work to limit the fields of prefetch relations
-        # so we disallow that for now. It's possible we could achieve the same effect
-        # using explicit join's for non-has-many rels, or perhaps using
-        # as_subselect_rs
-        $self->throwable->throw_bad_request(400, errors => [{
-            parameter => "invalid fields clause - can't refer to prefetch relations at the moment",
-            _meta => { fields => $field, }, # XXX
-        }]) if $field =~ m/\./;
     }
 
     $self->set( $self->set->search_rs(undef, { columns => \@columns }) )
