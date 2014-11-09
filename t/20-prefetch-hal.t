@@ -158,7 +158,7 @@ subtest "===== Prefetch =====" => sub {
 
     note "prefetch on item with partial response of prefetched item";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd/1?prefetch=artist,genre&fields=cdid,artist.artistid,genre.genreid" )));
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd/1?prefetch=artist,genre&fields=cdid,genreid,artist.artistid,genre.genreid" )));
         my $item = is_item($data, 1,1);
         my $embedded = has_hal_embedded($data, 2,2);
         is ref $embedded->{genre}, 'HASH', "has embedded genreid";
@@ -172,12 +172,12 @@ subtest "===== Prefetch =====" => sub {
 
     note "prefetch on set with partial response of prefetched items";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd?rows=2&page=1&prefetch=artist,genre&fields=id,genre.genreid,artist.artistid" )));
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd?rows=2&page=1&prefetch=artist,genre&fields=cdid,genreid,genre.genreid,artist.artistid" )));
         my $set = has_hal_embedded_list($data, "cd", 2,2);
         for my $item (@$set) {
             my $embedded = has_hal_embedded($item, 2,2);
             is ref $embedded->{genre}, 'HASH', "has embedded genreid";
-            is $embedded->{genre}{id}, $item->{genreid}, 'genreid matches';
+            is $embedded->{genre}{genreid}, $item->{genreid}, 'genreid matches';
             is ref $embedded->{artist}, 'HASH', "has embedded artistid";
             is $embedded->{artist}{artistid}, $item->{artist}, 'artistid matches';
 
