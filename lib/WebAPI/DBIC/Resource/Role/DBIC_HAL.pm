@@ -30,7 +30,7 @@ sub render_item_as_hal_hash {
         href => $self->add_params_to_url($itemurl, {}, {})->as_string,
     };
 
-    $self->_render_prefetch($item, $data, $_) for @{$self->prefetch//[]};
+    $self->_render_prefetch($item, $data, $_) for @{$self->prefetch||[]};
 
     my $curie = (0) ? "r" : ""; # XXX we don't use CURIE syntax yet
 
