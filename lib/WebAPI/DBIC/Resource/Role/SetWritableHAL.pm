@@ -59,7 +59,7 @@ sub create_resources_from_hal { # XXX unify with create_resource in SetWritable,
         # called here because create_path() is too late for Web::Machine
         # and we need it to happen inside the transaction for rollback=1 to work
         $self->render_item_into_body(item => $item, prefetch => $self->prefetch)
-            if grep {defined $_->{self}} @{$self->prefetch//[]};
+            if grep {defined $_->{self}} @{$self->prefetch||[]};
 
         $schema->txn_rollback if $self->param('rollback'); # XXX
     });
