@@ -33,7 +33,6 @@ test "===== Prefetch =====" => sub {
 
     # here we ask to prefetch items that have a belongs_to relationship with the resource
     # they get returned as _embedded objects. (Also they may be stale.)
-
     note "prefetch on item";
     test_psgi $app, sub {
         my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd/1?prefetch=artist,genre" )));
@@ -117,9 +116,6 @@ test "===== Prefetch =====" => sub {
         }
     };
 
-    TODO: {
-    local $TODO = "complex prefetch requests are not handled yet";
-
     # Return all cds and all producers
     # cd->search({}, {prefetch => {cd_to_producers => 'producer'})
     # many_to_many relationships are not true db relationships. As such you can't use a many_to_many
@@ -128,8 +124,13 @@ test "===== Prefetch =====" => sub {
     test_psgi $app, sub {
         my $data = dsresp_ok(shift->(dsreq_hal( GET => '/cd/1?prefetch~json={"cd_to_producer":"producer"}')));
         my $item = is_item($data,1,1);
-        my $producers = has_hal_embedded_list($item, 'producers', 2, 2);
-        my $cd_to_producers = has_hal_embedded_list($item, 'cd_to_producers', 2, 2);
+        my $cd_to_producers = has_hal_embedded_list($item, 'cd_to_producer', 3, 3);
+        for my $cd_to_producer (@$cd_to_producers){
+            is $cd_to_producer->{cd} => $data->{cdid}, 'CD_to_Producer has correct cdid';
+            my $embedded = has_hal_embedded($cd_to_producer, 1, 1);
+            is ref $embedded->{producer}, 'HASH', 'has embedded producer';
+            is $embedded->{producer}{producerid} => $cd_to_producer->{producer}, 'many_to_many join successful'
+        }
     };
 
     # Return all artists who have a CD created after 1997 who's producer is Matt S Trout
@@ -138,24 +139,25 @@ test "===== Prefetch =====" => sub {
     test_psgi $app, sub {
         my $data = dsresp_ok(
             shift->(
-                dsreq_hal( GET => '/artist?prefetch~json={"cds":"producers"}&cds.year~json={">":"1997"}&producers.name=Matt+S+Trout&rows=2')
+                dsreq_hal( GET => '/artist?prefetch~json={"cds":{"cd_to_producer":"producer"}}&cds.year~json={">":"1996"}&producer.name=Matt+S+Trout&rows=2')
             )
         );
         my $set = has_hal_embedded_list($data, "artist", 1, 1);
         for my $item (@$set) {
-            Dwarn
-            my $cds = has_hal_embedded_list($item, 'cds', 2, 2);
+            my $cds = has_hal_embedded_list($item, 'cds', 1, 1);
             for my $cd (@$cds) {
-                cmp_ok $cd->{year}, '>', '1997', 'CD year after 1997';
-            }
-            my $producers = []; # XXX
-            for my $producer (@$producers){
-                is $producer->{name} => 'Matt S Trout', 'has correct producer';
+                cmp_ok $cd->{year}, '>', '1996', 'CD year after 1996';
+                my $cd_to_producers = has_hal_embedded_list($cd, 'cd_to_producer', 1, 1);
+                for my $cd_to_producer (@$cd_to_producers){
+                    is $cd_to_producer->{cd} => $cd->{cdid}, 'CD_to_Producer has correct cdid';
+                    my $embedded = has_hal_embedded($cd_to_producer, 1, 1);
+                    is ref $embedded->{producer}, 'HASH', 'has embedded producer';
+                    is $embedded->{producer}{producerid} => $cd_to_producer->{producer}, 'many_to_many join successful';
+                    is $embedded->{producer}{name} => 'Matt S Trout', 'has correct producer';
+                }
             }
         }
     };
-    }
-
 
     note "prefetch with query on ambiguous field";
     # just check that a 'artist is ambiguous' error isn't generated
@@ -173,7 +175,7 @@ test "===== Prefetch =====" => sub {
 
     note "prefetch on item with partial response of prefetched item";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd/1?prefetch=artist,genre&fields=cdid,artist.artistid,genre.genreid" )));
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd/1?prefetch=artist,genre&fields=cdid,genreid,artist.artistid,genre.genreid" )));
         my $item = is_item($data, 1,1);
         my $embedded = has_hal_embedded($data, 2,2);
         is ref $embedded->{genre}, 'HASH', "has embedded genreid";
@@ -187,12 +189,12 @@ test "===== Prefetch =====" => sub {
 
     note "prefetch on set with partial response of prefetched items";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd?rows=2&page=1&prefetch=artist,genre&fields=id,genre.genreid,artist.artistid" )));
+        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd?rows=2&page=1&prefetch=artist,genre&fields=cdid,genreid,genre.genreid,artist.artistid" )));
         my $set = has_hal_embedded_list($data, "cd", 2,2);
         for my $item (@$set) {
             my $embedded = has_hal_embedded($item, 2,2);
             is ref $embedded->{genre}, 'HASH', "has embedded genreid";
-            is $embedded->{genre}{id}, $item->{genreid}, 'genreid matches';
+            is $embedded->{genre}{genreid}, $item->{genreid}, 'genreid matches';
             is ref $embedded->{artist}, 'HASH', "has embedded artistid";
             is $embedded->{artist}{artistid}, $item->{artist}, 'artistid matches';
 

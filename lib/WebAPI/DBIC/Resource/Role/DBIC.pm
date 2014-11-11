@@ -32,7 +32,7 @@ has writable => (
 
 has prefetch => (
     is => 'rw',
-    default => sub { {} },
+    default => sub { [] },
 );
 
 
@@ -78,7 +78,7 @@ sub web_machine_resource {
         request  => $self->request,
         response => $self->request->new_response,
         throwable => $self->throwable,
-        prefetch  => {}, # don't propagate prefetch by default
+        prefetch  => [], # don't propagate prefetch by default
         set => undef,
         id => undef,
         #  XXX others? which and why? generalize

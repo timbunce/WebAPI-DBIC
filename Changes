@@ -2,6 +2,7 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+  - Support arbitary depth of prefetch chain
   - Prefetch now supports has_many relationships on item and set resources.
   - Major refactoring to separate out HAL support ready for JSON API.
 

@@ -146,8 +146,7 @@ sub update_resource {
         # called here because create_path() is too late for WM
         # and we need it to happen inside the transaction for rollback=1 to work
         # XXX requires 'self' prefetch to get any others
-        $self->render_item_into_body()
-            if $item && $self->prefetch->{self};
+        $self->render_item_into_body() if grep {defined $_->{self}} @{$self->prefetch||[]};
 
         $schema->txn_rollback if $self->param('rollback'); # XXX
     });

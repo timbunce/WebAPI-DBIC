@@ -78,7 +78,7 @@ sub create_resource {
 
     # called here because create_path() is too late for Web::Machine
     $self->render_item_into_body(item => $item)
-        if $self->prefetch->{self};
+        if grep {defined $_->{self}} @{$self->prefetch||[]};
 
     return $item;
 }

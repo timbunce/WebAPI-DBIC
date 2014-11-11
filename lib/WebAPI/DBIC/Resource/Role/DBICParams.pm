@@ -112,58 +112,102 @@ sub _handle_search_criteria_param {
     return;
 }
 
-
 sub _handle_prefetch_param {
     my ($self, $value) = @_;
 
+    # Prefetchs/join in DBIC accepts either:
+    #   prefetch => relname OR
+    #   prefetch => [relname1, relname2] OR
+    #   prefetch => {relname1 => relname_on_relname1} OR
+    #   prefetch => [{relname1 => [{relname_on_relname1 => relname_on_relname_on_relname1}, other_relname_on_relaname1]},relname2] ETC
+
+    # Noramalise all prefetches to most complicated form.
     # eg &prefetch=foo,bar  or  &prefetch.json={...}
-    my $prefetch = (ref $value)
-        ? $value
-        : { map { $_ => {} } split(',', $value||"") };
+    my $prefetch = $self->_resolve_prefetch($value, $self->set->result_source);
 
-    return unless %$prefetch;
+    return unless scalar @$prefetch;
+    # XXX hack?: perhaps use {embedded}{$key} = sub { ... };
+    # see lib/WebAPI/DBIC/Resource/Role/DBIC.pm
+    $self->prefetch( $prefetch ); # include self, even if deleted below
+    $prefetch = [grep { !defined $_->{self}} @$prefetch];
 
-    my $result_class = $self->set->result_class;
+    my $prefetch_or_join = $self->param('fields') ? 'join' : 'prefetch';
+    $self->set( $self->set->search_rs(undef, { $prefetch_or_join => $prefetch }))
+        if scalar @$prefetch;
 
+    return;
+}
+
+sub _resolve_prefetch {
+    my ($self, $prefetch, $result_class) = @_;
     my @errors;
-    for my $prefetch (keys %$prefetch) {
 
-        next if $prefetch eq 'self'; # used in POST/PUT handling
+    return [] unless defined $prefetch and length $prefetch;
+    my @return;
 
-        my $rel;
-        try {
-            $rel = $result_class->relationship_info($prefetch);
-            local $SIG{__DIE__}; # avoid strack trace from these dies:
-            die "no relationship with that name"
-                if not $rel;
-            die "relationship is $rel->{attrs}{accessor} but only single, filter and multi are supported\n"
-                if not $rel->{attrs}{accessor} =~ m/^(?:single|filter|multi)$/ # sanity
+    if (ref $prefetch eq 'ARRAY') {
+        push @return, map {
+            $self->_resolve_prefetch($_, $result_class)
+        } @$prefetch;
+    } elsif (ref $prefetch eq 'HASH') {
+        for my $rel (keys %$prefetch) {
+            next if $rel eq 'self';
+
+            if (my @validate_errors = $self->_validate_relationship($result_class, $rel)) {
+                push @errors, @validate_errors;
+            } else {
+                push @return, {
+                    $rel => $self->_resolve_prefetch($prefetch->{$rel}, $result_class->related_source($rel))
+                };
+            }
         }
-        catch {
-            push @errors, {
-                $prefetch => $_,
-                _meta => {
-                    relationship => $rel,
-                    relationships => [ $result_class->relationships ]
-                }, # XXX
-            };
+    } elsif (ref $prefetch) {
+        push @errors,
+            "No idea how to resolve prefetch reftype ".ref $prefetch;
+    } else {
+        for my $rel (split ',', $prefetch) {
+            my @validate_errors = $self->_validate_relationship($result_class, $rel);
+            if ($rel ne 'self' && scalar @validate_errors) {
+                push @errors, @validate_errors;
+            } else {
+                push @return, {
+                    $rel => {},
+                };
+            }
         }
     }
 
     $self->throwable->throw_bad_request(400, errors => \@errors)
         if @errors;
 
-    # XXX hack?: perhaps use {embedded}{$key} = sub { ... };
-    # see lib/WebAPI/DBIC/Resource/Role/DBIC.pm
-    $self->prefetch({ %$prefetch }); # include self, even if deleted below
-
-    delete $prefetch->{self};
-    $self->set( $self->set->search_rs(undef, { prefetch => $prefetch }))
-        if %$prefetch;
-
-    return;
+    return \@return;
 }
 
+sub _validate_relationship {
+    my ($self, $result_class, $rel) = @_;
+    my @errors;
+
+    my $rel_info;
+    try {
+        $rel_info = $result_class->relationship_info($rel);
+        local $SIG{__DIE__}; # avoid strack trace from these dies:
+        die "no relationship with that name"
+            if not $rel_info;
+        die "relationship is $rel_info->{attrs}{accessor} but only single, filter and multi are supported\n"
+            if not $rel_info->{attrs}{accessor} =~ m/^(?:single|filter|multi)$/; # sanity
+    }
+    catch {
+        push @errors, {
+            $rel => $_,
+            _meta => {
+                relationship => $rel_info,
+                relationships => [ $result_class->relationships ]
+            }, # XXX
+        };
+    };
+
+    return @errors;
+}
 
 sub _handle_fields_param {
     my ($self, $value) = @_;
@@ -183,14 +227,6 @@ sub _handle_fields_param {
             parameter => "invalid fields clause",
             _meta => { fields => $field, }, # XXX
         }]) if not defined $field;
-        # sadly columns=>[...] doesn't work to limit the fields of prefetch relations
-        # so we disallow that for now. It's possible we could achieve the same effect
-        # using explicit join's for non-has-many rels, or perhaps using
-        # as_subselect_rs
-        $self->throwable->throw_bad_request(400, errors => [{
-            parameter => "invalid fields clause - can't refer to prefetch relations at the moment",
-            _meta => { fields => $field, }, # XXX
-        }]) if $field =~ m/\./;
     }
 
     $self->set( $self->set->search_rs(undef, { columns => \@columns }) )
