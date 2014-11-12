@@ -4,3 +4,4 @@ temp-test-db
 RA-ChinookDemo/
 *.swp
 .build/
+#t/*.got

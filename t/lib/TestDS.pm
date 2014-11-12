@@ -7,11 +7,13 @@ use JSON::MaybeXS;
 use URI;
 use Devel::Dwarn;
 use Carp;
+use autodie;
 
 use parent 'Exporter';
 
 
 our @EXPORT = qw(
+    run_request_spec_tests
     url_query
     dsreq dsresp_json_data dsresp_ok dsresp_created_ok
     get_data
@@ -28,6 +30,86 @@ $| = 1;
 
 sub _get_authorization_user_pass {
     return( $ENV{DBI_USER}||"", $ENV{DBI_PASS}||"" );
+}
+
+
+sub run_request_spec_tests {
+    my ($app, $spec_fh, $spec_src) = @_;
+    $spec_fh  ||= \*DATA;
+    $spec_src ||= (caller(0))[1];
+
+    my @tests = split /\n\n/, slurp($spec_fh);
+
+    my ($test_volume,$test_directories,$test_file) = File::Spec->splitpath($spec_src);
+    (my $got_file = $test_file) =~ s/\.t$/.got/ or die "panic: can't edit $test_file";
+    (my $exp_file = $test_file) =~ s/\.t$/.exp/ or die "panic: can't edit $test_file";
+    $got_file = File::Spec->catpath( $test_volume, $test_directories, $got_file );
+    $exp_file = File::Spec->catpath( $test_volume, $test_directories, $exp_file );
+
+    open my $fh, ">", $got_file;
+    make_request_from_spec($app, $fh, $_) for @tests;
+    close $fh;
+
+    eq_or_diff slurp($got_file), slurp($exp_file),
+            "$test_file output matches expectations"
+        and unlink $got_file;
+}
+
+
+sub make_request_from_spec {
+    my ($app, $fh, $spec) = @_;
+    my ($name, $curl, @rest) = split /\n/, $spec;
+
+    $name =~ s/^NAME:\s+//i
+        or die "'$name' doesn't begin with NAME:\n";
+    $curl =~ s/^(GET|PUT|POST|DELETE|OPTIONS)\s//
+        or die "'$curl' doesn't begin with GET, PUT, POST etc\n";
+    my $method = $1;
+
+    my (@headers, @header_names);
+    while (@rest && $rest[0] =~ /^([-\w]+):\s+(.*)/) {
+        push @headers, $1, $2;
+        push @header_names, $1;
+        shift @rest;
+    }
+
+    my $json = join '', @rest;
+    my $data = (length $json) && JSON->new->decode($json);
+    test_psgi $app, sub {
+        printf $fh "=== %s\n", $name;
+
+        my $req = dsreq( $method => $curl, \@headers, $data );
+        my $res = shift->($req);
+
+        printf $fh "Request:\n";
+        printf $fh "%s %s\n", $method, $curl;
+        printf $fh "%s: %s\n", $_, scalar $req->headers->header($_) for @header_names;
+        printf $fh "%s\n", $json if length $json;
+
+        printf $fh "Response:\n";
+        note $res->headers->as_string;
+        printf $fh "%s %s\n", $res->code, $res->message;
+        for my $header ('Content-type') { # headers that are of interest
+            printf $fh "%s: %s\n", $header, scalar $res->header($header);
+        }
+        if (my $content = $res->content) {
+            if ($res->headers->content_type =~ /json/) {
+                my $data = JSON->new->decode($content); # may throw exception
+                $content = JSON->new->ascii->pretty->canonical->encode($data);
+            }
+            printf $fh "%s\n", $content;
+        }
+    };
+
+    return;
+}
+
+
+sub slurp {
+    my ($file) = @_;
+    my $fh = (ref $file eq 'GLOB') && $file;
+    open($fh, "<", $file) unless $fh;
+    return do { local $/; <$fh> };
 }
 
 

@@ -1,0 +1,93 @@
+=== get single item
+Request:
+GET /artist/1
+Response:
+200 OK
+Content-type: application/json
+{
+   "artistid" : 1,
+   "charfield" : null,
+   "name" : "Caterwauler McCrae",
+   "rank" : 13
+}
+
+=== get different single item
+Request:
+GET /artist/2
+Response:
+200 OK
+Content-type: application/json
+{
+   "artistid" : 2,
+   "charfield" : null,
+   "name" : "Random Boy Band",
+   "rank" : 13
+}
+
+=== get set of items
+Request:
+GET /artist
+Response:
+200 OK
+Content-type: application/json
+[
+   {
+      "artistid" : 1,
+      "charfield" : null,
+      "name" : "Caterwauler McCrae",
+      "rank" : 13
+   },
+   {
+      "artistid" : 2,
+      "charfield" : null,
+      "name" : "Random Boy Band",
+      "rank" : 13
+   },
+   {
+      "artistid" : 3,
+      "charfield" : null,
+      "name" : "We Are Goth",
+      "rank" : 13
+   },
+   {
+      "artistid" : 4,
+      "charfield" : null,
+      "name" : "KielbaSka",
+      "rank" : 13
+   },
+   {
+      "artistid" : 5,
+      "charfield" : null,
+      "name" : "Gruntfiddle",
+      "rank" : 13
+   },
+   {
+      "artistid" : 6,
+      "charfield" : null,
+      "name" : "A-ha Na Na",
+      "rank" : 13
+   }
+]
+
+=== get item with multi-field key
+Request:
+GET /gig/1/2014-01-01T01:01:01Z
+Response:
+200 OK
+Content-type: application/json
+{
+   "artistid" : 1,
+   "gig_datetime" : "2014-01-01T01:01:01Z"
+}
+
+=== get different item with multi-field key
+Request:
+GET /gig/2/2014-06-30T19:00:00Z
+Response:
+200 OK
+Content-type: application/json
+{
+   "artistid" : 2,
+   "gig_datetime" : "2014-06-30T19:00:00Z"
+}
+
