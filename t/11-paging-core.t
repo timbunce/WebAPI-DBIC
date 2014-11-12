@@ -31,42 +31,7 @@ test "===== Paging =====" => sub {
         schema => $self->schema,
     })->to_psgi_app;
 
-    my %artist;
-
-    test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/artist" )));
-        %artist = map { $_->{artistid} => $_ } @$data;
-    };
-
-    for my $rows_param (1,2,3) {
-        note "rows $rows_param, page 1 implied";
-        test_psgi $app, sub {
-            my $data = dsresp_ok(shift->(dsreq( GET => "/artist?rows=$rows_param" )));
-            is @$data, $rows_param, "correct number of rows";
-
-            eq_or_diff $data->[$_], $artist{$_+1}, 'record matches'
-                for 0..$rows_param-1;
-        };
-    };
-
-
-    for my $with_count (0, 1) {
-        for my $page (1,2) {
-            note "page $page, with small rows param".($with_count ? " with count" : "");
-            test_psgi $app, sub {
-                my $url = "/artist?rows=2";
-                $url .= "&with=count" if $with_count;
-                $url .= "&page=$page";
-
-                my $data = dsresp_ok(shift->(dsreq( GET => $url )));
-
-                eq_or_diff $data->[$_], $artist{ (($page-1)*2) + $_ + 1}, 'record matches'
-                    for 0..1;
-            };
-        }
-        ;
-    }
-    ;
+    run_request_spec_tests($app, \*DATA);
 
 };
 
@@ -74,10 +39,15 @@ test "===== Paging =====" => sub {
 run_me();
 done_testing();
 
+__DATA__
+Config:
 
-sub _url_edit {
-    my ($url, $param, $value) = @_;
-    # we do this the hacky way to keep the order of params
-    $url =~ s/(\?|&)$param=(?:.*?)(&|$)/$1$param=$value$2/;
-    return $url;
-}
+Name: get 1 row
+GET /artist?rows=1
+
+Name: get 2 rows
+GET /artist?rows=2
+
+Name: get 2 rows from second 'page'
+GET /artist?rows=2&page=2
+

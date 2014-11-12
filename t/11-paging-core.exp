@@ -1,0 +1,57 @@
+=== get 1 row
+Request:
+GET /artist?rows=1
+Response:
+200 OK
+Content-type: application/json
+[
+   {
+      "artistid" : 1,
+      "charfield" : null,
+      "name" : "Caterwauler McCrae",
+      "rank" : 13
+   }
+]
+
+=== get 2 rows
+Request:
+GET /artist?rows=2
+Response:
+200 OK
+Content-type: application/json
+[
+   {
+      "artistid" : 1,
+      "charfield" : null,
+      "name" : "Caterwauler McCrae",
+      "rank" : 13
+   },
+   {
+      "artistid" : 2,
+      "charfield" : null,
+      "name" : "Random Boy Band",
+      "rank" : 13
+   }
+]
+
+=== get 2 rows from second 'page'
+Request:
+GET /artist?rows=2&page=2
+Response:
+200 OK
+Content-type: application/json
+[
+   {
+      "artistid" : 3,
+      "charfield" : null,
+      "name" : "We Are Goth",
+      "rank" : 13
+   },
+   {
+      "artistid" : 4,
+      "charfield" : null,
+      "name" : "KielbaSka",
+      "rank" : 13
+   }
+]
+
