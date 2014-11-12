@@ -65,8 +65,12 @@ sub _make_request_from_spec {
     my %config_settings = map { split /:\s+/, $_, 2 } @config_settings;
 
     my ($name, $curl, @rest) = split /\n/, $spec;
-    $name =~ s/^NAME:\s+//i
-        or die "'$name' doesn't begin with NAME:\n";
+    $name =~ s/^Name:\s+//
+        or die "'$name' doesn't begin with Name:\n";
+    if ($curl =~ s/^SKIP\s*//) {
+        SKIP: { skip $curl, 1 }
+        return;
+    }
     $curl =~ s/^(GET|PUT|POST|DELETE|OPTIONS)\s//
         or die "'$curl' doesn't begin with GET, PUT, POST etc\n";
     my $method = $1;
@@ -77,16 +81,40 @@ sub _make_request_from_spec {
         shift @rest;
     }
 
+    # Request URL line format is:
+    #    METHOD URL
+    # or METHOD URL "PARAMS" NAME=EXPRESSION ...
+    my ($url, @url_params) = split / /, $curl;
+    if (@url_params) {
+        die "URL $curl @url_params has extra items but there's no PARAMS: marker"
+            unless $url_params[0] eq 'PARAMS:';
+        shift @url_params;
+    }
+
+    $url = URI->new( $url, 'http' );
+    for my $url_param (@url_params) {
+        my ($p_name, $p_value) = split /=>/, $url_param, 2;
+        $p_value = eval $p_value;
+        if ($@) {
+            chomp $@;
+            die "Error evaluating $p_name param value '$p_value': $@ (for test name '$name')";
+        }
+        $p_value = JSON->new->ascii->encode($p_value);
+        $url->query_form( $url->query_form, $p_name, $p_value);
+    }
+
     my $json = join '', @rest;
     my $data = (length $json) && JSON->new->decode($json);
     test_psgi $app, sub {
         printf $fh "=== %s\n", $name;
 
-        my $req = dsreq( $method => $curl, $spec_headers, $data );
+        my $req = dsreq( $method => $url, $spec_headers, $data );
         my $res = shift->($req);
 
         printf $fh "Request:\n";
-        printf $fh "%s %s\n", $method, $curl;
+        printf $fh "%s %s\n", $method, $curl;          # original spec line
+        printf $fh "%s %s\n", $method, $url->as_string # actual request
+            if @url_params;
         printf $fh "%s: %s\n", $_, scalar $spec_headers->header($_)
             for sort $spec_headers->header_field_names;
         printf $fh "%s\n", $json if length $json;

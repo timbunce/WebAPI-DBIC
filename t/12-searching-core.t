@@ -4,6 +4,8 @@ use Test::Most;
 use Plack::Test;
 use Test::HTTP::Response;
 use JSON::MaybeXS;
+use URI;
+use URI::QueryParam;
 use Devel::Dwarn;
 
 use lib "t/lib";
@@ -29,43 +31,29 @@ test "===== Paging =====" => sub {
         schema => $self->schema,
     })->to_psgi_app;
 
+    run_request_spec_tests($app, \*DATA);
 
-    my %artists;
-
-    test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/artist" )));
-        %artists = map { $_->{artistid} => $_ } @$data;
-    };
-
-    test_psgi $app, sub {
-        dsresp_ok(shift->(dsreq( GET => "/artist?me.nonesuch=42" )), 400);
-    };
-
-    for my $id (2,3) {
-        test_psgi $app, sub {
-            my $data = dsresp_ok(shift->(dsreq( GET => "/artist?me.artistid=$id" )));
-            eq_or_diff $data->[0], $artists{$id}, 'record matches';
-        };
-    }
-    ;
-
-    subtest "search by json array" => sub {
-        test_psgi $app, sub {
-            my $data = dsresp_ok(shift->(dsreq( GET => url_query("/artist", "me.artistid~json"=>[1,3]) )));
-            eq_or_diff $data->[0], $artists{1}, 'record matches';
-            eq_or_diff $data->[1], $artists{3}, 'record matches';
-        };
-    };
-
-    subtest "search by json hash" => sub {
-        test_psgi $app, sub {
-            my $data = dsresp_ok(shift->(dsreq( GET => url_query("/artist", "me.artistid~json"=>{ "<=", 2 }) )));
-            eq_or_diff $data->[0], $artists{1}, 'record matches';
-            eq_or_diff $data->[1], $artists{2}, 'record matches';
-        };
-    };
 };
 
 
 run_me();
 done_testing();
+
+__DATA__
+Config:
+
+Name: get 1 row from set by qualifying the key
+GET /artist?me.artistid=2
+
+Name: get specific rows via json array
+GET /artist PARAMS: me.artistid~json=>[1,3]
+
+Name: get specific rows via json qualifier expression
+GET /artist PARAMS: me.artistid~json=>{"<=",2}
+
+Name: get no rows, empty set, due to qualifier that matches none
+GET /artist?me.artistid=999999
+
+Name: invalid request due to qualifying by non-existant field
+SKIP need to add post-processing of the error result
+GET /artist?me.nonesuch=42
