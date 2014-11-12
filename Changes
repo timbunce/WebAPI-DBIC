@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+0.001010  2014-11-12 14:05:00+00:00 Europe/Dublin (TRIAL RELEASE)
+
   - Prefetch now supports has_many relationships on item and set resources.
   - Major refactoring to separate out HAL support ready for JSON API.
   - Changed (some) tests to use a simpler 'golden result' scheme.
