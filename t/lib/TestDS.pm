@@ -4,6 +4,7 @@ use Test::Most;
 use Plack::Test;
 use Test::HTTP::Response;
 use JSON::MaybeXS;
+use Scalar::Util qw(blessed);
 use URI;
 use Devel::Dwarn;
 use Carp;
@@ -35,10 +36,9 @@ sub _get_authorization_user_pass {
 
 sub run_request_spec_tests {
     my ($app, $spec_fh, $spec_src) = @_;
-    $spec_fh  ||= \*DATA;
     $spec_src ||= (caller(0))[1];
 
-    my @tests = split /\n\n/, slurp($spec_fh);
+    my ($test_config, @test_specs) = split /\n\n/, slurp($spec_fh);
 
     my ($test_volume,$test_directories,$test_file) = File::Spec->splitpath($spec_src);
     (my $got_file = $test_file) =~ s/\.t$/.got/ or die "panic: can't edit $test_file";
@@ -47,7 +47,7 @@ sub run_request_spec_tests {
     $exp_file = File::Spec->catpath( $test_volume, $test_directories, $exp_file );
 
     open my $fh, ">", $got_file;
-    make_request_from_spec($app, $fh, $_) for @tests;
+    _make_request_from_spec($app, $fh, $test_config, $_) for @test_specs;
     close $fh;
 
     eq_or_diff slurp($got_file), slurp($exp_file),
@@ -56,20 +56,24 @@ sub run_request_spec_tests {
 }
 
 
-sub make_request_from_spec {
-    my ($app, $fh, $spec) = @_;
-    my ($name, $curl, @rest) = split /\n/, $spec;
+sub _make_request_from_spec {
+    my ($app, $fh, $test_config, $spec) = @_;
 
+    my ($config_name, @config_settings) = split /\n/, $test_config;
+    $config_name =~ s/^Config:\s*//
+        or die "'$config_name' doesn't begin with Config:\n";
+    my %config_settings = map { split /:\s+/, $_, 2 } @config_settings;
+
+    my ($name, $curl, @rest) = split /\n/, $spec;
     $name =~ s/^NAME:\s+//i
         or die "'$name' doesn't begin with NAME:\n";
     $curl =~ s/^(GET|PUT|POST|DELETE|OPTIONS)\s//
         or die "'$curl' doesn't begin with GET, PUT, POST etc\n";
     my $method = $1;
 
-    my (@headers, @header_names);
+    my $spec_headers = HTTP::Headers->new( %config_settings );
     while (@rest && $rest[0] =~ /^([-\w]+):\s+(.*)/) {
-        push @headers, $1, $2;
-        push @header_names, $1;
+        $spec_headers->header($1, $2);
         shift @rest;
     }
 
@@ -78,12 +82,13 @@ sub make_request_from_spec {
     test_psgi $app, sub {
         printf $fh "=== %s\n", $name;
 
-        my $req = dsreq( $method => $curl, \@headers, $data );
+        my $req = dsreq( $method => $curl, $spec_headers, $data );
         my $res = shift->($req);
 
         printf $fh "Request:\n";
         printf $fh "%s %s\n", $method, $curl;
-        printf $fh "%s: %s\n", $_, scalar $req->headers->header($_) for @header_names;
+        printf $fh "%s: %s\n", $_, scalar $spec_headers->header($_)
+            for sort $spec_headers->header_field_names;
         printf $fh "%s\n", $json if length $json;
 
         printf $fh "Response:\n";
@@ -127,7 +132,9 @@ sub url_query {
 sub dsreq {
     my ($method, $uri, $headers, $data) = @_;
 
-    $headers = HTTP::Headers->new(@{$headers||[]});
+    $headers = (blessed $headers)
+        ? $headers->clone
+        : HTTP::Headers->new(@{$headers||[]});
     $headers->init_header('Content-Type' => 'application/json')
         unless $headers->header('Content-Type');
     $headers->init_header('Accept' => 'application/json')

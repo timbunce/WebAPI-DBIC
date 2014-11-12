@@ -1,0 +1,260 @@
+=== get single item
+Request:
+GET /artist/1
+Accept: application/hal+json,application/json
+Response:
+200 OK
+Content-type: application/hal+json
+{
+   "_links" : {
+      "cds" : {
+         "href" : "/cd?me.artist=1"
+      },
+      "cds_cref_cond" : {
+         "href" : "/cd/1"
+      },
+      "cds_unordered" : {
+         "href" : "/cd?me.artist=1"
+      },
+      "cds_very_very_very_long_relationship_name" : {
+         "href" : "/cd?me.artist=1"
+      },
+      "self" : {
+         "href" : "/artist/1"
+      }
+   },
+   "artistid" : 1,
+   "charfield" : null,
+   "name" : "Caterwauler McCrae",
+   "rank" : 13
+}
+
+=== get different single item
+Request:
+GET /artist/2
+Accept: application/hal+json,application/json
+Response:
+200 OK
+Content-type: application/hal+json
+{
+   "_links" : {
+      "cds" : {
+         "href" : "/cd?me.artist=2"
+      },
+      "cds_cref_cond" : {
+         "href" : "/cd/2"
+      },
+      "cds_unordered" : {
+         "href" : "/cd?me.artist=2"
+      },
+      "cds_very_very_very_long_relationship_name" : {
+         "href" : "/cd?me.artist=2"
+      },
+      "self" : {
+         "href" : "/artist/2"
+      }
+   },
+   "artistid" : 2,
+   "charfield" : null,
+   "name" : "Random Boy Band",
+   "rank" : 13
+}
+
+=== get set of items
+Request:
+GET /artist
+Accept: application/hal+json,application/json
+Response:
+200 OK
+Content-type: application/hal+json
+{
+   "_embedded" : {
+      "artist" : [
+         {
+            "_links" : {
+               "cds" : {
+                  "href" : "/cd?me.artist=1"
+               },
+               "cds_cref_cond" : {
+                  "href" : "/cd/1"
+               },
+               "cds_unordered" : {
+                  "href" : "/cd?me.artist=1"
+               },
+               "cds_very_very_very_long_relationship_name" : {
+                  "href" : "/cd?me.artist=1"
+               },
+               "self" : {
+                  "href" : "/artist/1"
+               }
+            },
+            "artistid" : 1,
+            "charfield" : null,
+            "name" : "Caterwauler McCrae",
+            "rank" : 13
+         },
+         {
+            "_links" : {
+               "cds" : {
+                  "href" : "/cd?me.artist=2"
+               },
+               "cds_cref_cond" : {
+                  "href" : "/cd/2"
+               },
+               "cds_unordered" : {
+                  "href" : "/cd?me.artist=2"
+               },
+               "cds_very_very_very_long_relationship_name" : {
+                  "href" : "/cd?me.artist=2"
+               },
+               "self" : {
+                  "href" : "/artist/2"
+               }
+            },
+            "artistid" : 2,
+            "charfield" : null,
+            "name" : "Random Boy Band",
+            "rank" : 13
+         },
+         {
+            "_links" : {
+               "cds" : {
+                  "href" : "/cd?me.artist=3"
+               },
+               "cds_cref_cond" : {
+                  "href" : "/cd/3"
+               },
+               "cds_unordered" : {
+                  "href" : "/cd?me.artist=3"
+               },
+               "cds_very_very_very_long_relationship_name" : {
+                  "href" : "/cd?me.artist=3"
+               },
+               "self" : {
+                  "href" : "/artist/3"
+               }
+            },
+            "artistid" : 3,
+            "charfield" : null,
+            "name" : "We Are Goth",
+            "rank" : 13
+         },
+         {
+            "_links" : {
+               "cds" : {
+                  "href" : "/cd?me.artist=4"
+               },
+               "cds_cref_cond" : {
+                  "href" : "/cd/4"
+               },
+               "cds_unordered" : {
+                  "href" : "/cd?me.artist=4"
+               },
+               "cds_very_very_very_long_relationship_name" : {
+                  "href" : "/cd?me.artist=4"
+               },
+               "self" : {
+                  "href" : "/artist/4"
+               }
+            },
+            "artistid" : 4,
+            "charfield" : null,
+            "name" : "KielbaSka",
+            "rank" : 13
+         },
+         {
+            "_links" : {
+               "cds" : {
+                  "href" : "/cd?me.artist=5"
+               },
+               "cds_cref_cond" : {
+                  "href" : "/cd/5"
+               },
+               "cds_unordered" : {
+                  "href" : "/cd?me.artist=5"
+               },
+               "cds_very_very_very_long_relationship_name" : {
+                  "href" : "/cd?me.artist=5"
+               },
+               "self" : {
+                  "href" : "/artist/5"
+               }
+            },
+            "artistid" : 5,
+            "charfield" : null,
+            "name" : "Gruntfiddle",
+            "rank" : 13
+         },
+         {
+            "_links" : {
+               "cds" : {
+                  "href" : "/cd?me.artist=6"
+               },
+               "cds_cref_cond" : {
+                  "href" : "/cd/6"
+               },
+               "cds_unordered" : {
+                  "href" : "/cd?me.artist=6"
+               },
+               "cds_very_very_very_long_relationship_name" : {
+                  "href" : "/cd?me.artist=6"
+               },
+               "self" : {
+                  "href" : "/artist/6"
+               }
+            },
+            "artistid" : 6,
+            "charfield" : null,
+            "name" : "A-ha Na Na",
+            "rank" : 13
+         }
+      ]
+   },
+   "_links" : {
+      "self" : {
+         "href" : "/artist?rows=30&page=1",
+         "title" : "TestSchema::Result::Artist"
+      }
+   }
+}
+
+=== get item with multi-field key
+Request:
+GET /gig/1/2014-01-01T01:01:01Z
+Accept: application/hal+json,application/json
+Response:
+200 OK
+Content-type: application/hal+json
+{
+   "_links" : {
+      "artist" : {
+         "href" : "/artist/1"
+      },
+      "self" : {
+         "href" : "/gig/1/2014-01-01T01:01:01Z"
+      }
+   },
+   "artistid" : 1,
+   "gig_datetime" : "2014-01-01T01:01:01Z"
+}
+
+=== get different item with multi-field key
+Request:
+GET /gig/2/2014-06-30T19:00:00Z
+Accept: application/hal+json,application/json
+Response:
+200 OK
+Content-type: application/hal+json
+{
+   "_links" : {
+      "artist" : {
+         "href" : "/artist/2"
+      },
+      "self" : {
+         "href" : "/gig/2/2014-06-30T19:00:00Z"
+      }
+   },
+   "artistid" : 2,
+   "gig_datetime" : "2014-06-30T19:00:00Z"
+}
+

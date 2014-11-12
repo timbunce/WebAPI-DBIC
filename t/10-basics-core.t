@@ -45,6 +45,8 @@ run_me();
 done_testing();
 
 __DATA__
+Config:
+
 Name: get single item
 GET /artist/1
 
