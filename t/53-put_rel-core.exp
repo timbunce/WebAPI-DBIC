@@ -1,0 +1,55 @@
+=== POST to the set to create a Track to edit (on an existing CD)
+Request:
+POST /track?prefetch=self
+{ "title":"Just One More", "position":4200, "cd":2 }
+Response:
+201 Created
+Content-type: application/json
+Location: /track/19
+{
+   "cd" : 2,
+   "last_updated_at" : null,
+   "last_updated_on" : null,
+   "position" : 4200,
+   "title" : "Just One More",
+   "trackid" : 19
+}
+
+=== update the title (19 hardwired for now) and prefetch self and disc (ignored)
+Request:
+PUT /track/19?prefetch=self,disc
+{ "title":"Just One More (remix)" }
+Response:
+200 OK
+Content-type: application/json
+{
+   "cd" : 2,
+   "last_updated_at" : null,
+   "last_updated_on" : null,
+   "position" : 4200,
+   "title" : "Just One More (remix)",
+   "trackid" : 19
+}
+
+=== update the track id (primary key)
+Request:
+PUT /track/19?prefetch=self
+{ "trackid":1900 }
+Response:
+200 OK
+Content-type: application/json
+{
+   "cd" : 2,
+   "last_updated_at" : null,
+   "last_updated_on" : null,
+   "position" : 4200,
+   "title" : "Just One More (remix)",
+   "trackid" : 1900
+}
+
+=== delete the track we just added
+Request:
+DELETE /track/1900
+Response:
+204 No Content
+Content-type: application/json

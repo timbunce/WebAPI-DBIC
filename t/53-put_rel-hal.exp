@@ -1,0 +1,120 @@
+=== POST to the set to create a Track to edit (on an existing CD)
+Request:
+POST /track?prefetch=self
+Accept: application/hal+json,application/json
+{ "title":"Just One More", "position":4200, "cd":2 }
+Response:
+201 Created
+Content-type: application/hal+json
+Location: /track/19
+{
+   "_links" : {
+      "cd" : {
+         "href" : "/cd/2"
+      },
+      "cd_cref_cond" : {
+         "href" : "/cd/2"
+      },
+      "cd_single" : {
+         "href" : "/cd/19"
+      },
+      "disc" : {
+         "href" : "/cd/2"
+      },
+      "self" : {
+         "href" : "/track/19"
+      }
+   },
+   "cd" : 2,
+   "last_updated_at" : null,
+   "last_updated_on" : null,
+   "position" : 4200,
+   "title" : "Just One More",
+   "trackid" : 19
+}
+
+=== update the title (19 hardwired for now) and prefetch self and disc
+Request:
+PUT /track/19?prefetch=self,disc
+Accept: application/hal+json,application/json
+{ "title":"Just One More (remix)" }
+Response:
+200 OK
+Content-type: application/hal+json
+{
+   "_embedded" : {
+      "disc" : {
+         "artist" : 1,
+         "cdid" : 2,
+         "genreid" : 2,
+         "single_track" : null,
+         "title" : "Forkful of bees",
+         "year" : "2001"
+      }
+   },
+   "_links" : {
+      "cd" : {
+         "href" : "/cd/2"
+      },
+      "cd_cref_cond" : {
+         "href" : "/cd/2"
+      },
+      "cd_single" : {
+         "href" : "/cd/19"
+      },
+      "disc" : {
+         "href" : "/cd/2"
+      },
+      "self" : {
+         "href" : "/track/19"
+      }
+   },
+   "cd" : 2,
+   "last_updated_at" : null,
+   "last_updated_on" : null,
+   "position" : 4200,
+   "title" : "Just One More (remix)",
+   "trackid" : 19
+}
+
+=== update the track id (primary key)
+Request:
+PUT /track/19?prefetch=self
+Accept: application/hal+json,application/json
+{ "trackid":1900 }
+Response:
+200 OK
+Content-type: application/hal+json
+{
+   "_links" : {
+      "cd" : {
+         "href" : "/cd/2"
+      },
+      "cd_cref_cond" : {
+         "href" : "/cd/2"
+      },
+      "cd_single" : {
+         "href" : "/cd/1900"
+      },
+      "disc" : {
+         "href" : "/cd/2"
+      },
+      "self" : {
+         "href" : "/track/1900"
+      }
+   },
+   "cd" : 2,
+   "last_updated_at" : null,
+   "last_updated_on" : null,
+   "position" : 4200,
+   "title" : "Just One More (remix)",
+   "trackid" : 1900
+}
+
+=== delete the track we just added
+Request:
+DELETE /track/1900
+Accept: application/hal+json,application/json
+Response:
+204 No Content
+Content-type: application/hal+json

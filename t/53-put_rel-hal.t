@@ -8,7 +8,6 @@ use Devel::Dwarn;
 
 use lib "t/lib";
 use TestDS;
-use TestDS_HAL;
 use WebAPI::DBIC::WebApp;
 
 use Test::Roo;
@@ -27,35 +26,25 @@ test "===== Update a resource and related resources via PUT =====" => sub {
         schema => $self->schema,
     })->to_psgi_app;
 
+    run_request_spec_tests($app, \*DATA);
+
     my $orig_item;
     my $orig_location;
 
-    # POST to the set to create a Track to edit, and also create a CD
+    # POST to the set to create a Track to edit (on an existing CD)
     test_psgi $app, sub {
-        my $res = shift->(dsreq_hal( POST => "/track?prefetch=self", [], {
+        my $res = shift->(dsreq( POST => "/track?prefetch=self", [], {
             title => "Just One More",
             position => 42,
-            _embedded => {
-                disc => {
-                    artist => 1,
-                    title => 'The New New',
-                    year => '2014',
-                    genreid => 1,
-                }
-            }
+            cd => 2,
         }));
         ($orig_location, $orig_item) = dsresp_created_ok($res);
     };
 
     # PUT to the item to update the item and the related CD
     test_psgi $app, sub {
-        my $res = shift->(dsreq_hal( PUT => "/track/$orig_item->{trackid}?prefetch=self,disc", [], {
+        my $res = shift->(dsreq( PUT => "/track/$orig_item->{trackid}?prefetch=self,disc", [], {
             title => "Just One More (remix)",
-            _embedded => {
-                disc => {
-                    title => "The New New (mostly)"
-                }
-            }
         }));
         my $data = dsresp_ok($res);
 
@@ -63,28 +52,18 @@ test "===== Update a resource and related resources via PUT =====" => sub {
         ok $data->{trackid}, 'has trackid assigned';
         is $data->{title}, "Just One More (remix)";
         is $data->{position}, $orig_item->{position}, 'has same position assigned';
-
-        ok $data->{_embedded}, 'has _embedded';
-        ok my $disc = $data->{_embedded}{disc}, 'has embedded disc';
-        is $disc->{title}, "The New New (mostly)";
-        is $disc->{year}, 2014;
     };
 
     note "recheck data as a separate request";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/track/$orig_item->{trackid}?prefetch=self,disc")));
+        my $data = dsresp_ok(shift->(dsreq( GET => "/track/$orig_item->{trackid}?prefetch=self,disc")));
         ok $data->{trackid}, 'has trackid assigned';
         is $data->{title}, "Just One More (remix)";
         is $data->{position}, $orig_item->{position}, 'has same position assigned';
-
-        ok $data->{_embedded}, 'has _embedded';
-        ok my $disc = $data->{_embedded}{disc}, 'has embedded disc';
-        is $disc->{title}, "The New New (mostly)";
-        is $disc->{year}, 2014;
     };
 
     test_psgi $app, sub {
-        dsresp_ok(shift->(dsreq_hal( DELETE => "/track/$orig_item->{trackid}")), 204);
+        dsresp_ok(shift->(dsreq( DELETE => "/track/$orig_item->{trackid}")), 204);
     };
 
 };
@@ -92,3 +71,23 @@ test "===== Update a resource and related resources via PUT =====" => sub {
 run_me();
 
 done_testing();
+
+__DATA__
+Config:
+Accept: application/hal+json,application/json
+
+Name: POST to the set to create a Track to edit (on an existing CD)
+POST /track?prefetch=self
+{ "title":"Just One More", "position":4200, "cd":2 }
+
+Name: update the title (19 hardwired for now) and prefetch self and disc
+PUT /track/19?prefetch=self,disc
+{ "title":"Just One More (remix)" }
+
+Name: update the track id (primary key)
+# TODO this ought to return a Location header
+PUT /track/19?prefetch=self
+{ "trackid":1900 }
+
+Name: delete the track we just added
+DELETE /track/1900
