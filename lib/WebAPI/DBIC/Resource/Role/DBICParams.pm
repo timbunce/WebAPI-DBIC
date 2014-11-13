@@ -142,6 +142,11 @@ sub _resolve_prefetch {
     my ($self, $prefetch, $result_class) = @_;
     my @errors;
 
+    # Here we recursively resolve each of the prefetches to normalise them all to the most complicated
+    # form that can exist. The results will be a ArrayRef of HashRefs that can be passed to DBIC
+    # directly.
+    # This code is largely taken from the _resolve_join subroutine in DBIx::Class
+
     return [] unless defined $prefetch and length $prefetch;
     my @return;
 
