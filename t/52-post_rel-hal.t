@@ -1,30 +1,16 @@
 #!/usr/bin/env perl
 
-use Test::Most;
-use Plack::Test;
-use Test::HTTP::Response;
-use JSON::MaybeXS;
-use Devel::Dwarn;
 
 use lib "t/lib";
-use TestDS;
-use TestDS_HAL;
-use WebAPI::DBIC::WebApp;
+use TestKit;
 
-use Test::Roo;
-with 'TestRole::Schema';
+fixtures_ok qw/basic/;
 
-after setup => sub {
-    my ($self) = @_;
-    $self->load_fixtures(qw(basic));
-};
-
-
-test "===== Create item, with embedded items, by POST to set =====" => sub {
+subtest "===== Create item, with embedded items, by POST to set =====" => sub {
     my ($self) = @_;
 
     my $app = WebAPI::DBIC::WebApp->new({
-        schema => $self->schema,
+        schema => Schema,
     })->to_psgi_app;
 
     my $track_with_embedded_cd = {
@@ -85,7 +71,5 @@ test "===== Create item, with embedded items, by POST to set =====" => sub {
         is $disc->{name}, $track_with_embedded_cd->{_embedded}{disc}{name}, 'disc name matches';
     };
 };
-
-run_me();
 
 done_testing();

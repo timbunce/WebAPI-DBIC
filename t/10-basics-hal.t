@@ -1,47 +1,22 @@
 #!/usr/bin/env perl
 
-use Test::Most;
-use Devel::Dwarn;
-use autodie;
 
 use lib 't/lib';
-use TestDS;
-use WebAPI::DBIC::WebApp;
+use TestKit;
 
-use Test::Roo;
-with 'TestRole::Schema';
+fixtures_ok qw/basic/;
 
-
-after setup => sub {
-    my ($self) = @_;
-    $self->load_fixtures(qw(basic));
-};
-
-
-
-#local $SIG{__DIE__} = \&Carp::confess;
-
-
-
-test '===== basics - specs =====' => sub {
+subtest '===== basics - specs =====' => sub {
     my ($self) = @_;
 
     my $app = WebAPI::DBIC::WebApp->new({
-        schema => $self->schema,
+        schema => Schema,
     })->to_psgi_app;
 
     run_request_spec_tests($app, \*DATA);
 
 };
 
-
-after teardown => sub {
-    my ($self) = @_;
-    note "Bye!";
-};
-
-
-run_me();
 done_testing();
 
 __DATA__
