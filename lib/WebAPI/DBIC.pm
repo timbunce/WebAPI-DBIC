@@ -7,7 +7,7 @@ __END__
 
 =head1 NAME
 
-WebAPI::DBIC - A composable RESTful JSON+HAL API to DBIx::Class schemas using roles and Web::Machine
+WebAPI::DBIC - A composable RESTful JSON API to DBIx::Class schemas using roles and Web::Machine
 
 =head1 STATUS
 
@@ -26,12 +26,6 @@ service API backed by DBIx::Class schemas.
 
 WebAPI::DBIC features include:
 
-* Use of the JSON+HAL (Hypertext Application Language) lean hypermedia type
-
-* Automatic detection and exposure of result set relationships as HAL C<_links>
-
-* Supports safe robust multi-related-record CRUD transactions
-
 * Built on the strong foundations of L<Web::Machine> and L<Plack>, with
 L<Path::Router> as the router. (We aim to support other routers soon.)
 
@@ -39,7 +33,16 @@ L<Path::Router> as the router. (We aim to support other routers soon.)
 
 * Integrates with other L<Plack> based applications.
 
-* The resource roles can be added to your existing application
+* The resource roles can be added to your existing application.
+
+* Supports multiple media types. Plain JSON, and JSON+HAL are currently supported.
+Support for "JSON API" is in development.
+
+* Use of the JSON+HAL (Hypertext Application Language) lean hypermedia type
+
+* Automatic detection and exposure of result set relationships as HAL C<_links>
+
+* Supports safe robust multi-related-record CRUD transactions
 
 * A built-in copy of the generic HAL API browser application
 
@@ -135,14 +138,14 @@ C<WEBAPI_DBIC_WRITABLE> environment variable.
 
 =head1 MODULES
 
-=head2 Roles
+=head2 Core Roles
 
 L<WebAPI::DBIC::Resource::Role::DBIC> is responsible for interfacing with
 L<DBIx::Class>, 'rendering' individual records as resource data structures.
 It also interfaces with Path::Router to handle relationship linking.
 
 L<WebAPI::DBIC::Resource::Role::Set> is responsible for accepting GET and HEAD
-requests for set resources (collections) and returning the results as JSON or JSON+HAL.
+requests for set resources (collections) and returning the results as JSON.
 
 L<WebAPI::DBIC::Resource::Role::SetWritable> is responsible for accepting POST
 request for set resources. It handles the recursive creation of related records.
@@ -150,7 +153,7 @@ Related records can be nested to any depth and are created from the bottom up
 within a transaction.
 
 L<WebAPI::DBIC::Resource::Role::Item> is responsible for GET and HEAD requests
-for single item resources and returning the results as JSON or JSON+HAL.
+for single item resources and returning the results as JSON.
 
 L<WebAPI::DBIC::Resource::Role::ItemWritable> is responsible for accepting PUT
 and DELETE requests for single item resources. It handles the recursive update of
@@ -170,6 +173,29 @@ username and password for the database connection.
 L<WebAPI::DBIC::Resource::Role::DBICParams> is responsible for handling request
 parameters related to DBIx::Class such as C<page>, C<rows>, C<order>, C<me>,
 C<prefetch>, C<fields> etc.
+
+
+=head2 JSON+HAL Roles
+
+L<WebAPI::DBIC::Resource::Role::DBIC_HAL> adds general support for rendering
+items, sets, and their relations as JSON+HAL. 
+
+L<WebAPI::DBIC::Resource::Role::SetHAL> adds support to set resources for fetching
+sets and and their relations using the C<application/hal+json> media type.
+
+L<WebAPI::DBIC::Resource::Role::SetWritableHAL> adds support for POST'ing to set
+resources using the C<application/hal+json> media type.  It handles the
+recursive creation of related records.  Related records can be nested to any
+depth and are created from the bottom up within a transaction.
+
+L<WebAPI::DBIC::Resource::Role::ItemHAL> adds support to item resources for
+fetching items and their relations using the C<application/hal+json> media type.
+
+L<WebAPI::DBIC::Resource::Role::ItemWritableHAL> adds support for PUT'ing to item
+resources using the C<application/hal+json> media type.  It handles the
+recursive updating of related records.  Related records can be nested to any
+depth and are updated from the bottom up within a transaction.
+
 
 =head2 Utility Roles
 
@@ -459,7 +485,7 @@ The following examples assume a Schema setup similar to the following:
 
     package MyApp::Schema::Result::Artist;
     __PACKAGE__->has_many('albums'     => 'MyApp::Schema::Result::CD', 'album_artist');
-    __PACKAGE__->has_many('cd_artists' => 'MyApp::Schame::Result::CDArtist', 'artistid');
+    __PACKAGE__->has_many('cd_artists' => 'MyApp::Schama::Result::CDArtist', 'artistid');
     __PACKAGE__->belongs_to('producer' => 'MyApp::Schema::Result::Producer', 'producerid');
     __PACKAGE__->many_to_many('cds' => 'cd_artists', 'cd');
 
@@ -502,22 +528,22 @@ This would return the following JSON+HAL:
         },
         _links: {
             producer: /producer/1,
-            albums: /artists/1?albums~json="{-or: [{cdid: 1}, {cdid: 2}]}"
+            albums: /artists/1?albums~json={-or: [{cdid: 1}, {cdid: 2}]} # XXX not correct
         }
     }
 
 =head4 json
 
 The C<prefetch> parameter can be specified as a more complex JSON-encoded
-parameter value. This allows for the full use of prefetch chains. Using
-key value pairs and lists prefetches can be nested from one resultset to
+parameter value. This allows for the full use of prefetch chains.
+Using key value pairs and lists, prefetches can be nested from one resultset to
 another:
 
-    artist/1?prefetch~json="{[producer, albums]}"
+    artist/1?prefetch~json={["producer","albums"]}
 
-would produce the same results as above:
+This would produce the same results as above:
 
-    artist/1?prefetch~json="{[producer, cd_artists: {cds: album_artist}]}"
+    artist/1?prefetch~json={["producer","cd_artists",{"cds":"album_artist"}]}
 
 would producer the following JSON+HAL:
 
