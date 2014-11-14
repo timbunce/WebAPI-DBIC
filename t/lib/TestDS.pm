@@ -51,7 +51,7 @@ sub run_request_spec_tests {
     close $fh;
 
     eq_or_diff slurp($got_file), slurp($exp_file),
-            "$test_file output matches expectations"
+            "$test_file output in $got_file matches $exp_file"
         and unlink $got_file;
 }
 
@@ -97,10 +97,12 @@ sub _make_request_from_spec {
     $url = URI->new( $url, 'http' );
     for my $url_param (@url_params) {
         my ($p_name, $p_value) = split /=>/, $url_param, 2;
+        die "URL parameter specification '$url_param' not in the form 'name=>value'\n"
+            unless defined $p_value;
         $p_value = eval $p_value;
         if ($@) {
             chomp $@;
-            die "Error evaluating $p_name param value '$p_value': $@ (for test name '$name')";
+            die "Error evaluating '$url_param' param value '$p_value': $@ (for test name '$name')";
         }
         $p_value = JSON->new->ascii->encode($p_value);
         $url->query_form( $url->query_form, $p_name, $p_value);

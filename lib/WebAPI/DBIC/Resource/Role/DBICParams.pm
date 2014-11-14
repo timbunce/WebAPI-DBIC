@@ -196,7 +196,7 @@ sub _validate_relationship {
     try {
         $rel_info = $result_class->relationship_info($rel);
         local $SIG{__DIE__}; # avoid strack trace from these dies:
-        die "no relationship with that name"
+        die "no relationship with that name\n"
             if not $rel_info;
         die "relationship is $rel_info->{attrs}{accessor} but only single, filter and multi are supported\n"
             if not $rel_info->{attrs}{accessor} =~ m/^(?:single|filter|multi)$/; # sanity

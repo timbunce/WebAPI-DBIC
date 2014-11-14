@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
 
+# TODO: this ought to be split up, eg testing requests on Item vs Set resources
+
 
 use lib "t/lib";
 use TestKit;
@@ -13,145 +15,7 @@ subtest "===== Prefetch =====" => sub {
         schema => Schema,
     })->to_psgi_app;
 
-
-    # here we ask to prefetch items that have a belongs_to relationship with the resource
-    # they get returned as _embedded objects. (Also they may be stale.)
-    note "prefetch on item";
-    test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd/1?prefetch=artist,genre" )));
-        my $item = is_item($data, 1,1);
-        my $embedded = has_hal_embedded($data, 2,2);
-        is ref $embedded->{genre}, 'HASH', "has embedded genreid";
-        is $embedded->{genre}{genreid}, $data->{genreid}, 'genreid matches';
-        is ref $embedded->{artist}, 'HASH', "has embedded artistid";
-        is $embedded->{artist}{artistid}, $data->{artist}, 'artistid matches';
-    };
-
-    note "prefetch on set";
-    test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd?rows=2&page=1&prefetch=artist,genre" )));
-        my $set = has_hal_embedded_list($data, "cd", 2,2);
-        for my $item (@$set) {
-            my $embedded = has_hal_embedded($item, 2,2);
-            is ref $embedded->{genre}, 'HASH', "has embedded genreid";
-            is $embedded->{genre}{genreid}, $item->{genreid}, 'genreid matches';
-            is ref $embedded->{artist}, 'HASH', "has embedded person_id";
-            is $embedded->{artist}{artistid}, $item->{artist}, 'artistid matches';
-        }
-    };
-
-    # Only handle filter of the SET based on the PREFETCH. DBIC won't allow filtering of the PREFETCH on an ITEM
-    # as the WHERE clause is added to the whole select statement. IF custom where clauses are needed on the right
-    # hand side of the join then these should be implemented as custom relationships
-    # https://metacpan.org/pod/DBIx::Class::ResultSet#PREFETCHING
-
-    # Should only return CDs whose artist is Caterwauler McCrae
-    # CD->search({artist.name => 'Caterwauler McCrae']}, {prefetch => 'artist'})
-    note "filter on prefetch with string";
-    test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd?prefetch=artist&artist.name=Caterwauler+McCrae")));
-        my $set = has_hal_embedded_list($data, "cd", 3, 3);
-        for my $item (@$set) {
-            my $embedded = has_hal_embedded($item, 1, 1);
-            is ref $embedded->{artist}, 'HASH', "has embedded artist";
-            is $embedded->{artist}{name}, 'Caterwauler McCrae', 'artist has the correct name';
-        }
-    };
-
-    # Should return the all CDs whose artist name ends wth McCrae
-    # CD->search({artist.name => {'LIKE' => '%McCrae'}}, {prefetch => 'artist'})
-    note "filter on prefetch with JSON";
-    test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq_hal( GET => '/cd?prefetch=artist&artist.name~json={"like":"%McCrae"}')));
-        my $set = has_hal_embedded_list($data, "cd", 3, 3);
-        for my $item (@$set) {
-            my $embedded = has_hal_embedded($item, 1, 1);
-            is ref $embedded->{artist}, 'HASH', "has embessed artist";
-            like $embedded->{artist}{name}, qr/McCrae$/, 'artist has the correct name';
-        }
-    };
-
-
-    # Return all artists and all cds
-    # Artist->search({}, {prefetch => 'cds'})
-    note "multi type relation (has_many) in prefetch on set";
-    test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq_hal( GET => '/artist?prefetch=cds&rows=2')));
-        my $artists = has_hal_embedded_list($data, 'artist', 2,2);
-        for my $artist (@$artists) {
-            # { _embedded => { cds => { _embedded => [ {...}, ... ], }  }, artistid => 1, ... }
-            my $cds = has_hal_embedded_list($artist, "cds", 1, 3);
-            for my $cd (@$cds) {
-               is $cd->{artist} => $artist->{artistid}, 'cd has the correct artistid';
-            }
-        }
-    };
-
-    # Return artist 1 and all cds
-    # Artist->search({artistid => 1}, {prefetch => 'cds'})
-    note "multi type relation (has_many) in prefetch on item";
-    test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq_hal( GET => '/artist/1?prefetch=cds')));
-        my $item = is_item($data,1,1);
-        my $cds = has_hal_embedded_list($item, "cds", 1, 3);
-        for my $cd (@$cds) {
-            is $cd->{artist} => $data->{artistid}, 'cd has the correct artistid';
-        }
-    };
-
-    # Return all cds and all producers
-    # cd->search({}, {prefetch => {cd_to_producers => 'producer'})
-    # many_to_many relationships are not true db relationships. As such you can't use a many_to_many
-    # in a prefetch but must traverse the join.
-    note "multi type relation (many_to_many) in prefetch on item";
-    test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq_hal( GET => '/cd/1?prefetch~json={"cd_to_producer":"producer"}')));
-        my $item = is_item($data,1,1);
-        my $cd_to_producers = has_hal_embedded_list($item, 'cd_to_producer', 3, 3);
-        for my $cd_to_producer (@$cd_to_producers){
-            is $cd_to_producer->{cd} => $data->{cdid}, 'CD_to_Producer has correct cdid';
-            my $embedded = has_hal_embedded($cd_to_producer, 1, 1);
-            is ref $embedded->{producer}, 'HASH', 'has embedded producer';
-            is $embedded->{producer}{producerid} => $cd_to_producer->{producer}, 'many_to_many join successful'
-        }
-    };
-
-    # Return all artists who have a CD created after 1997 who's producer is Matt S Trout
-    # Artist->search({cds.year => ['>', '1997'], producers.name => 'Matt S Trout'}, {prefetch => [{cds => producers}]})
-    note "filter on nested prefetch";
-    test_psgi $app, sub {
-        my $data = dsresp_ok(
-            shift->(
-                dsreq_hal( GET => '/artist?prefetch~json={"cds":{"cd_to_producer":"producer"}}&cds.year~json={">":"1996"}&producer.name=Matt+S+Trout&rows=2')
-            )
-        );
-        my $set = has_hal_embedded_list($data, "artist", 1, 1);
-        for my $item (@$set) {
-            my $cds = has_hal_embedded_list($item, 'cds', 1, 1);
-            for my $cd (@$cds) {
-                cmp_ok $cd->{year}, '>', '1996', 'CD year after 1996';
-                my $cd_to_producers = has_hal_embedded_list($cd, 'cd_to_producer', 1, 1);
-                for my $cd_to_producer (@$cd_to_producers){
-                    is $cd_to_producer->{cd} => $cd->{cdid}, 'CD_to_Producer has correct cdid';
-                    my $embedded = has_hal_embedded($cd_to_producer, 1, 1);
-                    is ref $embedded->{producer}, 'HASH', 'has embedded producer';
-                    is $embedded->{producer}{producerid} => $cd_to_producer->{producer}, 'many_to_many join successful';
-                    is $embedded->{producer}{name} => 'Matt S Trout', 'has correct producer';
-                }
-            }
-        }
-    };
-
-    note "prefetch with query on ambiguous field";
-    # just check that a 'artist is ambiguous' error isn't generated
-    test_psgi $app, sub {
-        dsresp_ok(shift->(dsreq_hal( GET => "/cd/?me.artist=1&prefetch=artist" )));
-    };
-
-    note "prefetch on invalid name";
-    test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd/1?prefetch=nonesuch" )), 400);
-    };
+    run_request_spec_tests($app, \*DATA);
 
     TODO: {
     local $TODO = "partial response of prefetched items is not implemented yet";
@@ -191,3 +55,51 @@ subtest "===== Prefetch =====" => sub {
 };
 
 done_testing();
+
+__DATA__
+Config:
+Accept: application/hal+json,application/json
+
+Name: prefetch on an item using two belongs_to relationships
+GET /cd/1?prefetch=artist,genre
+
+Name: prefetch on a set using two belongs_to relationships
+GET /cd?rows=2&page=1&prefetch=artist,genre
+
+Name: filter on prefetched relation field
+# Only handle filter of the SET based on the PREFETCH. DBIC won't allow filtering of the PREFETCH on an ITEM
+# as the WHERE clause is added to the whole select statement.
+# Should only return CDs whose artist is Caterwauler McCrae
+GET /cd?prefetch=artist&artist.name=Random+Boy+Band
+
+Name: filter on prefetch with JSON
+GET /cd?prefetch=artist PARAMS: artist.name~json=>{"like"=>"%Band"}
+
+Name: multi type relation (has_many) in prefetch on item
+# Return artist 1 and all cds
+# Artist->search({artistid => 1}, {prefetch => 'cds'})
+GET /artist/1?prefetch=cds
+
+Name: multi type relation (has_many) in prefetch on set
+# Return all artists and all cds
+# Artist->search({}, {prefetch => 'cds'})
+GET /artist?prefetch=cds&rows=2
+
+Name: multi type relation in prefetch on item (many_to_many via JSON)
+# Return all cds and all producers
+# cd->search({}, {prefetch => {cd_to_producers => 'producer'})
+# many_to_many relationships are not true db relationships. As such you can't use a many_to_many
+# in a prefetch but must traverse the join.
+GET /cd/1 PARAMS: prefetch~json=>{"cd_to_producer"=>"producer"}
+
+Name: filter on nested prefetch
+# Return all artists who have a CD created after 1997 who's producer is Matt S Trout
+# Artist->search({cds.year => ['>', '1997'], producers.name => 'Matt S Trout'}, {prefetch => [{cds => producers}]})
+GET /artist?rows=2&producer.name=Matt+S+Trout PARAMS: prefetch~json=>{"cds"=>{"cd_to_producer"=>"producer"}} cds.year~json=>{">","0996"}
+
+Name: prefetch with query on ambiguous field
+# just check that a 'artist is ambiguous' error isn't generated
+GET /cd/?me.artist=1&prefetch=artist
+
+Name: prefetch on invalid name
+GET /cd/1?prefetch=nonesuch
