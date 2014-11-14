@@ -206,7 +206,7 @@ sub _validate_relationship {
             $rel => $_,
             _meta => {
                 relationship => $rel_info,
-                relationships => [ $result_class->relationships ]
+                relationships => [ sort $result_class->relationships ]
             }, # XXX
         };
     };

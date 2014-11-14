@@ -920,13 +920,13 @@ Content-type: application/json
          "_meta" : {
             "relationship" : null,
             "relationships" : [
-               "genre",
-               "very_long_artist_relationship",
                "artist",
                "cd_to_producer",
-               "single_track",
                "existing_single_track",
-               "tracks"
+               "genre",
+               "single_track",
+               "tracks",
+               "very_long_artist_relationship"
             ]
          },
          "nonesuch" : "no relationship with that name\n"
