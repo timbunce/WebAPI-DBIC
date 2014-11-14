@@ -1,16 +1,9 @@
 #!/usr/bin/env perl
 
-use Test::Most;
-use Plack::Test;
-use Test::HTTP::Response;
-use JSON::MaybeXS;
-use Devel::Dwarn;
 
 use lib "t/lib";
-use TestDS;
-use WebAPI::DBIC::WebApp;
+use TestKit;
 
-use Test::DBIx::Class;
 fixtures_ok qw/basic/;
 
 subtest "===== Create - POST =====" => sub {

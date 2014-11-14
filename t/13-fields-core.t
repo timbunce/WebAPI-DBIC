@@ -1,16 +1,9 @@
 #!/usr/bin/env perl
 
-use Test::Most;
-use Test::HTTP::Response;
-use Plack::Test;
-use Devel::Dwarn;
 
 use lib "t/lib";
-use TestDS;
-use TestDS_HAL;
-use WebAPI::DBIC::WebApp;
+use TestKit;
 
-use Test::DBIx::Class;
 fixtures_ok qw/basic/;
 
 subtest "===== Get with fields param =====" => sub {

@@ -1,15 +1,9 @@
 #!/usr/bin/env perl
 
-use Test::Most;
-use Plack::Test;
-use Devel::Dwarn;
 
 use lib "t/lib";
-use TestDS;
-use TestDS_HAL;
-use WebAPI::DBIC::WebApp;
+use TestKit;
 
-use Test::DBIx::Class;
 fixtures_ok qw/basic/;
 
 subtest "===== Paging =====" => sub {

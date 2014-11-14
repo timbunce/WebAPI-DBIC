@@ -1,17 +1,9 @@
 #!/usr/bin/env perl
 
-use Test::Most;
-use Plack::Test;
-use Test::HTTP::Response;
-use Sort::Key qw(multikeysorter);
-use Devel::Dwarn;
-
 use lib "t/lib";
-use TestDS;
-use TestDS_HAL;
-use WebAPI::DBIC::WebApp;
+use TestKit;
+use Sort::Key qw/multikeysorter/;
 
-use Test::DBIx::Class;
 fixtures_ok qw/basic/;
 
 sub is_ordered {

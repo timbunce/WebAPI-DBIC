@@ -1,14 +1,9 @@
 #!/usr/bin/env perl
 
-use Test::Most;
-use Devel::Dwarn;
-use autodie;
 
 use lib 't/lib';
-use TestDS;
-use WebAPI::DBIC::WebApp;
+use TestKit;
 
-use Test::DBIx::Class;
 fixtures_ok qw/basic/;
 
 subtest '===== basics - specs =====' => sub {
