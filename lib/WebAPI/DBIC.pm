@@ -440,49 +440,50 @@ Also see L</prefetch>.
 
 =head3 prefetch
 
-NOTE: Only works for response types that support embedded data, e.g, C<application/hal+json>.
+Prefetch is a mechanism in DBIx::Class by which related resultsets can be returned
+along with the primary resultset. This prefetching is performed by a single query and
+so improves efficiency by reducing the number of database requests.
 
-Prefetch is a mechanism in DBIx::Class by which associated Resultsets can be returned
-along with the primary resultset in order to allow for more effecient fetching of data
-from the Database. 
+In WebAPI::DBIC the C<prefetch> parameter enables use of DBIx::Class prefetch and
+so allows any data in related resultsets to be returned as part of the same
+response. This allows the user to make one GET to return most, and possibly all,
+of the data needed by the requesting application. This reduces the number of HTTP requests.
 
-In WebAPI::DBIC the prefetch parameter allows for the return of all related data in 
-the related resultsets to be returned as part of the same Query. This allows the user
-to make one GET to return all the data that may be needed by the requesting application.
+Note that prefetch is only effective for response types that support embedded
+data, e.g, C<application/hal+json>.
 
-Prefetch is also synonymous with the JOIN sql statement and DBIx::Class uses the relationship
-accessors provided to the prefetch command to populate the ON component of a JOIN statement.
-If the field paramenter is supplied then any prefetch will automatically be turned into a JOIN
-as this will ensure only the requested fields are returned in the output.
-
-Prefetching in WebAPI::DBIC and subsequently DBIx::Class uses the accessor names defined in the
+Prefetching in WebAPI::DBIC and DBIx::Class uses the accessor names defined in the
 Result class for the given Resultset. These should be used in the prefetch parameter.
 
 The following examples assume a Schema setup similar to the following:
+
     package MyApp::Schema::Result::Artist;
+    __PACKAGE__->has_many('albums'     => 'MyApp::Schema::Result::CD', 'album_artist');
     __PACKAGE__->has_many('cd_artists' => 'MyApp::Schame::Result::CDArtist', 'artistid');
     __PACKAGE__->belongs_to('producer' => 'MyApp::Schema::Result::Producer', 'producerid');
-    __PACKAGE__->has_many('albums' => 'MyApp::Schema::Result::CD', 'album_artist');
     __PACKAGE__->many_to_many('cds' => 'cd_artists', 'cd');
 
     package MyApp::Schema::Result::CD;
-    __PACKAGE__->has_many('cd_artists' => 'MyApp::Schema::Result::CDArtist', 'cdid');
-    __PACKAGE__->many_to_many('artists' => 'cd_artists', 'artist');
+    __PACKAGE__->has_many('cd_artists'     => 'MyApp::Schema::Result::CDArtist', 'cdid');
     __PACKAGE__->belongs_to('album_artist' => 'MyApp::Schema::Result::Artist', 'album_artist');
+    __PACKAGE__->many_to_many('artists' => 'cd_artists', 'artist');
 
     package MyApp::Schema::Result::CDArtists;
     __PACKAGE__->belongs_to('cd' => 'MyApp::Schema::Result::CD', 'cdid');
     __PACKAGE__->belongs_to('artist' => 'MyApp::Schema::Result::Artist', 'artistid');
 
+
 =head4 comma seperated lists
 
-Where all related data for individual directly related resultsets are desired then a comma seperated
-list can be provided to the the prefetch parameter (NOTE: That you cannot provide the prefetch parameter
-multiple times to achieve the same result)
+Where all related data for individual directly related resultsets are desired
+then a comma seperated list can be provided to the the prefetch parameter
 
     artist/1?prefetch=producer,albums
 
-This would return the following JSON+HAL
+(Note that you can't provide the prefetch parameter multiple times to achieve
+the same result.)
+
+This would return the following JSON+HAL:
 
     {
         artistid: 1,
@@ -507,17 +508,18 @@ This would return the following JSON+HAL
 
 =head4 json
 
-Prefetches can be provided as a more complex json encoded parameter value. This allows
-for the full exploration of prefetch chains. Using key value pairs and lists prefetches
-can be nested from one resultset to another
+The C<prefetch> parameter can be specified as a more complex JSON-encoded
+parameter value. This allows for the full use of prefetch chains. Using
+key value pairs and lists prefetches can be nested from one resultset to
+another:
 
     artist/1?prefetch~json="{[producer, albums]}"
 
-would produce the same results as above
+would produce the same results as above:
 
     artist/1?prefetch~json="{[producer, cd_artists: {cds: album_artist}]}"
 
-would producer the following JSON+HAL
+would producer the following JSON+HAL:
 
     {
         artistid: 1,
@@ -555,33 +557,32 @@ would producer the following JSON+HAL
         }
     }
 
-NOTE: many_to_many relationships can't be supported as they are not true relatioships
-the related data should be prefetched using the has_many relatioships and their join
-table as in the above example
+NOTE: many_to_many relationships can't be supported as they are not true relationships
+the related data should be prefetched using the has_many relationship and their join
+table as in the above example.
 
 =head4 where on prefetch
 
-The where clause generated can filter based on prefetched data as you would expect in
-a SQL style JOIN. The prefech accessor is used as the alias for the JOIN. To use the 
-prefetch relationship in the where append the accessor name before the field:
+The WHERE clause generated can filter results based on related data, as you
+would expect in a SQL style JOIN. To refer to fields in related resultsets,
+prefix the name of the field with the name of the relationship:
 
     /artist?prefetch=albumns&albums.title='My CD Title'
 
-this would return all artists which are listed as having an album with the title 'My CD Title'
+This would return all artists which have an album with the title 'My CD Title'.
 
 =head3 fields
 
-Partial responses:
+The fields parameter can be used to limit the fields returned in the response.
+For example:
 
     fields=field1,field2
 
-the fields parameter can be used to limit the fields returned in the response. This also works
+This also works
 in combination with the prefetch parameter. As with querying on prefetched relations, the
-relation accessor should be appended before the field name in question. If this occurs then
-DBIx::Class query made will be use a join rather than a prefetch to prevent all data being returned.
+relation accessor should be appended before the field name in question.
 
     artists/1?prefetch=albums&fields=artistid,albumns.title
-
 
 For more information on PREFETCHING and JOINS see L<DBIx::Class::Resultset#PREFETCHING>
 
