@@ -3,7 +3,6 @@
 use Test::Most;
 use Plack::Test;
 use Test::HTTP::Response;
-use JSON::MaybeXS;
 use Devel::Dwarn;
 
 use lib "t/lib";
@@ -11,22 +10,14 @@ use TestDS;
 use TestDS_HAL;
 use WebAPI::DBIC::WebApp;
 
-use Test::Roo;
-with 'TestRole::Schema';
+use Test::DBIx::Class;
+fixtures_ok qw/basic/;
 
-
-local $SIG{__DIE__} = \&Carp::confess;
-
-after setup => sub {
-    my ($self) = @_;
-    $self->load_fixtures(qw(basic));
-};
-
-test "===== Get with fields param =====" => sub {
+subtest "===== Get with fields param =====" => sub {
     my ($self) = @_;
 
     my $app = WebAPI::DBIC::WebApp->new({
-        schema => $self->schema,
+        schema => Schema,
     })->to_psgi_app;
 
 
@@ -57,5 +48,4 @@ test "===== Get with fields param =====" => sub {
     };
 };
 
-run_me();
 done_testing();
