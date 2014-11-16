@@ -3,6 +3,7 @@ Changes file for WebAPI::DBIC
 {{$NEXT}}
 
   - Added support for arbitrary depth and complexity of prefetch param
+    thanks to Mike Francis.
 
 0.001010  2014-11-12 14:05:00+00:00 Europe/Dublin (TRIAL RELEASE)
 
