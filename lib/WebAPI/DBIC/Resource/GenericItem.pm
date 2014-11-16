@@ -16,6 +16,10 @@ with    'WebAPI::DBIC::Resource::Role::Item',
         'WebAPI::DBIC::Resource::Role::DBIC_HAL',
         'WebAPI::DBIC::Resource::Role::ItemHAL',
         'WebAPI::DBIC::Resource::Role::ItemWritableHAL',
+        # Enable JSON API support:
+        'WebAPI::DBIC::Resource::Role::DBIC_JSONAPI',
+        'WebAPI::DBIC::Resource::Role::ItemJSONAPI',
+        'WebAPI::DBIC::Resource::Role::ItemWritableJSONAPI',
         ;
 
 1;

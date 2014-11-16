@@ -14,6 +14,12 @@ Things to do, or at least consider, before we stop being alpha:
 
     Support CODE ref relationship conditions
 
+    JSON API:
+    * warn at build-time if a resource has attributes that clash with reserved keys
+    eg id (that's not the unique key being used for id), type, href, or links.
+    http://jsonapi.org/format/#document-structure-resource-object-attributes
+    * add optional resultset-class to jsonapi-type name mapping
+
     Refactor ::WebApp
     - move HAL browser out somewhere and mount via .psgi file
     - move/rethink My::HTTP::Throwable::Factory package block

@@ -1,0 +1,120 @@
+=== get single item
+Request:
+GET /artist/1
+Accept: application/vnd.api+json
+Response:
+200 OK
+Content-type: application/vnd.api+json
+{
+   "artistid" : 1,
+   "charfield" : null,
+   "href" : "/artist/1",
+   "name" : "Caterwauler McCrae",
+   "rank" : 13,
+   "type" : "artist"
+}
+
+=== get different single item
+Request:
+GET /artist/2
+Accept: application/vnd.api+json
+Response:
+200 OK
+Content-type: application/vnd.api+json
+{
+   "artistid" : 2,
+   "charfield" : null,
+   "href" : "/artist/2",
+   "name" : "Random Boy Band",
+   "rank" : 13,
+   "type" : "artist"
+}
+
+=== get set of items
+Request:
+GET /artist
+Accept: application/vnd.api+json
+Response:
+200 OK
+Content-type: application/vnd.api+json
+{
+   "artist" : [
+      {
+         "artistid" : 1,
+         "charfield" : null,
+         "href" : "/artist/1",
+         "name" : "Caterwauler McCrae",
+         "rank" : 13,
+         "type" : "artist"
+      },
+      {
+         "artistid" : 2,
+         "charfield" : null,
+         "href" : "/artist/2",
+         "name" : "Random Boy Band",
+         "rank" : 13,
+         "type" : "artist"
+      },
+      {
+         "artistid" : 3,
+         "charfield" : null,
+         "href" : "/artist/3",
+         "name" : "We Are Goth",
+         "rank" : 13,
+         "type" : "artist"
+      },
+      {
+         "artistid" : 4,
+         "charfield" : null,
+         "href" : "/artist/4",
+         "name" : "KielbaSka",
+         "rank" : 13,
+         "type" : "artist"
+      },
+      {
+         "artistid" : 5,
+         "charfield" : null,
+         "href" : "/artist/5",
+         "name" : "Gruntfiddle",
+         "rank" : 13,
+         "type" : "artist"
+      },
+      {
+         "artistid" : 6,
+         "charfield" : null,
+         "href" : "/artist/6",
+         "name" : "A-ha Na Na",
+         "rank" : 13,
+         "type" : "artist"
+      }
+   ]
+}
+
+=== get item with multi-field key
+Request:
+GET /gig/1/2014-01-01T01:01:01Z
+Accept: application/vnd.api+json
+Response:
+200 OK
+Content-type: application/vnd.api+json
+{
+   "artistid" : 1,
+   "gig_datetime" : "2014-01-01T01:01:01Z",
+   "href" : "/gig/1/2014-01-01T01:01:01Z",
+   "type" : "gig"
+}
+
+=== get different item with multi-field key
+Request:
+GET /gig/2/2014-06-30T19:00:00Z
+Accept: application/vnd.api+json
+Response:
+200 OK
+Content-type: application/vnd.api+json
+{
+   "artistid" : 2,
+   "gig_datetime" : "2014-06-30T19:00:00Z",
+   "href" : "/gig/2/2014-06-30T19:00:00Z",
+   "type" : "gig"
+}
+
