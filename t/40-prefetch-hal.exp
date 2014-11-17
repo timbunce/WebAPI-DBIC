@@ -33,9 +33,6 @@ Content-type: application/hal+json
       },
       "tracks" : {
          "href" : "/track?me.cd=1"
-      },
-      "very_long_artist_relationship" : {
-         "href" : "/artist/1"
       }
    },
    "artist" : 1,
@@ -84,9 +81,6 @@ Content-type: application/hal+json
                },
                "tracks" : {
                   "href" : "/track?me.cd=1"
-               },
-               "very_long_artist_relationship" : {
-                  "href" : "/artist/1"
                }
             },
             "artist" : 1,
@@ -124,9 +118,6 @@ Content-type: application/hal+json
                },
                "tracks" : {
                   "href" : "/track?me.cd=2"
-               },
-               "very_long_artist_relationship" : {
-                  "href" : "/artist/1"
                }
             },
             "artist" : 1,
@@ -183,9 +174,6 @@ Content-type: application/hal+json
                },
                "tracks" : {
                   "href" : "/track?me.cd=4"
-               },
-               "very_long_artist_relationship" : {
-                  "href" : "/artist/2"
                }
             },
             "artist" : 2,
@@ -240,9 +228,6 @@ Content-type: application/hal+json
                },
                "tracks" : {
                   "href" : "/track?me.cd=4"
-               },
-               "very_long_artist_relationship" : {
-                  "href" : "/artist/2"
                }
             },
             "artist" : 2,
@@ -288,9 +273,6 @@ Content-type: application/hal+json
                },
                "tracks" : {
                   "href" : "/track?me.cd=1"
-               },
-               "very_long_artist_relationship" : {
-                  "href" : "/artist/1"
                }
             },
             "artist" : 1,
@@ -316,9 +298,6 @@ Content-type: application/hal+json
                },
                "tracks" : {
                   "href" : "/track?me.cd=2"
-               },
-               "very_long_artist_relationship" : {
-                  "href" : "/artist/1"
                }
             },
             "artist" : 1,
@@ -344,9 +323,6 @@ Content-type: application/hal+json
                },
                "tracks" : {
                   "href" : "/track?me.cd=3"
-               },
-               "very_long_artist_relationship" : {
-                  "href" : "/artist/1"
                }
             },
             "artist" : 1,
@@ -364,12 +340,6 @@ Content-type: application/hal+json
       },
       "cds_cref_cond" : {
          "href" : "/cd/1"
-      },
-      "cds_unordered" : {
-         "href" : "/cd?me.artist=1"
-      },
-      "cds_very_very_very_long_relationship_name" : {
-         "href" : "/cd?me.artist=1"
       },
       "self" : {
          "href" : "/artist/1"
@@ -410,9 +380,6 @@ Content-type: application/hal+json
                         },
                         "tracks" : {
                            "href" : "/track?me.cd=1"
-                        },
-                        "very_long_artist_relationship" : {
-                           "href" : "/artist/1"
                         }
                      },
                      "artist" : 1,
@@ -438,9 +405,6 @@ Content-type: application/hal+json
                         },
                         "tracks" : {
                            "href" : "/track?me.cd=2"
-                        },
-                        "very_long_artist_relationship" : {
-                           "href" : "/artist/1"
                         }
                      },
                      "artist" : 1,
@@ -466,9 +430,6 @@ Content-type: application/hal+json
                         },
                         "tracks" : {
                            "href" : "/track?me.cd=3"
-                        },
-                        "very_long_artist_relationship" : {
-                           "href" : "/artist/1"
                         }
                      },
                      "artist" : 1,
@@ -486,12 +447,6 @@ Content-type: application/hal+json
                },
                "cds_cref_cond" : {
                   "href" : "/cd/1"
-               },
-               "cds_unordered" : {
-                  "href" : "/cd?me.artist=1"
-               },
-               "cds_very_very_very_long_relationship_name" : {
-                  "href" : "/cd?me.artist=1"
                },
                "self" : {
                   "href" : "/artist/1"
@@ -521,9 +476,6 @@ Content-type: application/hal+json
                         },
                         "tracks" : {
                            "href" : "/track?me.cd=4"
-                        },
-                        "very_long_artist_relationship" : {
-                           "href" : "/artist/2"
                         }
                      },
                      "artist" : 2,
@@ -541,12 +493,6 @@ Content-type: application/hal+json
                },
                "cds_cref_cond" : {
                   "href" : "/cd/2"
-               },
-               "cds_unordered" : {
-                  "href" : "/cd?me.artist=2"
-               },
-               "cds_very_very_very_long_relationship_name" : {
-                  "href" : "/cd?me.artist=2"
                },
                "self" : {
                   "href" : "/artist/2"
@@ -664,9 +610,6 @@ Content-type: application/hal+json
       },
       "tracks" : {
          "href" : "/track?me.cd=1"
-      },
-      "very_long_artist_relationship" : {
-         "href" : "/artist/1"
       }
    },
    "artist" : 1,
@@ -733,9 +676,6 @@ Content-type: application/hal+json
                         },
                         "tracks" : {
                            "href" : "/track?me.cd=1"
-                        },
-                        "very_long_artist_relationship" : {
-                           "href" : "/artist/1"
                         }
                      },
                      "artist" : 1,
@@ -753,12 +693,6 @@ Content-type: application/hal+json
                },
                "cds_cref_cond" : {
                   "href" : "/cd/1"
-               },
-               "cds_unordered" : {
-                  "href" : "/cd?me.artist=1"
-               },
-               "cds_very_very_very_long_relationship_name" : {
-                  "href" : "/cd?me.artist=1"
                },
                "self" : {
                   "href" : "/artist/1"
@@ -813,9 +747,6 @@ Content-type: application/hal+json
                },
                "tracks" : {
                   "href" : "/track?me.cd=1"
-               },
-               "very_long_artist_relationship" : {
-                  "href" : "/artist/1"
                }
             },
             "artist" : 1,
@@ -849,9 +780,6 @@ Content-type: application/hal+json
                },
                "tracks" : {
                   "href" : "/track?me.cd=2"
-               },
-               "very_long_artist_relationship" : {
-                  "href" : "/artist/1"
                }
             },
             "artist" : 1,
@@ -885,9 +813,6 @@ Content-type: application/hal+json
                },
                "tracks" : {
                   "href" : "/track?me.cd=3"
-               },
-               "very_long_artist_relationship" : {
-                  "href" : "/artist/1"
                }
             },
             "artist" : 1,
@@ -925,8 +850,7 @@ Content-type: application/json
                "existing_single_track",
                "genre",
                "single_track",
-               "tracks",
-               "very_long_artist_relationship"
+               "tracks"
             ]
          },
          "nonesuch" : "no relationship with that name\n"
