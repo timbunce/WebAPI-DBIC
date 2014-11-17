@@ -40,11 +40,7 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('cdid');
 __PACKAGE__->add_unique_constraint([ qw/artist title/ ]);
 
-__PACKAGE__->belongs_to( artist => 'TestSchema::Result::Artist', undef, {
-    is_deferrable => 1,
-    proxy => { artist_name => 'name' },
-});
-__PACKAGE__->belongs_to( very_long_artist_relationship => 'TestSchema::Result::Artist', 'artist', {
+__PACKAGE__->belongs_to( artist => 'TestSchema::Result::Artist', 'artist', {
     is_deferrable => 1,
 });
 

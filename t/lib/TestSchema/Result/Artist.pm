@@ -61,42 +61,6 @@ __PACKAGE__->has_many(
 );
 
 __PACKAGE__->has_many(
-  cds_80s => 'TestSchema::Result::CD',
-  sub {
-    my $args = shift;
-
-    return (
-      { "$args->{foreign_alias}.artist" => { '=' => \ "$args->{self_alias}.artistid" },
-        "$args->{foreign_alias}.year"   => { '>' => 1979, '<' => 1990 },
-      },
-      $args->{self_resultobj} && {
-        "$args->{foreign_alias}.artist" => { '=' => \[ '?',  $args->{self_resultobj}->artistid ] },
-        "$args->{foreign_alias}.year"   => { '>' => 1979, '<' => 1990 },
-      }
-    );
-  },
-);
-
-
-__PACKAGE__->has_many(
-  cds_84 => 'TestSchema::Result::CD',
-  sub {
-    my $args = shift;
-
-    return (
-      { "$args->{foreign_alias}.artist" => { -ident => "$args->{self_alias}.artistid" },
-        "$args->{foreign_alias}.year"   => 1984,
-      },
-      $args->{self_resultobj} && {
-        "$args->{foreign_alias}.artist" => $args->{self_resultobj}->artistid,
-        "$args->{foreign_alias}.year"   => 1984,
-      }
-    );
-  }
-);
-
-
-__PACKAGE__->has_many(
   cds_90s => 'TestSchema::Result::CD',
   sub {
     my $args = shift;
@@ -109,31 +73,6 @@ __PACKAGE__->has_many(
   }
 );
 
-
-__PACKAGE__->has_many(
-    cds_unordered => 'TestSchema::Result::CD'
-);
-__PACKAGE__->has_many(
-    cds_very_very_very_long_relationship_name => 'TestSchema::Result::CD'
-);
-
-
-__PACKAGE__->has_many(
-    cds_without_genre => 'TestSchema::Result::CD',
-    sub {
-        my $args = shift;
-
-        return (
-          {
-            "$args->{foreign_alias}.artist" => { -ident => "$args->{self_alias}.artistid" },
-            "$args->{foreign_alias}.genreid" => undef,
-          }, $args->{self_resultobj} && {
-            "$args->{foreign_alias}.artist" => $args->{self_resultobj}->artistid,
-            "$args->{foreign_alias}.genreid" => undef,
-          }
-        ),
-    },
-);
 
 sub sqlt_deploy_hook {
   my ($self, $sqlt_table) = @_;

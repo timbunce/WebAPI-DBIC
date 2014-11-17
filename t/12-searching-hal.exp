@@ -16,12 +16,6 @@ Content-type: application/hal+json
                "cds_cref_cond" : {
                   "href" : "/cd/2"
                },
-               "cds_unordered" : {
-                  "href" : "/cd?me.artist=2"
-               },
-               "cds_very_very_very_long_relationship_name" : {
-                  "href" : "/cd?me.artist=2"
-               },
                "self" : {
                   "href" : "/artist/2"
                }
@@ -60,12 +54,6 @@ Content-type: application/hal+json
                "cds_cref_cond" : {
                   "href" : "/cd/1"
                },
-               "cds_unordered" : {
-                  "href" : "/cd?me.artist=1"
-               },
-               "cds_very_very_very_long_relationship_name" : {
-                  "href" : "/cd?me.artist=1"
-               },
                "self" : {
                   "href" : "/artist/1"
                }
@@ -82,12 +70,6 @@ Content-type: application/hal+json
                },
                "cds_cref_cond" : {
                   "href" : "/cd/3"
-               },
-               "cds_unordered" : {
-                  "href" : "/cd?me.artist=3"
-               },
-               "cds_very_very_very_long_relationship_name" : {
-                  "href" : "/cd?me.artist=3"
                },
                "self" : {
                   "href" : "/artist/3"
@@ -127,12 +109,6 @@ Content-type: application/hal+json
                "cds_cref_cond" : {
                   "href" : "/cd/1"
                },
-               "cds_unordered" : {
-                  "href" : "/cd?me.artist=1"
-               },
-               "cds_very_very_very_long_relationship_name" : {
-                  "href" : "/cd?me.artist=1"
-               },
                "self" : {
                   "href" : "/artist/1"
                }
@@ -149,12 +125,6 @@ Content-type: application/hal+json
                },
                "cds_cref_cond" : {
                   "href" : "/cd/2"
-               },
-               "cds_unordered" : {
-                  "href" : "/cd?me.artist=2"
-               },
-               "cds_very_very_very_long_relationship_name" : {
-                  "href" : "/cd?me.artist=2"
                },
                "self" : {
                   "href" : "/artist/2"
