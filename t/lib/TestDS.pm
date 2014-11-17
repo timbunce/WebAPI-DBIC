@@ -158,7 +158,7 @@ sub slurp {
     my ($file) = @_;
     my $fh = (ref $file eq 'GLOB') && $file;
     open($fh, "<", $file) unless $fh;
-    return do { local $/; <$fh> };
+    return do { local $/; scalar <$fh> };
 }
 
 

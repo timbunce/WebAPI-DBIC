@@ -245,4 +245,63 @@ sub get_url_for_item_relationship {
     return $href;
 }
 
+
+sub get_url_template_for_set_relationship { # XXX hack, for jsonapi, move?
+    my ($self, $set, $relname) = @_;
+
+    my $result_class = $set->result_class;
+    my $result_source = $set->result_source;
+
+    #Dwarn
+    my $rel_link_info = _get_relationship_link_info_cached($result_class, $relname)
+        or return undef;
+
+    if (ref $rel_link_info eq 'CODE') {
+        $rel_link_info = $rel_link_info->($self, {
+            self_resultsource => $result_source,
+            self_rowobj       => undef, # XXX
+            foreign_relname   => $relname, # XXX ?
+        })
+            or return undef;
+    }
+
+    my @uri_for_args;
+    if ($rel_link_info->{id_fields}) { # link to an item (1-1)
+        my @id_kvs = @{ $rel_link_info->{id_fields} };
+        push @uri_for_args, map {
+            my $name = shift @id_kvs;
+            $_ => "{$relname.$name}"
+        } 1..@id_kvs;
+    }
+
+    my $dst_class = $rel_link_info->{result_class} or die "panic";
+    push @uri_for_args, result_class => $dst_class;
+
+    my $linkurl = $self->uri_for( @uri_for_args );
+
+    if (not $linkurl) {
+        warn "Result source $dst_class has no resource uri in this app so relations (like $result_class $relname) won't have _links for it.\n"
+            unless our $warn_once->{"$result_class $relname $dst_class"}++;
+        return undef;
+    }
+
+    my %params;
+    if (my $id_filter = $rel_link_info->{id_filter}) {
+        my @names = $result_source->unique_constraint_columns( $self->id_unique_constraint_name );
+        die "panic" if @names != @$id_filter;
+        for my $id_field (@$id_filter) {
+            my $name = shift @names;
+            $params{ "me.".$id_field } = "{$relname.$name}";
+        }
+    }
+
+    my $href = $self->add_params_to_url(
+        $linkurl,
+        {},
+        \%params,
+    );
+
+    return $href;
+}
+
 1;
