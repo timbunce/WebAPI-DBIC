@@ -264,7 +264,7 @@ Content-type: application/hal+json
 
 === multi type relation (has_many) in prefetch on item
 Request:
-GET /artist/1?prefetch=cds
+GET /artist/1?prefetch=cds&order=cdid
 Accept: application/hal+json,application/json
 Response:
 200 OK
@@ -278,27 +278,27 @@ Content-type: application/hal+json
                   "href" : "/artist/1"
                },
                "cd_to_producer" : {
-                  "href" : "/cd_to_producer?me.cd=3"
+                  "href" : "/cd_to_producer?me.cd=1"
                },
                "genre" : {
-                  "href" : "/genre/2"
+                  "href" : "/genre/1"
                },
                "self" : {
-                  "href" : "/cd/3"
+                  "href" : "/cd/1"
                },
                "tracks" : {
-                  "href" : "/track?me.cd=3"
+                  "href" : "/track?me.cd=1"
                },
                "very_long_artist_relationship" : {
                   "href" : "/artist/1"
                }
             },
             "artist" : 1,
-            "cdid" : "3",
-            "genreid" : 2,
+            "cdid" : "1",
+            "genreid" : 1,
             "single_track" : null,
-            "title" : "Caterwaulin' Blues",
-            "year" : "1997"
+            "title" : "Spoonful of bees",
+            "year" : "1999"
          },
          {
             "_links" : {
@@ -334,27 +334,27 @@ Content-type: application/hal+json
                   "href" : "/artist/1"
                },
                "cd_to_producer" : {
-                  "href" : "/cd_to_producer?me.cd=1"
+                  "href" : "/cd_to_producer?me.cd=3"
                },
                "genre" : {
-                  "href" : "/genre/1"
+                  "href" : "/genre/2"
                },
                "self" : {
-                  "href" : "/cd/1"
+                  "href" : "/cd/3"
                },
                "tracks" : {
-                  "href" : "/track?me.cd=1"
+                  "href" : "/track?me.cd=3"
                },
                "very_long_artist_relationship" : {
                   "href" : "/artist/1"
                }
             },
             "artist" : 1,
-            "cdid" : "1",
-            "genreid" : 1,
+            "cdid" : "3",
+            "genreid" : 2,
             "single_track" : null,
-            "title" : "Spoonful of bees",
-            "year" : "1999"
+            "title" : "Caterwaulin' Blues",
+            "year" : "1997"
          }
       ]
    },
