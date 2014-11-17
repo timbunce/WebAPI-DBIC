@@ -6,22 +6,11 @@ Response:
 200 OK
 Content-type: application/vnd.api+json
 {
-   "_embedded" : {
-      "artist" : {
-         "artistid" : 1,
-         "charfield" : null,
-         "name" : "Caterwauler McCrae",
-         "rank" : 13
-      },
-      "genre" : {
-         "genreid" : 1,
-         "name" : "emo"
-      }
-   },
    "artist" : 1,
    "cdid" : 1,
    "genreid" : 1,
    "href" : "/cd/1",
+   "id" : 1,
    "single_track" : null,
    "title" : "Spoonful of bees",
    "type" : "cd",
@@ -38,57 +27,74 @@ Content-type: application/vnd.api+json
 {
    "cd" : [
       {
-         "_embedded" : {
-            "artist" : {
-               "artistid" : 1,
-               "charfield" : null,
-               "name" : "Caterwauler McCrae",
-               "rank" : 13
-            },
-            "genre" : {
-               "genreid" : 1,
-               "name" : "emo"
-            }
-         },
          "artist" : 1,
          "cdid" : 1,
          "genreid" : 1,
          "href" : "/cd/1",
+         "id" : 1,
+         "links" : {
+            "artist" : 1,
+            "genre" : 1
+         },
          "single_track" : null,
          "title" : "Spoonful of bees",
          "type" : "cd",
          "year" : "1999"
       },
       {
-         "_embedded" : {
-            "artist" : {
-               "artistid" : 1,
-               "charfield" : null,
-               "name" : "Caterwauler McCrae",
-               "rank" : 13
-            },
-            "genre" : {
-               "genreid" : 2,
-               "name" : "country"
-            }
-         },
          "artist" : 1,
          "cdid" : 2,
          "genreid" : 2,
          "href" : "/cd/2",
+         "id" : 2,
+         "links" : {
+            "artist" : 1,
+            "genre" : 2
+         },
          "single_track" : null,
          "title" : "Forkful of bees",
          "type" : "cd",
          "year" : "2001"
       }
    ],
+   "linked" : {
+      "artist" : [
+         {
+            "artistid" : 1,
+            "charfield" : null,
+            "href" : "/artist/1",
+            "id" : 1,
+            "name" : "Caterwauler McCrae",
+            "rank" : 13,
+            "type" : "artist"
+         }
+      ],
+      "genre" : [
+         {
+            "genreid" : 1,
+            "href" : "/genre/1",
+            "id" : 1,
+            "name" : "emo",
+            "type" : "genre"
+         },
+         {
+            "genreid" : 2,
+            "href" : "/genre/2",
+            "id" : 2,
+            "name" : "country",
+            "type" : "genre"
+         }
+      ]
+   },
    "links" : {
-      "cd.artist" : "/artist/{artist.artist}",
-      "cd.cd_to_producer" : "/cd_to_producer?me.cd={cd_to_producer.cdid}",
-      "cd.existing_single_track" : "/track/{existing_single_track.single_track}",
-      "cd.genre" : "/genre/{genre.genreid}",
-      "cd.single_track" : "/track/{single_track.single_track}",
-      "cd.tracks" : "/track?me.cd={tracks.cdid}"
+      "cd.artist" : {
+         "href" : "/artist/{artist.artist}",
+         "type" : "artist"
+      },
+      "cd.genre" : {
+         "href" : "/genre/{genre.genreid}",
+         "type" : "genre"
+      }
    }
 }
 
@@ -102,31 +108,38 @@ Content-type: application/vnd.api+json
 {
    "cd" : [
       {
-         "_embedded" : {
-            "artist" : {
-               "artistid" : 2,
-               "charfield" : null,
-               "name" : "Random Boy Band",
-               "rank" : 13
-            }
-         },
          "artist" : 2,
          "cdid" : 4,
          "genreid" : 3,
          "href" : "/cd/4",
+         "id" : 4,
+         "links" : {
+            "artist" : 2
+         },
          "single_track" : null,
          "title" : "Generic Manufactured Singles",
          "type" : "cd",
          "year" : "2001"
       }
    ],
+   "linked" : {
+      "artist" : [
+         {
+            "artistid" : 2,
+            "charfield" : null,
+            "href" : "/artist/2",
+            "id" : 2,
+            "name" : "Random Boy Band",
+            "rank" : 13,
+            "type" : "artist"
+         }
+      ]
+   },
    "links" : {
-      "cd.artist" : "/artist/{artist.artist}",
-      "cd.cd_to_producer" : "/cd_to_producer?me.cd={cd_to_producer.cdid}",
-      "cd.existing_single_track" : "/track/{existing_single_track.single_track}",
-      "cd.genre" : "/genre/{genre.genreid}",
-      "cd.single_track" : "/track/{single_track.single_track}",
-      "cd.tracks" : "/track?me.cd={tracks.cdid}"
+      "cd.artist" : {
+         "href" : "/artist/{artist.artist}",
+         "type" : "artist"
+      }
    }
 }
 
@@ -141,31 +154,38 @@ Content-type: application/vnd.api+json
 {
    "cd" : [
       {
-         "_embedded" : {
-            "artist" : {
-               "artistid" : 2,
-               "charfield" : null,
-               "name" : "Random Boy Band",
-               "rank" : 13
-            }
-         },
          "artist" : 2,
          "cdid" : 4,
          "genreid" : 3,
          "href" : "/cd/4",
+         "id" : 4,
+         "links" : {
+            "artist" : 2
+         },
          "single_track" : null,
          "title" : "Generic Manufactured Singles",
          "type" : "cd",
          "year" : "2001"
       }
    ],
+   "linked" : {
+      "artist" : [
+         {
+            "artistid" : 2,
+            "charfield" : null,
+            "href" : "/artist/2",
+            "id" : 2,
+            "name" : "Random Boy Band",
+            "rank" : 13,
+            "type" : "artist"
+         }
+      ]
+   },
    "links" : {
-      "cd.artist" : "/artist/{artist.artist}",
-      "cd.cd_to_producer" : "/cd_to_producer?me.cd={cd_to_producer.cdid}",
-      "cd.existing_single_track" : "/track/{existing_single_track.single_track}",
-      "cd.genre" : "/genre/{genre.genreid}",
-      "cd.single_track" : "/track/{single_track.single_track}",
-      "cd.tracks" : "/track?me.cd={tracks.cdid}"
+      "cd.artist" : {
+         "href" : "/artist/{artist.artist}",
+         "type" : "artist"
+      }
    }
 }
 
@@ -177,43 +197,10 @@ Response:
 200 OK
 Content-type: application/vnd.api+json
 {
-   "_embedded" : {
-      "cds" : [
-         {
-            "artist" : 1,
-            "cdid" : "1",
-            "genreid" : 1,
-            "href" : "/cd/1",
-            "single_track" : null,
-            "title" : "Spoonful of bees",
-            "type" : "cd",
-            "year" : "1999"
-         },
-         {
-            "artist" : 1,
-            "cdid" : "2",
-            "genreid" : 2,
-            "href" : "/cd/2",
-            "single_track" : null,
-            "title" : "Forkful of bees",
-            "type" : "cd",
-            "year" : "2001"
-         },
-         {
-            "artist" : 1,
-            "cdid" : "3",
-            "genreid" : 2,
-            "href" : "/cd/3",
-            "single_track" : null,
-            "title" : "Caterwaulin' Blues",
-            "type" : "cd",
-            "year" : "1997"
-         }
-      ]
-   },
    "artistid" : "1",
    "charfield" : null,
    "href" : "/artist/1",
+   "id" : "1",
    "name" : "Caterwauler McCrae",
    "rank" : 13,
    "type" : "artist"
@@ -229,73 +216,81 @@ Content-type: application/vnd.api+json
 {
    "artist" : [
       {
-         "_embedded" : {
-            "cds" : [
-               {
-                  "artist" : 1,
-                  "cdid" : "1",
-                  "genreid" : 1,
-                  "href" : "/cd/1",
-                  "single_track" : null,
-                  "title" : "Spoonful of bees",
-                  "type" : "cd",
-                  "year" : "1999"
-               },
-               {
-                  "artist" : 1,
-                  "cdid" : "2",
-                  "genreid" : 2,
-                  "href" : "/cd/2",
-                  "single_track" : null,
-                  "title" : "Forkful of bees",
-                  "type" : "cd",
-                  "year" : "2001"
-               },
-               {
-                  "artist" : 1,
-                  "cdid" : "3",
-                  "genreid" : 2,
-                  "href" : "/cd/3",
-                  "single_track" : null,
-                  "title" : "Caterwaulin' Blues",
-                  "type" : "cd",
-                  "year" : "1997"
-               }
-            ]
-         },
          "artistid" : "1",
          "charfield" : null,
          "href" : "/artist/1",
+         "id" : "1",
+         "links" : {
+            "cds" : [
+               "1",
+               "2",
+               "3"
+            ]
+         },
          "name" : "Caterwauler McCrae",
          "rank" : 13,
          "type" : "artist"
       },
       {
-         "_embedded" : {
-            "cds" : [
-               {
-                  "artist" : 2,
-                  "cdid" : "4",
-                  "genreid" : 3,
-                  "href" : "/cd/4",
-                  "single_track" : null,
-                  "title" : "Generic Manufactured Singles",
-                  "type" : "cd",
-                  "year" : "2001"
-               }
-            ]
-         },
          "artistid" : "2",
          "charfield" : null,
          "href" : "/artist/2",
+         "id" : "2",
+         "links" : {
+            "cds" : [
+               "4"
+            ]
+         },
          "name" : "Random Boy Band",
          "rank" : 13,
          "type" : "artist"
       }
    ],
+   "linked" : {
+      "cds" : [
+         {
+            "artistid" : "1",
+            "charfield" : null,
+            "href" : "/artist/1",
+            "id" : "1",
+            "name" : "Caterwauler McCrae",
+            "rank" : 13,
+            "type" : "artist"
+         },
+         {
+            "artistid" : "1",
+            "charfield" : null,
+            "href" : "/artist/1",
+            "id" : "1",
+            "name" : "Caterwauler McCrae",
+            "rank" : 13,
+            "type" : "artist"
+         },
+         {
+            "artistid" : "1",
+            "charfield" : null,
+            "href" : "/artist/1",
+            "id" : "1",
+            "name" : "Caterwauler McCrae",
+            "rank" : 13,
+            "type" : "artist"
+         },
+         {
+            "artistid" : "2",
+            "charfield" : null,
+            "href" : "/artist/2",
+            "id" : "2",
+            "name" : "Random Boy Band",
+            "rank" : 13,
+            "type" : "artist"
+         }
+      ]
+   },
    "links" : {
-      "artist.cds" : "/cd?me.artist={cds.artistid}",
-      "artist.cds_cref_cond" : "/cd/{cds_cref_cond.artistid}"
+      "artist.cds" : {
+         "href" : "/cd?me.artist={cds.artistid}",
+         "type" : "cd"
+      }
    }
 }
 
@@ -308,53 +303,11 @@ Response:
 200 OK
 Content-type: application/vnd.api+json
 {
-   "_embedded" : {
-      "cd_to_producer" : [
-         {
-            "_embedded" : {
-               "producer" : {
-                  "name" : "Matt S Trout",
-                  "producerid" : 1
-               }
-            },
-            "attribute" : null,
-            "cd" : "1",
-            "href" : "/cd_to_producer/1/1",
-            "producer" : "1",
-            "type" : "cd_to_producer"
-         },
-         {
-            "_embedded" : {
-               "producer" : {
-                  "name" : "Bob The Builder",
-                  "producerid" : 2
-               }
-            },
-            "attribute" : null,
-            "cd" : "1",
-            "href" : "/cd_to_producer/1/2",
-            "producer" : "2",
-            "type" : "cd_to_producer"
-         },
-         {
-            "_embedded" : {
-               "producer" : {
-                  "name" : "Fred The Phenotype",
-                  "producerid" : 3
-               }
-            },
-            "attribute" : null,
-            "cd" : "1",
-            "href" : "/cd_to_producer/1/3",
-            "producer" : "3",
-            "type" : "cd_to_producer"
-         }
-      ]
-   },
    "artist" : 1,
    "cdid" : "1",
    "genreid" : 1,
    "href" : "/cd/1",
+   "id" : "1",
    "single_track" : null,
    "title" : "Spoonful of bees",
    "type" : "cd",
@@ -372,48 +325,38 @@ Content-type: application/vnd.api+json
 {
    "artist" : [
       {
-         "_embedded" : {
-            "cds" : [
-               {
-                  "_embedded" : {
-                     "cd_to_producer" : [
-                        {
-                           "_embedded" : {
-                              "producer" : {
-                                 "name" : "Matt S Trout",
-                                 "producerid" : 1
-                              }
-                           },
-                           "attribute" : null,
-                           "cd" : "1",
-                           "href" : "/cd_to_producer/1/1",
-                           "producer" : "1",
-                           "type" : "cd_to_producer"
-                        }
-                     ]
-                  },
-                  "artist" : 1,
-                  "cdid" : "1",
-                  "genreid" : 1,
-                  "href" : "/cd/1",
-                  "single_track" : null,
-                  "title" : "Spoonful of bees",
-                  "type" : "cd",
-                  "year" : "1999"
-               }
-            ]
-         },
          "artistid" : "1",
          "charfield" : null,
          "href" : "/artist/1",
+         "id" : "1",
+         "links" : {
+            "cds" : [
+               "1"
+            ]
+         },
          "name" : "Caterwauler McCrae",
          "rank" : 13,
          "type" : "artist"
       }
    ],
+   "linked" : {
+      "cds" : [
+         {
+            "artistid" : "1",
+            "charfield" : null,
+            "href" : "/artist/1",
+            "id" : "1",
+            "name" : "Caterwauler McCrae",
+            "rank" : 13,
+            "type" : "artist"
+         }
+      ]
+   },
    "links" : {
-      "artist.cds" : "/cd?me.artist={cds.artistid}",
-      "artist.cds_cref_cond" : "/cd/{cds_cref_cond.artistid}"
+      "artist.cds" : {
+         "href" : "/cd?me.artist={cds.artistid}",
+         "type" : "cd"
+      }
    }
 }
 
@@ -427,67 +370,66 @@ Content-type: application/vnd.api+json
 {
    "cd" : [
       {
-         "_embedded" : {
-            "artist" : {
-               "artistid" : 1,
-               "charfield" : null,
-               "name" : "Caterwauler McCrae",
-               "rank" : 13
-            }
-         },
          "artist" : 1,
          "cdid" : 1,
          "genreid" : 1,
          "href" : "/cd/1",
+         "id" : 1,
+         "links" : {
+            "artist" : 1
+         },
          "single_track" : null,
          "title" : "Spoonful of bees",
          "type" : "cd",
          "year" : "1999"
       },
       {
-         "_embedded" : {
-            "artist" : {
-               "artistid" : 1,
-               "charfield" : null,
-               "name" : "Caterwauler McCrae",
-               "rank" : 13
-            }
-         },
          "artist" : 1,
          "cdid" : 2,
          "genreid" : 2,
          "href" : "/cd/2",
+         "id" : 2,
+         "links" : {
+            "artist" : 1
+         },
          "single_track" : null,
          "title" : "Forkful of bees",
          "type" : "cd",
          "year" : "2001"
       },
       {
-         "_embedded" : {
-            "artist" : {
-               "artistid" : 1,
-               "charfield" : null,
-               "name" : "Caterwauler McCrae",
-               "rank" : 13
-            }
-         },
          "artist" : 1,
          "cdid" : 3,
          "genreid" : 2,
          "href" : "/cd/3",
+         "id" : 3,
+         "links" : {
+            "artist" : 1
+         },
          "single_track" : null,
          "title" : "Caterwaulin' Blues",
          "type" : "cd",
          "year" : "1997"
       }
    ],
+   "linked" : {
+      "artist" : [
+         {
+            "artistid" : 1,
+            "charfield" : null,
+            "href" : "/artist/1",
+            "id" : 1,
+            "name" : "Caterwauler McCrae",
+            "rank" : 13,
+            "type" : "artist"
+         }
+      ]
+   },
    "links" : {
-      "cd.artist" : "/artist/{artist.artist}",
-      "cd.cd_to_producer" : "/cd_to_producer?me.cd={cd_to_producer.cdid}",
-      "cd.existing_single_track" : "/track/{existing_single_track.single_track}",
-      "cd.genre" : "/genre/{genre.genreid}",
-      "cd.single_track" : "/track/{single_track.single_track}",
-      "cd.tracks" : "/track?me.cd={tracks.cdid}"
+      "cd.artist" : {
+         "href" : "/artist/{artist.artist}",
+         "type" : "artist"
+      }
    }
 }
 
@@ -527,43 +469,63 @@ Content-type: application/vnd.api+json
 {
    "cd" : [
       {
-         "_embedded" : {
-            "artist" : {
-               "artistid" : 1
-            },
-            "genre" : {
-               "genreid" : 1
-            }
-         },
          "artist" : 1,
          "cdid" : 1,
          "genreid" : 1,
          "href" : "/cd/1",
+         "id" : 1,
+         "links" : {
+            "artist" : 1,
+            "genre" : 1
+         },
          "type" : "cd"
       },
       {
-         "_embedded" : {
-            "artist" : {
-               "artistid" : 1
-            },
-            "genre" : {
-               "genreid" : 2
-            }
-         },
          "artist" : 1,
          "cdid" : 2,
          "genreid" : 2,
          "href" : "/cd/2",
+         "id" : 2,
+         "links" : {
+            "artist" : 1,
+            "genre" : 2
+         },
          "type" : "cd"
       }
    ],
+   "linked" : {
+      "artist" : [
+         {
+            "artistid" : 1,
+            "href" : "/artist/1",
+            "id" : 1,
+            "type" : "artist"
+         }
+      ],
+      "genre" : [
+         {
+            "genreid" : 1,
+            "href" : "/genre/1",
+            "id" : 1,
+            "type" : "genre"
+         },
+         {
+            "genreid" : 2,
+            "href" : "/genre/2",
+            "id" : 2,
+            "type" : "genre"
+         }
+      ]
+   },
    "links" : {
-      "cd.artist" : "/artist/{artist.artist}",
-      "cd.cd_to_producer" : "/cd_to_producer?me.cd={cd_to_producer.cdid}",
-      "cd.existing_single_track" : "/track/{existing_single_track.single_track}",
-      "cd.genre" : "/genre/{genre.genreid}",
-      "cd.single_track" : "/track/{single_track.single_track}",
-      "cd.tracks" : "/track?me.cd={tracks.cdid}"
+      "cd.artist" : {
+         "href" : "/artist/{artist.artist}",
+         "type" : "artist"
+      },
+      "cd.genre" : {
+         "href" : "/genre/{genre.genreid}",
+         "type" : "genre"
+      }
    }
 }
 
@@ -575,18 +537,11 @@ Response:
 200 OK
 Content-type: application/vnd.api+json
 {
-   "_embedded" : {
-      "artist" : {
-         "artistid" : 1
-      },
-      "genre" : {
-         "genreid" : 1
-      }
-   },
    "artist" : 1,
    "cdid" : 1,
    "genreid" : 1,
    "href" : "/cd/1",
+   "id" : 1,
    "type" : "cd"
 }
 

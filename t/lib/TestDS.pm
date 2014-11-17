@@ -73,6 +73,9 @@ sub _make_request_from_spec {
         SKIP: { skip $curl || $name, 1 }
         return;
     }
+    if ($curl =~ s/^BAIL_OUT\s*//) {
+        return BAIL_OUT($curl);
+    }
     $curl =~ s/^(GET|PUT|POST|DELETE|OPTIONS)\s//
         or die "'$curl' doesn't begin with GET, PUT, POST etc\n";
     my $method = $1;
