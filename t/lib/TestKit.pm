@@ -11,12 +11,14 @@ ToolSet->export(
     'Test::Most'           => undef,
     'Test::HTTP::Response' => undef,
     'Test::DBIx::Class'    => undef,
-    'TestDS'               => undef,
-    'TestDS_HAL'           => undef,
     'Plack::Test'          => undef,
-    'WebAPI::DBIC::WebApp' => undef,
     'Devel::Dwarn'         => undef,
     'Data::Printer'        => undef,
+    # app
+    'WebAPI::DBIC::WebApp' => undef,
+    # local t/lib modules
+    'TestDS'               => undef,
+    'TestDS_HAL'           => undef,
 );
 
 1;
