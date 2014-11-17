@@ -58,6 +58,7 @@ sub run_request_spec_tests {
 
 sub _make_request_from_spec {
     my ($app, $fh, $test_config, $spec) = @_;
+    note "---";
 
     my ($config_name, @config_settings) = split /\n/, $test_config;
     $config_name =~ s/^Config:\s*//
@@ -67,8 +68,9 @@ sub _make_request_from_spec {
     my ($name, $curl, @rest) = grep { !/^#/ } split /\n/, $spec;
     $name =~ s/^Name:\s+//
         or die "'$name' doesn't begin with Name:\n";
+    note "Name: $name";
     if ($curl =~ s/^SKIP\s*//) {
-        SKIP: { skip $curl, 1 }
+        SKIP: { skip $curl || $name, 1 }
         return;
     }
     $curl =~ s/^(GET|PUT|POST|DELETE|OPTIONS)\s//
