@@ -17,41 +17,6 @@ subtest "===== Prefetch =====" => sub {
 
     run_request_spec_tests($app, \*DATA);
 
-    TODO: {
-    local $TODO = "partial response of prefetched items is not implemented yet";
-
-    note "prefetch on item with partial response of prefetched item";
-    test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd/1?prefetch=artist,genre&fields=cdid,genreid,artist.artistid,genre.genreid" )));
-        my $item = is_item($data, 1,1);
-        my $embedded = has_hal_embedded($data, 2,2);
-        is ref $embedded->{genre}, 'HASH', "has embedded genreid";
-        is $embedded->{genre}{genreid}, $data->{genreid}, 'genreid matches';
-        is ref $embedded->{artist}, 'HASH', "has embedded artistid";
-        is $embedded->{artist}{artistid}, $data->{artist}, 'artist matches';
-
-        is keys %{ $embedded->{genre} }, 1, 'only has id column';
-        is keys %{ $embedded->{artist} }, 1, 'only has id column';
-    };
-
-    note "prefetch on set with partial response of prefetched items";
-    test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq_hal( GET => "/cd?rows=2&page=1&prefetch=artist,genre&fields=cdid,genreid,genre.genreid,artist.artistid" )));
-        my $set = has_hal_embedded_list($data, "cd", 2,2);
-        for my $item (@$set) {
-            my $embedded = has_hal_embedded($item, 2,2);
-            is ref $embedded->{genre}, 'HASH', "has embedded genreid";
-            is $embedded->{genre}{genreid}, $item->{genreid}, 'genreid matches';
-            is ref $embedded->{artist}, 'HASH', "has embedded artistid";
-            is $embedded->{artist}{artistid}, $item->{artist}, 'artistid matches';
-
-            is keys %{ $embedded->{genre} }, 1, 'only has id column';
-            is keys %{ $embedded->{artist} }, 1, 'only has id column';
-        }
-    };
-
-    } # end TODO
-
 };
 
 done_testing();
@@ -103,3 +68,9 @@ GET /cd/?me.artist=1&prefetch=artist
 
 Name: prefetch on invalid name
 GET /cd/1?prefetch=nonesuch
+
+Name: prefetch on set with partial response of prefetched items
+GET /cd?rows=2&page=1&prefetch=artist,genre&fields=cdid,genreid,genre.genreid,artist.artistid
+
+Name: prefetch on item with partial response of prefetched item
+GET /cd/1?prefetch=artist,genre&fields=cdid,genreid,artist.artistid,genre.genreid
