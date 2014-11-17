@@ -858,3 +858,124 @@ Content-type: application/json
    ]
 }
 
+=== prefetch on set with partial response of prefetched items
+Request:
+GET /cd?rows=2&page=1&prefetch=artist,genre&fields=cdid,genreid,genre.genreid,artist.artistid
+Accept: application/hal+json,application/json
+Response:
+200 OK
+Content-type: application/hal+json
+{
+   "_embedded" : {
+      "cd" : [
+         {
+            "_embedded" : {
+               "artist" : {
+                  "artistid" : 1
+               },
+               "genre" : {
+                  "genreid" : 1
+               }
+            },
+            "_links" : {
+               "artist" : {
+                  "href" : "/artist/1"
+               },
+               "cd_to_producer" : {
+                  "href" : "/cd_to_producer?me.cd=1"
+               },
+               "genre" : {
+                  "href" : "/genre/1"
+               },
+               "self" : {
+                  "href" : "/cd/1"
+               },
+               "tracks" : {
+                  "href" : "/track?me.cd=1"
+               }
+            },
+            "artist" : 1,
+            "cdid" : 1,
+            "genreid" : 1
+         },
+         {
+            "_embedded" : {
+               "artist" : {
+                  "artistid" : 1
+               },
+               "genre" : {
+                  "genreid" : 2
+               }
+            },
+            "_links" : {
+               "artist" : {
+                  "href" : "/artist/1"
+               },
+               "cd_to_producer" : {
+                  "href" : "/cd_to_producer?me.cd=2"
+               },
+               "genre" : {
+                  "href" : "/genre/2"
+               },
+               "self" : {
+                  "href" : "/cd/2"
+               },
+               "tracks" : {
+                  "href" : "/track?me.cd=2"
+               }
+            },
+            "artist" : 1,
+            "cdid" : 2,
+            "genreid" : 2
+         }
+      ]
+   },
+   "_links" : {
+      "next" : {
+         "href" : "/cd?rows=2&page=2"
+      },
+      "self" : {
+         "href" : "/cd?rows=2&page=1",
+         "title" : "TestSchema::Result::CD"
+      }
+   }
+}
+
+=== prefetch on item with partial response of prefetched item
+Request:
+GET /cd/1?prefetch=artist,genre&fields=cdid,genreid,artist.artistid,genre.genreid
+Accept: application/hal+json,application/json
+Response:
+200 OK
+Content-type: application/hal+json
+{
+   "_embedded" : {
+      "artist" : {
+         "artistid" : 1
+      },
+      "genre" : {
+         "genreid" : 1
+      }
+   },
+   "_links" : {
+      "artist" : {
+         "href" : "/artist/1"
+      },
+      "cd_to_producer" : {
+         "href" : "/cd_to_producer?me.cd=1"
+      },
+      "genre" : {
+         "href" : "/genre/1"
+      },
+      "self" : {
+         "href" : "/cd/1"
+      },
+      "tracks" : {
+         "href" : "/track?me.cd=1"
+      }
+   },
+   "artist" : 1,
+   "cdid" : 1,
+   "genreid" : 1
+}
+

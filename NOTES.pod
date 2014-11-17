@@ -14,6 +14,12 @@ Things to do, or at least consider, before we stop being alpha:
 
     Support CODE ref relationship conditions
 
+    JSON API:
+    * warn at build-time if a resource has attributes that clash with reserved keys
+    eg id (that's not the unique key being used for id), type, href, or links.
+    http://jsonapi.org/format/#document-structure-resource-object-attributes
+    * add optional resultset-class to jsonapi-type name mapping
+
     Refactor ::WebApp
     - move HAL browser out somewhere and mount via .psgi file
     - move/rethink My::HTTP::Throwable::Factory package block
@@ -28,6 +34,8 @@ Things to do, or at least consider, before we stop being alpha:
     Review code for DBIx::Class sanity and best practice
 
     Support non-primary unique constraint as identity
+
+    Consider supporting the Collection+JSON hypermedia type http://amundsen.com/media-types/collection/
 
     Refactor param handling to abstract ~json both for requests *and* constructing
     link urls (where json data isn't fully handled at the moment, other than pass-thru).

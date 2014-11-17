@@ -23,7 +23,7 @@ done_testing();
 
 __DATA__
 Config:
-Accept: application/hal+json,application/json
+Accept: application/vnd.api+json
 
 Name: prefetch on an item using two belongs_to relationships
 GET /cd/1?prefetch=artist,genre

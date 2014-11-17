@@ -26,28 +26,27 @@ service API backed by DBIx::Class schemas.
 
 WebAPI::DBIC features include:
 
-* Built on the strong foundations of L<Web::Machine> and L<Plack>, with
-L<Path::Router> as the router. (We aim to support other routers soon.)
+* Built on the strong foundations of L<Plack> and L<Web::Machine>, plus
+L<Path::Router> as the router. (Other routers could be supported.)
 
-* Built as fine-grained roles for maximum reusability and extensibility
+* Built as fine-grained roles for maximum reusability and extensibility.
 
 * Integrates with other L<Plack> based applications.
 
 * The resource roles can be added to your existing application.
 
-* Supports multiple media types. Plain JSON, and JSON+HAL are currently supported.
-Support for "JSON API" is in development.
+* Rich support for multiple media types, including JSON API
+(application/vnd.api+json) and HAL (application/hal+json).
 
-* Use of the JSON+HAL (Hypertext Application Language) lean hypermedia type
+* Automatic detection and exposure of result set relationships.
 
-* Automatic detection and exposure of result set relationships as HAL C<_links>
+* Supports safe robust multi-related-record CRUD transactions.
 
-* Supports safe robust multi-related-record CRUD transactions
+* An example .psgi file that gives you an instant web service for any
+DBIx::Class schema
 
-* A built-in copy of the generic HAL API browser application
-
-* An example .psgi file that gives you an instant web service for any DBIx::Class schema
-
+* Includes a built-in copy of the generic HAL API browser application so you
+can be browsing your new API in mimutes.
 
 =head2 HAL - Hypertext Application Language
 
@@ -68,6 +67,15 @@ enough that you can just deal with it as you would any other JSON.
 
 See L<http://stateless.co/hal_specification.html> for more details.
 
+=head2 JSON API - As used by Ember and others
+
+The JSON API media type is designed to minimize both the number of requests and
+the amount of data transmitted between clients and servers. This efficiency is
+achieved without compromising readability, flexibility, and discoverability.
+
+See L<http://jsonapi.org/> for more details.
+
+Support for JSON API within WebAPI::DBIC is currently fairly basic but evolving fast.
 
 =head2 Web::Machine
 
@@ -177,24 +185,34 @@ C<prefetch>, C<fields> etc.
 
 =head2 JSON+HAL Roles
 
-L<WebAPI::DBIC::Resource::Role::DBIC_HAL> adds general support for rendering
-items, sets, and their relations as JSON+HAL. 
+These roles are used to handle requests using the C<application/hal+json> media type
+and follow the naming convention used above.
 
-L<WebAPI::DBIC::Resource::Role::SetHAL> adds support to set resources for fetching
-sets and and their relations using the C<application/hal+json> media type.
+L<WebAPI::DBIC::Resource::Role::DBIC_HAL>
 
-L<WebAPI::DBIC::Resource::Role::SetWritableHAL> adds support for POST'ing to set
-resources using the C<application/hal+json> media type.  It handles the
-recursive creation of related records.  Related records can be nested to any
-depth and are created from the bottom up within a transaction.
+L<WebAPI::DBIC::Resource::Role::SetHAL>
 
-L<WebAPI::DBIC::Resource::Role::ItemHAL> adds support to item resources for
-fetching items and their relations using the C<application/hal+json> media type.
+L<WebAPI::DBIC::Resource::Role::SetWritableHAL>
 
-L<WebAPI::DBIC::Resource::Role::ItemWritableHAL> adds support for PUT'ing to item
-resources using the C<application/hal+json> media type.  It handles the
-recursive updating of related records.  Related records can be nested to any
-depth and are updated from the bottom up within a transaction.
+L<WebAPI::DBIC::Resource::Role::ItemHAL>
+
+L<WebAPI::DBIC::Resource::Role::ItemWritableHAL>
+
+
+=head2 JSON API Roles
+
+These roles are used to handle requests using the C<application/vnd.api+json> media type
+and follow the naming convention used above.
+
+L<WebAPI::DBIC::Resource::Role::DBIC_JSONAPI>
+
+L<WebAPI::DBIC::Resource::Role::SetJSONAPI>
+
+L<WebAPI::DBIC::Resource::Role::SetWritableJSONAPI>
+
+L<WebAPI::DBIC::Resource::Role::ItemJSONAPI>
+
+L<WebAPI::DBIC::Resource::Role::ItemWritableJSONAPI>
 
 
 =head2 Utility Roles
