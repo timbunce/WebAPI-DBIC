@@ -35,8 +35,9 @@ L<Path::Router> as the router. (Other routers could be supported.)
 
 * The resource roles can be added to your existing application.
 
-* Rich support for multiple media types, including JSON API
+* Rich support for multiple hypermedia types, including JSON API
 (application/vnd.api+json) and HAL (application/hal+json).
+The Collection+JSON hypermedia type could be added in future.
 
 * Automatic detection and exposure of result set relationships.
 
@@ -67,7 +68,7 @@ enough that you can just deal with it as you would any other JSON.
 
 See L<http://stateless.co/hal_specification.html> for more details.
 
-=head2 JSON API - As used by Ember and others
+=head2 JSON API - As used by Ember
 
 The JSON API media type is designed to minimize both the number of requests and
 the amount of data transmitted between clients and servers. This efficiency is

@@ -2,8 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
-  - Added support for arbitrary depth and complexity of prefetch param
-    thanks to Mike Francis.
+  - Added initial support for JSON API application/vnd.api+json media type
+  - Added support for arbitrary depth/complexity of prefetch (Mike Francis)
 
 0.001010  2014-11-12 14:05:00+00:00 Europe/Dublin (TRIAL RELEASE)
 

@@ -35,8 +35,6 @@ Things to do, or at least consider, before we stop being alpha:
 
     Support non-primary unique constraint as identity
 
-    Consider supporting the Collection+JSON hypermedia type http://amundsen.com/media-types/collection/
-
     Refactor param handling to abstract ~json both for requests *and* constructing
     link urls (where json data isn't fully handled at the moment, other than pass-thru).
 
