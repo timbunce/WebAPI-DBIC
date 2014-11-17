@@ -35,7 +35,7 @@ around '_build_content_types_provided' => sub {
 
 sub to_json_as_jsonapi {
     my $self = shift;
-    return $self->encode_json( $self->render_jsonapi_response( $self->set ) );
+    return $self->encode_json( $self->render_jsonapi_response() );
 }
 
 

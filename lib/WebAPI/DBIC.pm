@@ -68,16 +68,39 @@ enough that you can just deal with it as you would any other JSON.
 
 See L<http://stateless.co/hal_specification.html> for more details.
 
-=head2 JSON API - As used by Ember
+=head2 JSON API
 
 The JSON API media type is designed to minimize both the number of requests and
 the amount of data transmitted between clients and servers. This efficiency is
 achieved without compromising readability, flexibility, and discoverability.
 
-See L<http://jsonapi.org/> and L<https://github.com/kurko/ember-json-api>
-for more details.
+See L<http://jsonapi.org/> for more details.
 
-Support for JSON API within WebAPI::DBIC is currently fairly basic but evolving fast.
+For Ember, L<https://github.com/kurko/ember-json-api> can be used as an adaptor.
+
+STATUS:
+
+Support for JSON API within WebAPI::DBIC is maturing rapidly.
+
+Fetching compound documents, including "links" data (relationship templates)
+and "linked" (side-loaded/prefetch) resources, is supported.
+
+Main TO-DOs in approximate order of likely implementation:
+
+ - settle on how "type" is defined (currently it's derived from the router)
+ - provide "links" separately to prefetch logic
+ - support collection urls, e.g. /photos/1,2,3
+ - support relationship urls, e.g. /photos/1/links/photographer
+ - support include= in addition to prefetch=
+ - support sort= in addition to order=
+ - support multiple sorts, e.g. sort[posts]=-created,title&sort[people]=name
+ - support the "name[type]" style of field= param value
+ - support creating resources via the application/vnd.api+json media type
+ - support updating resources via the application/vnd.api+json media type
+ - support updating relationships via the application/vnd.api+json media type
+ - support the suggest error format
+ - support PATCH requests
+
 
 =head2 Web::Machine
 

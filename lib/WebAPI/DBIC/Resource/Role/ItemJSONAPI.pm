@@ -41,7 +41,7 @@ sub to_json_as_jsonapi {
     # XXX back-compat, not sure if needed
     $self->item( $self->set->first ); $self->set->reset;
 
-    return $self->encode_json( $self->render_jsonapi_response( $self->set ) );
+    return $self->encode_json( $self->render_jsonapi_response() );
 }
 
 1;

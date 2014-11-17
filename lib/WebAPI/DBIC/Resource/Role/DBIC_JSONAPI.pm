@@ -20,6 +20,9 @@ requires 'add_params_to_url';
 requires 'prefetch';
 
 
+my %result_class_to_jsonapi_type; # XXX ought to live elsewhere
+
+
 sub jsonapi_type { # XXX this is a hack - needs more thought
     my ($self) = @_;
     my $result_class = $self->set->result_source->result_class;
@@ -39,21 +42,44 @@ sub jsonapi_type_for_result_class { # XXX this is a hack - needs more thought
 }
 
 
+sub top_link_for_relname { # XXX cacheable
+    my ($self, $relname) = @_;
+
+    my $link_url_templated = $self->get_url_template_for_set_relationship($self->set, $relname);
+    return if not defined $link_url_templated;
+
+    # XXX a hack to keep the template urls readable!
+    $link_url_templated =~ s/%7B/{/g;
+    $link_url_templated =~ s/%7D/}/g;
+
+    my $rel_info = $self->set->result_class->relationship_info($relname);
+    my $result_class = $rel_info->{class}||die "panic";
+
+    my $rel_jsonapi_type = $result_class_to_jsonapi_type{$result_class}
+        ||= $self->jsonapi_type_for_result_class($result_class);
+
+    my $path = $self->jsonapi_type .".". $relname;
+    return $path => {
+        href => "$link_url_templated", # XXX stringify the URL object
+        type => $rel_jsonapi_type,
+    };
+}
+
+
 sub render_jsonapi_response { # return top-level document hashref
-    my ($self, $set) = @_;
+    my ($self) = @_;
 
-    my $set_key  = ($self->param('distinct')) ? 'data' : $self->jsonapi_type;
+    my $set = $self->set;
 
-    my %result_class_to_jsonapi_type;
     my %item_edit_rel_hooks;
-
-    my %sideload_result_class;
 
     my %top_links;
     my %compound_links;
 
     for my $prefetch (@{$self->prefetch||[]}) {
         while (my ($relname, $sub_rel) = each %{$prefetch}){
+
+            next if $self->param('distinct');
 
             #Dwarn
             my $rel_info = $set->result_class->relationship_info($relname);
@@ -66,20 +92,9 @@ sub render_jsonapi_response { # return top-level document hashref
                 next;
             }
 
-            my $link_url_templated = $self->get_url_template_for_set_relationship($set, $relname);
-            next if not defined $link_url_templated;
-
-            # XXX a hack to keep the template urls readable!
-            $link_url_templated =~ s/%7B/{/g;
-            $link_url_templated =~ s/%7D/}/g;
-
-            my $jsonapi_type = $result_class_to_jsonapi_type{$result_class}
-                ||= $self->jsonapi_type_for_result_class($result_class);
-            my $link_name = "$set_key.$relname";
-            $top_links{$link_name} = {
-                href => "$link_url_templated", # XXX stringify the URL object
-                type => $jsonapi_type,
-            };
+            my ($top_link_key, $top_link_value) = $self->top_link_for_relname($relname)
+                or next;
+            $top_links{$top_link_key} = $top_link_value;
 
             $item_edit_rel_hooks{$relname} = sub { 
                 my ($jsonapi_obj, $row) = @_;
@@ -116,6 +131,7 @@ sub render_jsonapi_response { # return top-level document hashref
         $_->($jsonapi_obj, $row) for values %item_edit_rel_hooks;
     });
 
+    my $set_key = ($self->param('distinct')) ? 'data' : $self->jsonapi_type;
     my $top_doc = { # http://jsonapi.org/format/#document-structure-top-level
         $set_key => $set_data,
     };
