@@ -1,4 +1,5 @@
 # https://metacpan.org/pod/distribution/Module-CPANfile/lib/cpanfile.pod
+requires '5.010';
 requires 'Carp';
 requires 'DBIx::Class';
 requires 'HTTP::Throwable';
