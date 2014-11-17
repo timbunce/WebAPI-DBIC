@@ -87,7 +87,11 @@ Content-type: application/vnd.api+json
          "rank" : 13,
          "type" : "artist"
       }
-   ]
+   ],
+   "links" : {
+      "artist.cds" : "/cd?me.artist={cds.artistid}",
+      "artist.cds_cref_cond" : "/cd/{cds_cref_cond.artistid}"
+   }
 }
 
 === get item with multi-field key

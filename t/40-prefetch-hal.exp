@@ -892,9 +892,6 @@ Content-type: application/hal+json
                },
                "tracks" : {
                   "href" : "/track?me.cd=1"
-               },
-               "very_long_artist_relationship" : {
-                  "href" : "/artist/1"
                }
             },
             "artist" : 1,
@@ -925,9 +922,6 @@ Content-type: application/hal+json
                },
                "tracks" : {
                   "href" : "/track?me.cd=2"
-               },
-               "very_long_artist_relationship" : {
-                  "href" : "/artist/1"
                }
             },
             "artist" : 1,
@@ -978,9 +972,6 @@ Content-type: application/hal+json
       },
       "tracks" : {
          "href" : "/track?me.cd=1"
-      },
-      "very_long_artist_relationship" : {
-         "href" : "/artist/1"
       }
    },
    "artist" : 1,
