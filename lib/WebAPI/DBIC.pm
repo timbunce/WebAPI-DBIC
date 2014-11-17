@@ -74,7 +74,8 @@ The JSON API media type is designed to minimize both the number of requests and
 the amount of data transmitted between clients and servers. This efficiency is
 achieved without compromising readability, flexibility, and discoverability.
 
-See L<http://jsonapi.org/> for more details.
+See L<http://jsonapi.org/> and L<https://github.com/kurko/ember-json-api>
+for more details.
 
 Support for JSON API within WebAPI::DBIC is currently fairly basic but evolving fast.
 

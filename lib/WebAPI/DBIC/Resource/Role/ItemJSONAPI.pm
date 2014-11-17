@@ -29,6 +29,19 @@ around '_build_content_types_provided' => sub {
     return $types;
 };
 
-sub to_json_as_jsonapi { return $_[0]->encode_json($_[0]->render_item_as_jsonapi_hash($_[0]->item)) }
+#sub to_json_as_jsonapi { return $_[0]->encode_json($_[0]->render_item_as_jsonapi_hash($_[0]->item)) }
+sub to_json_as_jsonapi {
+    my $self = shift;
+
+    # narrow the set to just contain the spectified item
+    my @id_cols = $self->set->result_source->unique_constraint_columns( $self->id_unique_constraint_name );
+    my %id_search; @id_search{ @id_cols } = @{ $self->id };
+    $self->set( $self->set->search_rs(\%id_search) );
+
+    # XXX back-compat, not sure if needed
+    $self->item( $self->set->first ); $self->set->reset;
+
+    return $self->encode_json( $self->render_jsonapi_response( $self->set ) );
+}
 
 1;

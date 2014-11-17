@@ -95,7 +95,7 @@ sub render_jsonapi_response { # return top-level document hashref
                     while (my $subrow = $subitem->next) {
                         my $id = $subrow->id;
                         push @$link_keys, $id;
-                        $compound_links{$relname}{$id} = $self->render_item_as_jsonapi_hash($row); # XXX typename
+                        $compound_links{$relname}{$id} = $self->render_item_as_jsonapi_hash($subrow); # XXX typename
                     }
                 }
                 elsif ($subitem->isa('DBIx::Class::Row')) { # one-to-many rel

@@ -6,13 +6,17 @@ Response:
 200 OK
 Content-type: application/vnd.api+json
 {
-   "artistid" : 1,
-   "charfield" : null,
-   "href" : "/artist/1",
-   "id" : 1,
-   "name" : "Caterwauler McCrae",
-   "rank" : 13,
-   "type" : "artist"
+   "artist" : [
+      {
+         "artistid" : 1,
+         "charfield" : null,
+         "href" : "/artist/1",
+         "id" : 1,
+         "name" : "Caterwauler McCrae",
+         "rank" : 13,
+         "type" : "artist"
+      }
+   ]
 }
 
 === get different single item
@@ -23,13 +27,17 @@ Response:
 200 OK
 Content-type: application/vnd.api+json
 {
-   "artistid" : 2,
-   "charfield" : null,
-   "href" : "/artist/2",
-   "id" : 2,
-   "name" : "Random Boy Band",
-   "rank" : 13,
-   "type" : "artist"
+   "artist" : [
+      {
+         "artistid" : 2,
+         "charfield" : null,
+         "href" : "/artist/2",
+         "id" : 2,
+         "name" : "Random Boy Band",
+         "rank" : 13,
+         "type" : "artist"
+      }
+   ]
 }
 
 === get set of items
@@ -106,11 +114,15 @@ Response:
 200 OK
 Content-type: application/vnd.api+json
 {
-   "artistid" : 1,
-   "gig_datetime" : "2014-01-01T01:01:01Z",
-   "href" : "/gig/1/2014-01-01T01:01:01Z",
-   "id" : 1,
-   "type" : "gig"
+   "gig" : [
+      {
+         "artistid" : 1,
+         "gig_datetime" : "2014-01-01T01:01:01Z",
+         "href" : "/gig/1/2014-01-01T01:01:01Z",
+         "id" : 1,
+         "type" : "gig"
+      }
+   ]
 }
 
 === get different item with multi-field key
@@ -121,10 +133,14 @@ Response:
 200 OK
 Content-type: application/vnd.api+json
 {
-   "artistid" : 2,
-   "gig_datetime" : "2014-06-30T19:00:00Z",
-   "href" : "/gig/2/2014-06-30T19:00:00Z",
-   "id" : 2,
-   "type" : "gig"
+   "gig" : [
+      {
+         "artistid" : 2,
+         "gig_datetime" : "2014-06-30T19:00:00Z",
+         "href" : "/gig/2/2014-06-30T19:00:00Z",
+         "id" : 2,
+         "type" : "gig"
+      }
+   ]
 }
 

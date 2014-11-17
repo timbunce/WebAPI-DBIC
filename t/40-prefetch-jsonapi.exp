@@ -6,15 +6,55 @@ Response:
 200 OK
 Content-type: application/vnd.api+json
 {
-   "artist" : 1,
-   "cdid" : 1,
-   "genreid" : 1,
-   "href" : "/cd/1",
-   "id" : 1,
-   "single_track" : null,
-   "title" : "Spoonful of bees",
-   "type" : "cd",
-   "year" : "1999"
+   "cd" : [
+      {
+         "artist" : 1,
+         "cdid" : 1,
+         "genreid" : 1,
+         "href" : "/cd/1",
+         "id" : 1,
+         "links" : {
+            "artist" : 1,
+            "genre" : 1
+         },
+         "single_track" : null,
+         "title" : "Spoonful of bees",
+         "type" : "cd",
+         "year" : "1999"
+      }
+   ],
+   "linked" : {
+      "artist" : [
+         {
+            "artistid" : 1,
+            "charfield" : null,
+            "href" : "/artist/1",
+            "id" : 1,
+            "name" : "Caterwauler McCrae",
+            "rank" : 13,
+            "type" : "artist"
+         }
+      ],
+      "genre" : [
+         {
+            "genreid" : 1,
+            "href" : "/genre/1",
+            "id" : 1,
+            "name" : "emo",
+            "type" : "genre"
+         }
+      ]
+   },
+   "links" : {
+      "cd.artist" : {
+         "href" : "/artist/{artist.artist}",
+         "type" : "artist"
+      },
+      "cd.genre" : {
+         "href" : "/genre/{genre.genreid}",
+         "type" : "genre"
+      }
+   }
 }
 
 === prefetch on a set using two belongs_to relationships
@@ -197,13 +237,67 @@ Response:
 200 OK
 Content-type: application/vnd.api+json
 {
-   "artistid" : "1",
-   "charfield" : null,
-   "href" : "/artist/1",
-   "id" : "1",
-   "name" : "Caterwauler McCrae",
-   "rank" : 13,
-   "type" : "artist"
+   "artist" : [
+      {
+         "artistid" : "1",
+         "charfield" : null,
+         "href" : "/artist/1",
+         "id" : "1",
+         "links" : {
+            "cds" : [
+               "1",
+               "2",
+               "3"
+            ]
+         },
+         "name" : "Caterwauler McCrae",
+         "rank" : 13,
+         "type" : "artist"
+      }
+   ],
+   "linked" : {
+      "cds" : [
+         {
+            "artist" : 1,
+            "cdid" : "1",
+            "genreid" : 1,
+            "href" : "/cd/1",
+            "id" : "1",
+            "single_track" : null,
+            "title" : "Spoonful of bees",
+            "type" : "cd",
+            "year" : "1999"
+         },
+         {
+            "artist" : 1,
+            "cdid" : "2",
+            "genreid" : 2,
+            "href" : "/cd/2",
+            "id" : "2",
+            "single_track" : null,
+            "title" : "Forkful of bees",
+            "type" : "cd",
+            "year" : "2001"
+         },
+         {
+            "artist" : 1,
+            "cdid" : "3",
+            "genreid" : 2,
+            "href" : "/cd/3",
+            "id" : "3",
+            "single_track" : null,
+            "title" : "Caterwaulin' Blues",
+            "type" : "cd",
+            "year" : "1997"
+         }
+      ]
+   },
+   "links" : {
+      "artist.cds" : {
+         "href" : "/cd?me.artist={cds.artistid}",
+         "type" : "cd"
+      }
+   }
 }
 
 === multi type relation (has_many) in prefetch on set
@@ -249,40 +343,48 @@ Content-type: application/vnd.api+json
    "linked" : {
       "cds" : [
          {
-            "artistid" : "1",
-            "charfield" : null,
-            "href" : "/artist/1",
+            "artist" : 1,
+            "cdid" : "1",
+            "genreid" : 1,
+            "href" : "/cd/1",
             "id" : "1",
-            "name" : "Caterwauler McCrae",
-            "rank" : 13,
-            "type" : "artist"
+            "single_track" : null,
+            "title" : "Spoonful of bees",
+            "type" : "cd",
+            "year" : "1999"
          },
          {
-            "artistid" : "1",
-            "charfield" : null,
-            "href" : "/artist/1",
-            "id" : "1",
-            "name" : "Caterwauler McCrae",
-            "rank" : 13,
-            "type" : "artist"
-         },
-         {
-            "artistid" : "1",
-            "charfield" : null,
-            "href" : "/artist/1",
-            "id" : "1",
-            "name" : "Caterwauler McCrae",
-            "rank" : 13,
-            "type" : "artist"
-         },
-         {
-            "artistid" : "2",
-            "charfield" : null,
-            "href" : "/artist/2",
+            "artist" : 1,
+            "cdid" : "2",
+            "genreid" : 2,
+            "href" : "/cd/2",
             "id" : "2",
-            "name" : "Random Boy Band",
-            "rank" : 13,
-            "type" : "artist"
+            "single_track" : null,
+            "title" : "Forkful of bees",
+            "type" : "cd",
+            "year" : "2001"
+         },
+         {
+            "artist" : 1,
+            "cdid" : "3",
+            "genreid" : 2,
+            "href" : "/cd/3",
+            "id" : "3",
+            "single_track" : null,
+            "title" : "Caterwaulin' Blues",
+            "type" : "cd",
+            "year" : "1997"
+         },
+         {
+            "artist" : 2,
+            "cdid" : "4",
+            "genreid" : 3,
+            "href" : "/cd/4",
+            "id" : "4",
+            "single_track" : null,
+            "title" : "Generic Manufactured Singles",
+            "type" : "cd",
+            "year" : "2001"
          }
       ]
    },
@@ -303,15 +405,19 @@ Response:
 200 OK
 Content-type: application/vnd.api+json
 {
-   "artist" : 1,
-   "cdid" : "1",
-   "genreid" : 1,
-   "href" : "/cd/1",
-   "id" : "1",
-   "single_track" : null,
-   "title" : "Spoonful of bees",
-   "type" : "cd",
-   "year" : "1999"
+   "cd" : [
+      {
+         "artist" : 1,
+         "cdid" : "1",
+         "genreid" : 1,
+         "href" : "/cd/1",
+         "id" : "1",
+         "single_track" : null,
+         "title" : "Spoonful of bees",
+         "type" : "cd",
+         "year" : "1999"
+      }
+   ]
 }
 
 === filter on nested prefetch
@@ -342,13 +448,15 @@ Content-type: application/vnd.api+json
    "linked" : {
       "cds" : [
          {
-            "artistid" : "1",
-            "charfield" : null,
-            "href" : "/artist/1",
+            "artist" : 1,
+            "cdid" : "1",
+            "genreid" : 1,
+            "href" : "/cd/1",
             "id" : "1",
-            "name" : "Caterwauler McCrae",
-            "rank" : 13,
-            "type" : "artist"
+            "single_track" : null,
+            "title" : "Spoonful of bees",
+            "type" : "cd",
+            "year" : "1999"
          }
       ]
    },
@@ -537,11 +645,47 @@ Response:
 200 OK
 Content-type: application/vnd.api+json
 {
-   "artist" : 1,
-   "cdid" : 1,
-   "genreid" : 1,
-   "href" : "/cd/1",
-   "id" : 1,
-   "type" : "cd"
+   "cd" : [
+      {
+         "artist" : 1,
+         "cdid" : 1,
+         "genreid" : 1,
+         "href" : "/cd/1",
+         "id" : 1,
+         "links" : {
+            "artist" : 1,
+            "genre" : 1
+         },
+         "type" : "cd"
+      }
+   ],
+   "linked" : {
+      "artist" : [
+         {
+            "artistid" : 1,
+            "href" : "/artist/1",
+            "id" : 1,
+            "type" : "artist"
+         }
+      ],
+      "genre" : [
+         {
+            "genreid" : 1,
+            "href" : "/genre/1",
+            "id" : 1,
+            "type" : "genre"
+         }
+      ]
+   },
+   "links" : {
+      "cd.artist" : {
+         "href" : "/artist/{artist.artist}",
+         "type" : "artist"
+      },
+      "cd.genre" : {
+         "href" : "/genre/{genre.genreid}",
+         "type" : "genre"
+      }
+   }
 }
 
