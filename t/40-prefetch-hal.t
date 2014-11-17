@@ -78,12 +78,12 @@ GET /cd?prefetch=artist PARAMS: artist.name~json=>{"like"=>"%Band"}
 Name: multi type relation (has_many) in prefetch on item
 # Return artist 1 and all cds. Ordered to ensure test stability.
 # Artist->search({artistid => 1}, {prefetch => 'cds'})
-GET /artist/1?prefetch=cds&order=cdid
+GET /artist/1?prefetch=cds&order=cds.cdid
 
 Name: multi type relation (has_many) in prefetch on set
 # Return all artists and all cds
 # Artist->search({}, {prefetch => 'cds'})
-GET /artist?prefetch=cds&rows=2
+GET /artist?prefetch=cds&order=me.artistid,cds.cdid&rows=2
 
 Name: multi type relation in prefetch on item (many_to_many via JSON)
 # Return all cds and all producers
