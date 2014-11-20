@@ -70,7 +70,7 @@ Name: prefetch on invalid name
 GET /cd/1?prefetch=nonesuch
 
 Name: prefetch on set with partial response of prefetched items
-GET /cd?rows=2&page=1&prefetch=artist,genre&fields=cdid,genreid,genre.genreid,artist.artistid
+GET /cd?rows=2&page=1&prefetch=artist,genre&fields=cdid,artist,genreid,genre.genreid,artist.artistid
 
 Name: prefetch on item with partial response of prefetched item
-GET /cd/1?prefetch=artist,genre&fields=cdid,genreid,artist.artistid,genre.genreid
+GET /cd/1?prefetch=artist,genre&fields=cdid,artist,genreid,artist.artistid,genre.genreid

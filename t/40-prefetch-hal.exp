@@ -860,7 +860,7 @@ Content-type: application/json
 
 === prefetch on set with partial response of prefetched items
 Request:
-GET /cd?rows=2&page=1&prefetch=artist,genre&fields=cdid,genreid,genre.genreid,artist.artistid
+GET /cd?rows=2&page=1&prefetch=artist,genre&fields=cdid,artist,genreid,genre.genreid,artist.artistid
 Accept: application/hal+json,application/json
 Response:
 200 OK
@@ -943,7 +943,7 @@ Content-type: application/hal+json
 
 === prefetch on item with partial response of prefetched item
 Request:
-GET /cd/1?prefetch=artist,genre&fields=cdid,genreid,artist.artistid,genre.genreid
+GET /cd/1?prefetch=artist,genre&fields=cdid,artist,genreid,artist.artistid,genre.genreid
 Accept: application/hal+json,application/json
 Response:
 200 OK

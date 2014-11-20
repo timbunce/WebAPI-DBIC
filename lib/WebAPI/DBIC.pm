@@ -651,9 +651,23 @@ This also works
 in combination with the prefetch parameter. As with querying on prefetched relations, the
 relation accessor should be appended before the field name in question.
 
-    artists/1?prefetch=albums&fields=artistid,albumns.title
+    /artist/1?prefetch=albums&fields=artistid,albumns.title
 
 For more information on PREFETCHING and JOINS see L<DBIx::Class::Resultset#PREFETCHING>
+
+NOTE: DBIx::Class does not support the returning of related data if the relationship
+accessor for that data matches a column on the requested Set or Item but the fields
+parameter does not include that column. You must explicitly request fields if prefetching
+a relation with the same name
+
+Using the above example. If the artist has a producer column/field then the following is
+invalid:
+
+    /artist/1?prefetch=producer&fields=artistid,producer.producer.producerid
+
+but the following is valid:
+
+    /artist/1?prefetch=producer&fields=artistid,producer,producer.producer.producerid
 
 =head3 with
 
