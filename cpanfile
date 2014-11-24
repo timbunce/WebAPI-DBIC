@@ -23,6 +23,7 @@ requires 'Web::Machine', '0.15';
 requires 'Data::Dumper::Concise'; # for Dwarn
 
 on test => sub {
+   requires 'autodie';
    requires 'Module::Pluggable';
    requires 'Sort::Key';
    requires 'Test::DBIx::Class';
