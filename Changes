@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+0.002001  2014-11-24 19:57:02+00:00 Europe/Dublin
+
   - Require DBIx::Class 0.08250+ (#14)
   - Added autodie to cpanfile for Perl 5.10
   - Fixed stability of t/30-ordering-hal.t output
