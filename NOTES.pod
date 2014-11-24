@@ -1,5 +1,7 @@
 =head1 TODO
 
+double/tripple query execution on items! and with/without me. (SQL differs by prefix on pk.)
+
 This is all fairly random.
 
 Things to do, or at least consider, before we stop being alpha:

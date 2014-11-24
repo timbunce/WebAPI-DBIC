@@ -33,8 +33,8 @@ GET /cd?order=me.cdid%20desc
 Name: order by year desc and title desc
 GET /cd?order=me.year%20desc,title%20desc
 
-Name: order by field in a relation
-GET /cd?prefetch=artist&order=artist.name
+Name: order by field in a relation (and the primary set for test stability)
+GET /cd?prefetch=artist&order=artist.name,cdid%20asc
 
 Name: order by field in two relations
 GET /cd?prefetch=artist,genre&order=genre.name%20desc,artist.name%20asc
