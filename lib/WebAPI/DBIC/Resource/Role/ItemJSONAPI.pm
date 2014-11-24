@@ -33,13 +33,15 @@ around '_build_content_types_provided' => sub {
 sub to_json_as_jsonapi {
     my $self = shift;
 
-    # narrow the set to just contain the spectified item
+    # narrow the set to just contain the specified item
+    # XXX this narrowing ought to be moved elsewhere
+    # it's a bad idea to be a side effect of to_json_as_jsonapi
     my @id_cols = $self->set->result_source->unique_constraint_columns( $self->id_unique_constraint_name );
     my %id_search; @id_search{ @id_cols } = @{ $self->id };
-    $self->set( $self->set->search_rs(\%id_search) );
+    $self->set( $self->set->search_rs(\%id_search) ); # narrow the set
 
-    # XXX back-compat, not sure if needed
-    $self->item( $self->set->first ); $self->set->reset;
+    # set has been narrowed to the item, so we can render the item as if a set
+    # (which is what we need to do for JSON API, which doesn't really have an 'item')
 
     return $self->encode_json( $self->render_jsonapi_response() );
 }
