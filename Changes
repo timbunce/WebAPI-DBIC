@@ -2,6 +2,10 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+  - Require DBIx::Class 0.08250+ (#14)
+  - Added autodie to cpanfile for Perl 5.10
+  - Fixed stability of t/30-ordering-hal.t output
+
 0.002000  2014-11-17 23:01:09+00:00 Europe/Dublin
 
   - Added initial support for JSON API application/vnd.api+json media type
