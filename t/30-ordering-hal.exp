@@ -433,9 +433,9 @@ Content-type: application/hal+json
    }
 }
 
-=== order by field in a relation
+=== order by field in a relation (and the primary set for test stability)
 Request:
-GET /cd?prefetch=artist&order=artist.name
+GET /cd?prefetch=artist&order=artist.name,cdid%20asc
 Accept: application/hal+json,application/json
 Response:
 200 OK
