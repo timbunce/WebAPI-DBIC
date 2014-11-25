@@ -44,7 +44,7 @@ The Collection+JSON hypermedia type could be added in future.
 * Supports safe robust multi-related-record CRUD transactions.
 
 * An example .psgi file that gives you an instant web service for any
-DBIx::Class schema
+DBIx::Class schema.
 
 * Includes a built-in copy of the generic HAL API browser application so you
 can be browsing your new API in mimutes.
@@ -112,7 +112,7 @@ See L<https://raw.githubusercontent.com/basho/webmachine/develop/docs/http-heade
 for an image of the state machine.
 
 By building on Web::Machine, WebAPI::DBIC removes the need to implement all the
-logic needed for accurate and full-features HTTP protocol behaviour.
+logic needed for accurate and full-featured HTTP protocol behaviour.
 You just provide small pieces of logic at the decision points you care about
 and Web::Machine looks after the rest.
 
@@ -122,8 +122,8 @@ Web::Machine provides the logic to handle a HTTP request for a I<single resource
 
 With WebAPI::DBIC those resources typically represent a DBIx::Class result set,
 a row, or a method invocation on a row. They are implemented as a subclass of
-L<Web::Machine::Resource> that consumes a some set of WebAPI::DBIC roles that add
-the specific desired functionality.
+L<Web::Machine::Resource> that consumes a some set of WebAPI::DBIC roles which add
+the desired functionality to the resource.
 
 
 =head2 Path::Router
