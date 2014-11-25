@@ -2,6 +2,10 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+  - Fixed webapi-dbic-demo.psgi (Mike Francis)
+  - Fixed use of DSN as Auth Realm (Mike Francis)
+  - Added compilation tests for *.psgi files.
+
 0.002001  2014-11-24 19:57:02+00:00 Europe/Dublin
 
   - Require DBIx::Class 0.08250+ (#14)
