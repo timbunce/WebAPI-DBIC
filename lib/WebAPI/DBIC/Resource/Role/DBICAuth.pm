@@ -62,7 +62,7 @@ sub is_authorized {
     }
     elsif ($http_auth_type =~ /^basic/i) {
 
-        my $auth_realm = $self->set->result_source->schema->storage->connect_info->[0] # dsn
+        my $auth_realm = $self->set->result_source->schema->storage->connect_info->[0]->{dsn} # dsn
             or die "panic: no dsn set";
 
         if ( $auth_header ) {
