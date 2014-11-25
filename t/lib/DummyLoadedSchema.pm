@@ -5,16 +5,11 @@ package DummyLoadedSchema;
 # 
 # WEBAPI_DBIC_SCHEMA=DummyLoadedSchema plackup -Ilib -It/lib webapi-dbic-any.psgi
 
-use DummySchema;
+use Test::DBIx::Class;
 
 sub connect {
-    my $class = shift;
-
-    my $dummy = DummySchema->new;
-    $dummy->load_fixtures('basic');
-    my $schema = $dummy->schema;
-
-    return $schema->connect(@_);
+    fixtures_ok('basic');
+    return Schema;
 }
 
 1;

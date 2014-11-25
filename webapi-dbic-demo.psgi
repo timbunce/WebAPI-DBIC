@@ -10,19 +10,15 @@ BEGIN {
     $|++;
 }
 
-use DummySchema;
+use DummyLoadedSchema;
 use Plack::Builder;
 use Plack::App::File;
 use WebAPI::DBIC::WebApp;
 
 use Devel::Dwarn;
 
-my $dummy = DummySchema->new;
-$dummy->load_fixtures('basic');
-my $schema = $dummy->schema;
-
 my $app = WebAPI::DBIC::WebApp->new({
-    schema => $schema,
+    schema => DummyLoadedSchema->connect,
 })->to_psgi_app;
 
 my $app_prefix = "/clients/v1";
