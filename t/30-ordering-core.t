@@ -5,7 +5,7 @@ use lib "t/lib";
 use TestKit;
 use Sort::Key qw/multikeysorter/;
 
-fixtures_ok qw/basic/;
+fixtures_ok [qw/basic/];
 
 
 subtest "===== Ordering =====" => sub {

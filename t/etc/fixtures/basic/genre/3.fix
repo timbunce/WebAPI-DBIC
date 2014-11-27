@@ -1,0 +1,4 @@
+$HASH1 = {
+           genreid => 3,
+           name    => 'pop'
+         };

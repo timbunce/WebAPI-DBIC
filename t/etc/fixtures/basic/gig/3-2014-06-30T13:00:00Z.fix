@@ -1,0 +1,4 @@
+$HASH1 = {
+           artistid     => 3,
+           gig_datetime => '2014-06-30T13:00:00Z'
+         };

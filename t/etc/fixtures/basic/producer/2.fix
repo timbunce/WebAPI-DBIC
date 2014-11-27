@@ -1,0 +1,4 @@
+$HASH1 = {
+           name       => 'Bob The Builder',
+           producerid => 2
+         };

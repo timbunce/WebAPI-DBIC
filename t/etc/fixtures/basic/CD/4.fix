@@ -1,0 +1,10 @@
+$HASH1 = {
+           artist => 2,
+           cdid   => 4,
+           genreid
+                  => 3,
+           single_track
+                  => undef,
+           title  => 'Generic Manufactured Singles',
+           year   => 2001
+         };
