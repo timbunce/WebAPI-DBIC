@@ -1,7 +1,14 @@
 # https://metacpan.org/pod/distribution/Module-CPANfile/lib/cpanfile.pod
+
 requires 'perl', '5.010';
+
+requires 'DBIx::Class', '0.08250'; # https://github.com/timbunce/WebAPI-DBIC/issues/14
+
+requires 'Web::Machine', '0.15';
+
+requires 'Path::Router', '0.13';
+
 requires 'Carp';
-requires 'DBIx::Class';
 requires 'HTTP::Throwable';
 requires 'HTTP::Headers::ActionPack';
 requires 'JSON::MaybeXS';
@@ -10,7 +17,6 @@ requires 'Module::Runtime';
 requires 'Moo', '1.001000';
 requires 'namespace::clean';
 requires 'parent';
-requires 'Path::Router', '0.13';
 requires 'Plack', '1.0033';
 requires 'Plack::App::File';
 requires 'Plack::App::Path::Router', '0.06';
@@ -19,10 +25,10 @@ requires 'Sub::Exporter';
 requires 'Sub::Quote';
 requires 'Try::Tiny';
 requires 'URI';
-requires 'Web::Machine', '0.15';
 requires 'Data::Dumper::Concise'; # for Dwarn
 
 on test => sub {
+   requires 'autodie';
    requires 'Module::Pluggable';
    requires 'Sort::Key';
    requires 'Test::DBIx::Class';
