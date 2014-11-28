@@ -38,16 +38,30 @@ sub run_request_spec_tests {
     my ($app, $spec_fh, $spec_src) = @_;
     $spec_src ||= (caller(0))[1];
 
-    my ($test_config, @test_specs) = split /\n\n/, slurp($spec_fh);
-
-    my ($test_volume,$test_directories,$test_file) = File::Spec->splitpath($spec_src);
+    my ($test_volume, $test_directories, $test_file) = File::Spec->splitpath($spec_src);
     (my $got_file = $test_file) =~ s/\.t$/.got/ or die "panic: can't edit $test_file";
     (my $exp_file = $test_file) =~ s/\.t$/.exp/ or die "panic: can't edit $test_file";
     $got_file = File::Spec->catpath( $test_volume, $test_directories, $got_file );
     $exp_file = File::Spec->catpath( $test_volume, $test_directories, $exp_file );
 
+    my %test_config;
     open my $fh, ">", $got_file;
-    _make_request_from_spec($app, $fh, $test_config, $_) for @test_specs;
+    for my $test_spec (split /\n\n/, slurp($spec_fh)) {
+
+        my ($name, @spec_lines) = grep { !/^#/ } split /\n/, $test_spec;
+        note "--- $name";
+
+        if ($name =~ s/^Config:\s*//) {
+            # merge new setting, overriding any existing setting with the same name
+            %test_config = (%test_config, map { split /:\s+/, $_, 2 } @spec_lines);
+        }
+        elsif ($name =~ s/^Name:\s*//) {
+            _make_request_from_spec($app, $fh, \%test_config, $name, \@spec_lines);
+        }
+        else {
+            die "Test specification paragraph doesn't begin with Config: or Name: $name";
+        }
+    }
     close $fh;
 
     eq_or_diff slurp($got_file), slurp($exp_file),
@@ -57,18 +71,9 @@ sub run_request_spec_tests {
 
 
 sub _make_request_from_spec {
-    my ($app, $fh, $test_config, $spec) = @_;
-    note "---";
+    my ($app, $fh, $test_config, $name, $spec_lines) = @_;
 
-    my ($config_name, @config_settings) = split /\n/, $test_config;
-    $config_name =~ s/^Config:\s*//
-        or die "'$config_name' doesn't begin with Config:\n";
-    my %config_settings = map { split /:\s+/, $_, 2 } @config_settings;
-
-    my ($name, $curl, @rest) = grep { !/^#/ } split /\n/, $spec;
-    $name =~ s/^Name:\s+//
-        or die "'$name' doesn't begin with Name:\n";
-    note "Name: $name";
+    my ($curl, @rest) = @$spec_lines;
     if ($curl =~ s/^SKIP\s*//) {
         SKIP: { skip $curl || $name, 1 }
         return;
@@ -80,7 +85,7 @@ sub _make_request_from_spec {
         or die "'$curl' doesn't begin with GET, PUT, POST etc\n";
     my $method = $1;
 
-    my $spec_headers = HTTP::Headers->new( %config_settings );
+    my $spec_headers = HTTP::Headers->new( %$test_config );
     while (@rest && $rest[0] =~ /^([-\w]+):\s+(.*)/) {
         $spec_headers->header($1, $2);
         shift @rest;
