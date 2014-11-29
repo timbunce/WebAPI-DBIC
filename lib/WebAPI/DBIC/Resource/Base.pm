@@ -13,6 +13,8 @@ This class is simply a pure subclass of WebAPI::DBIC::Resource.
 use Moo;
 extends 'Web::Machine::Resource';
 
+require WebAPI::HTTP::Throwable::Factory;
+
 
 has http_auth_type => (
    is => 'ro',
@@ -20,7 +22,7 @@ has http_auth_type => (
 
 has throwable => (
     is => 'rw',
-    required => 1,
+    default => 'WebAPI::HTTP::Throwable::Factory',
 );
 
 

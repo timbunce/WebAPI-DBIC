@@ -1,9 +1,6 @@
-#!/usr/bin/env perl
-
 package WebAPI::DBIC::WebApp;
 
-use strict;
-use warnings;
+use Moo;
 
 use Module::Runtime qw(use_module);
 use Carp qw(croak confess);
@@ -12,20 +9,18 @@ use JSON::MaybeXS qw(JSON);
 use Devel::Dwarn;
 
 use Web::Machine;
-use WebAPI::HTTP::Throwable::Factory;
 
 # pre-load some modules to improve shared memory footprint
 require DBIx::Class::SQLMaker;
 
-use Moo;
 use namespace::clean;
 
 
 has schema => (is => 'ro', required => 1);
 has writable => (is => 'ro', default => 1);
 has http_auth_type => (is => 'ro', default => 'Basic');
-has extra_routes => (is => 'ro', lazy => 1, builder => 1);
-has auto_routes => (is => 'ro', lazy => 1, builder => 1);
+has extra_schema_routes => (is => 'ro', lazy => 1, builder => 1);
+has auto_schema_routes => (is => 'ro', lazy => 1, builder => 1);
 has router_class => (is => 'ro', builder => 1);
 
 sub _build_router_class {
@@ -33,8 +28,8 @@ sub _build_router_class {
     return 'WebAPI::DBIC::Router';
 }
 
-sub _build_extra_routes { [] }
-sub _build_auto_routes {
+sub _build_extra_schema_routes { [] }
+sub _build_auto_schema_routes {
     my ($self) = @_;
 
     my @routes;
@@ -126,6 +121,11 @@ sub mk_generic_dbic_item_set_routes {
         return qr/^(?:$names_r)$/x;
     };
 
+    my $resource_default_args = {
+        writable => $self->writable,
+        http_auth_type => $self->http_auth_type,
+    };
+
     my $route_defaults = {
         # --- fields for route lookup
         result_class => $rs->result_class,
@@ -154,6 +154,7 @@ sub mk_generic_dbic_item_set_routes {
 
     push @routes, "$path" => { # set (aka collection)
         resource_class => 'WebAPI::DBIC::Resource::GenericSet',
+        resource_args  => $resource_default_args,
         route_defaults => $route_defaults,
         getargs => $mk_getargs->(),
     };
@@ -161,6 +162,7 @@ sub mk_generic_dbic_item_set_routes {
     push @routes, "$path/invoke/:method" => { # method call on set
         validations => { method => $qr_names->(@$invokeable_on_set) },
         resource_class => 'WebAPI::DBIC::Resource::GenericSetInvoke',
+        resource_args  => $resource_default_args,
         route_defaults => $route_defaults,
         getargs => $mk_getargs->('method'),
     } if @$invokeable_on_set;
@@ -175,6 +177,7 @@ sub mk_generic_dbic_item_set_routes {
     push @routes, "$path/$item_path_spec" => { # item
         #validations => { },
         resource_class => $item_resource_class,
+        resource_args  => $resource_default_args,
         route_defaults => $route_defaults,
         getargs => $mk_getargs->(@idn_fields),
     };
@@ -184,6 +187,7 @@ sub mk_generic_dbic_item_set_routes {
             method => $qr_names->(@$invokeable_on_item),
         },
         resource_class => 'WebAPI::DBIC::Resource::GenericItemInvoke',
+        resource_args  => $resource_default_args,
         route_defaults => $route_defaults,
         getargs => $mk_getargs->(@idn_fields, 'method'),
     } if @$invokeable_on_item;
@@ -191,12 +195,17 @@ sub mk_generic_dbic_item_set_routes {
     return @routes;
 }
 
+
 sub all_routes {
     my ($self) = @_;
-    return map {
+
+    my @routes = map {
         $self->mk_generic_dbic_item_set_routes(@$_)
-    } (@{ $self->auto_routes }, @{ $self->extra_routes });
+    } (@{ $self->auto_schema_routes }, @{ $self->extra_schema_routes });
+
+    return @routes;
 }
+
 
 sub to_psgi_app {
     my ($self) = @_;
@@ -221,12 +230,16 @@ sub add_webapi_dbic_route {
     my ($self, $router, $path, $spec) = @_;
 
     if ($ENV{WEBAPI_DBIC_DEBUG}) {
-        warn sprintf "/%s => result_class=%s, via %s\n", $path,
-            $spec->{route_defaults}{result_class},
-            $spec->{resource_class};
+        my $route_defaults = $spec->{route_defaults} || {};
+        my @route_default_keys = grep { !/^_/ } keys %$route_defaults;
+        (my $class = $spec->{resource_class}) =~ s/^WebAPI::DBIC::Resource//;
+        warn sprintf "/%s => %s (%s)\n",
+            $path, $class,
+            join(' ', map { "$_=$route_defaults->{$_}" } @route_default_keys);
     }
 
     my $getargs = $spec->{getargs};
+    my $resource_args  = $spec->{resource_args}  or confess "panic";
     my $resource_class = $spec->{resource_class} or confess "panic";
     use_module $resource_class;
     
@@ -237,21 +250,16 @@ sub add_webapi_dbic_route {
 
         #local $SIG{__DIE__} = \&Carp::confess;
 
-        my %resource_args;
+        my %resource_args_from_params;
         # perform any required setup for this request & params in @_
-        $getargs->($request, \%resource_args, @_) if $getargs;
+        $getargs->($request, \%resource_args_from_params, @_) if $getargs;
 
-        warn "$path: running machine for $resource_class (with @{[ keys %resource_args ]})\n"
+        warn "$path: running machine for $resource_class (with @{[ keys %resource_args_from_params ]})\n"
             if $ENV{WEBAPI_DBIC_DEBUG};
 
         my $app = Web::Machine->new(
             resource => $resource_class,
-            resource_args => [
-                writable => $self->writable,
-                http_auth_type => $self->http_auth_type,
-                throwable => 'WebAPI::HTTP::Throwable::Factory',
-                %resource_args,
-            ],
+            resource_args => [ %$resource_args, %resource_args_from_params ],
             tracing => $ENV{WEBAPI_DBIC_DEBUG},
         )->to_app;
 
