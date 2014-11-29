@@ -4,6 +4,7 @@ GET /
 Accept: text/html
 Response:
 302 Found
+Content-type: text/html
 Location: browser/browser.html#/
 === get root url as hal+json
 Request:
@@ -11,7 +12,7 @@ GET /
 Accept: application/hal+json
 Response:
 200 OK
-Content-type: application/json
+Content-type: application/hal+json
 {
    "_links" : {
       "artist" : {

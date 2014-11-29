@@ -57,47 +57,6 @@ sub _build_auto_schema_routes {
 }
 
 
-sub hal_browser_app {
-    my $request = shift;
-    my $router = $request->env->{'plack.router'};
-    my $path = $request->env->{REQUEST_URI}; # "/clients/v1/";
-
-    # if the request for the root url is from a browser
-    # then redirect to the HAL browser interface
-    return [ 302, [ Location => "browser/browser.html#$path" ], [ ] ]
-        if $request->headers->header('Accept') =~ /html/;
-
-    # we get here when the HAL Browser requests the root JSON
-    my %links = (self => { href => $path } );
-    foreach my $route (@{$router->routes})  {
-        my @parts;
-        my %attr;
-
-        for my $c (@{ $route->components }) {
-            if ($route->is_component_variable($c)) {
-                my $name = $route->get_component_name($c);
-                push @parts, "{/$name}";
-                $attr{templated} = JSON->true;
-            } else {
-                push @parts, "$c";
-            }
-        }
-        next unless @parts;
-
-        my $url = $path . join("", @parts);
-        $links{join("", @parts)} = {
-            href => $url,
-            title => $route->defaults->{_title}||"",
-            %attr
-        };
-    }
-    my $root_data = { _links => \%links, };
-
-    return [ 200, [ 'Content-Type' => 'application/json' ],
-        [ JSON->new->ascii->pretty->encode($root_data) ]
-    ]
-}
-
 
 sub mk_generic_dbic_item_set_routes {
     my ($self, $path, $resultset, %opts) = @_;
@@ -220,7 +179,11 @@ sub to_psgi_app {
         $self->add_webapi_dbic_route($router, $path, $spec);
     }
 
-    $router->add_route(path => '', target => \&hal_browser_app);
+    $self->add_webapi_dbic_route($router, '', {
+        resource_class => 'WebAPI::DBIC::Resource::GenericRoot',
+        resource_args  => {},
+        #route_defaults => $route_defaults,
+    });
 
     return $router->to_psgi_app; # return Plack app
 }
@@ -254,7 +217,7 @@ sub add_webapi_dbic_route {
         # perform any required setup for this request & params in @_
         $getargs->($request, \%resource_args_from_params, @_) if $getargs;
 
-        warn "$path: running machine for $resource_class (with @{[ keys %resource_args_from_params ]})\n"
+        warn "$path: running machine for $resource_class (args: @{[ keys %resource_args_from_params ]})\n"
             if $ENV{WEBAPI_DBIC_DEBUG};
 
         my $app = Web::Machine->new(
