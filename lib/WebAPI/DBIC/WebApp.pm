@@ -3,6 +3,7 @@ package WebAPI::DBIC::WebApp;
 use Moo;
 
 use Module::Runtime qw(use_module);
+use String::CamelCase qw(camelize decamelize);
 use Carp qw(croak confess);
 use JSON::MaybeXS qw(JSON);
 
@@ -23,6 +24,13 @@ has extra_schema_routes => (is => 'ro', lazy => 1, builder => 1);
 has auto_schema_routes => (is => 'ro', lazy => 1, builder => 1);
 has router_class => (is => 'ro', builder => 1);
 
+# specify what information should be used to define the url path/type of a schema class
+# (result_name is deprecated and only supported for backwards compatibility)
+has type_name_from  => (is => 'ro', default => 'source_name'); # 'source_name', 'result_name'
+# decamelize how type_name_from should be formatted
+has type_name_style => (is => 'ro', default => 'decamelize'); # 'original', 'camelize', 'decamelize'
+
+
 sub _build_router_class {
     require WebAPI::DBIC::Router;
     return 'WebAPI::DBIC::Router';
@@ -33,29 +41,53 @@ sub _build_auto_schema_routes {
     my ($self) = @_;
 
     my @routes;
-    for my $source_names ($self->schema->sources) {
+    for my $source_name ($self->schema->sources) {
 
-        my $result_source = $self->schema->source($source_names);
-        my $result_name = $result_source->name;
-        $result_name = $$result_name if (ref($result_name) eq 'SCALAR');
-
-        next unless $result_name =~ /^[\w\.]+$/x;
+        my $type_name = $self->type_name_for_schema_source($source_name);
 
         my %opts;
-        # this is a hack just to enable testing, eg t/60-invoke.t
+        # this is a hack just to enable testing, eg t/60-invoke-*.t
         push @{$opts{invokeable_on_item}}, 'get_column'
-            if $self->schema->resultset($result_source->source_name)
+            if $self->schema->resultset($source_name)
                 ->result_class =~ /^TestSchema::Result/;
 
         # these become args to mk_generic_dbic_item_set_routes
-        push @routes, [
-            $result_name => $result_source->source_name, %opts
-        ];
+        push @routes, [ $type_name => $source_name, %opts ];
     }
 
     return \@routes;
 }
 
+
+sub type_name_for_schema_source {
+    my ($self, $source_name) = @_;
+
+    my $type_name;
+    if ($self->type_name_from eq 'source_name') {
+        $type_name = $source_name;
+    }
+    elsif ($self->type_name_from eq 'result_name') { # deprecated
+        my $result_source = $self->schema->source($source_name);
+        $type_name = $result_source->name; # eg table name
+        $type_name = $$type_name if ref($type_name) eq 'SCALAR';
+    }
+    else {
+        confess "Invaid type_name_from: ".$self->type_name_from;
+    }
+
+    if ($self->type_name_style eq 'decamelize') {
+        $type_name = decamelize($type_name);
+    }
+    elsif ($self->type_name_style eq 'camelize') {
+        $type_name = camelize($type_name);
+    }
+    else {
+        confess "Invaid type_name_style: ".$self->type_name_from
+            unless $self->type_name_style eq 'original';
+    }
+
+    return $type_name;
+}
 
 
 sub mk_generic_dbic_item_set_routes {
