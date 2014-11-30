@@ -35,7 +35,7 @@ sub malformed_request {
 # used to a) define order that params are handled,
 # and b) to force calling of a handler even if param is missing
 sub get_param_order {
-    return qw(page rows order);
+    return qw(page rows sort);
 }
 
 
@@ -62,7 +62,19 @@ sub handle_request_params {
         die "Explicit search_criteria param not allowed"
             if $param eq 'search_criteria';
 
-        $queue{$param} = $v[0];
+        # for parameters with names like foo[x]=3&foo[y]=4
+        # we accumulate the value as a hash { x => 3, y => 4 }
+        if ($param =~ /^(\w+)\[(\w+)\]$/) {
+            die "$param=$v[0] can't follow $param=$queue{$param} parameter\n"
+                if $queue{$1} and not ref $queue{$1};
+            $queue{$1}{$2} = $v[0];
+        }
+        else {
+            die "$param=$v[0] can't follow $param=$queue{$param} parameter\n"
+                if $queue{$param} and ref $queue{$param};
+            $param = 'sort' if $param eq 'order'; # XXX back-compat
+            $queue{$param} = $v[0];
+        }
     }
 
     # call handlers in desired order, then any remaining ones
@@ -241,24 +253,44 @@ sub _handle_fields_param {
 }
 
 
-sub _handle_order_param {
+sub _handle_sort_param {
     my ($self, $value) = @_;
     my @order_spec;
+
+    # to support sort[typename]=... we need to be able to make type names
+    # to relationship names that map to the type and are included in the query
+    # (there might be more than one relationship on 'me' that leads to
+    # the same resource type so there's a potential ambiguity)
+    if (ref $value) {
+        $self->throwable->throw_bad_request(400, errors => [{
+            parameter => "per-type sort specifiers are not supported yet",
+            _meta => { sort => $value, }, # XXX
+        }]);
+    }
 
     if (not defined $value) {
         $value = (join ",", map { "me.$_" } $self->set->result_source->primary_columns);
     }
 
-    for my $clause (split /\s*,\s*/x, $value) {
+    for my $clause (split /,/, $value) {
+
         # we take care to avoid injection risks
-        my ($field, $dir) = ($clause =~ /^ ([a-z0-9_\.]*)\b (?:\s+(asc|desc))? \s* $/xi);
+        my ($field, $dir);
+        if ($clause =~ /^ ([a-z0-9_\.]*)\b (?:\s+(asc|desc))? $/xi) {
+            ($field, $dir) = ($1, $2 || 'asc');
+        }
+        elsif ($clause =~ /^ (-?) ([a-z0-9_\.]*)$/xi) {
+            ($field, $dir) = ($2, ($1) ? 'desc' : 'asc');
+        }
+
         unless (defined $field) {
             $self->throwable->throw_bad_request(400, errors => [{
                 parameter => "invalid order clause",
                 _meta => { order => $clause, }, # XXX
             }]);
         }
-        $dir ||= 'asc';
+
+        # https://metacpan.org/pod/SQL::Abstract#ORDER-BY-CLAUSES
         push @order_spec, { "-$dir" => $field };
     }
 
@@ -274,12 +306,13 @@ sub _handle_distinct_param {
     my @errors;
 
     # these restrictions avoid edge cases we don't want to deal with yet
-    push @errors, "distinct param requires order param"
-        unless $self->param('order');
+    my $sort = $self->param('sort') || $self->param('order'); # XXX insufficient
+    push @errors, "distinct param requires sort (or order) param"
+        unless $sort;
     push @errors, "distinct param requires fields param"
         unless $self->param('fields');
     push @errors, "distinct param requires fields and orders parameters to have same value"
-        unless $self->param('fields') eq $self->param('order');
+        unless $self->param('fields') eq $sort;
     my $errors = join(", ", @errors);
     die "$errors\n" if $errors; # TODO throw?
 

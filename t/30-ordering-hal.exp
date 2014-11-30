@@ -290,7 +290,7 @@ Content-type: application/hal+json
 
 === order by year desc and title desc
 Request:
-GET /cd?order=me.year%20desc,title%20desc
+GET /cd?sort=me.year%20desc,title%20desc
 Accept: application/hal+json,application/json
 Response:
 200 OK
@@ -435,7 +435,7 @@ Content-type: application/hal+json
 
 === order by field in a relation (and the primary set for test stability)
 Request:
-GET /cd?prefetch=artist&order=artist.name,cdid%20asc
+GET /cd?prefetch=artist&sort=artist.name,cdid
 Accept: application/hal+json,application/json
 Response:
 200 OK
@@ -620,7 +620,7 @@ Content-type: application/hal+json
 
 === order by field in two relations
 Request:
-GET /cd?prefetch=artist,genre&order=genre.name%20desc,artist.name%20asc
+GET /cd?prefetch=artist,genre&order=-genre.name,artist.name
 Accept: application/hal+json,application/json
 Response:
 200 OK

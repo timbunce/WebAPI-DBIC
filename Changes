@@ -6,6 +6,8 @@ Changes file for WebAPI::DBIC
     (eg class) name, rather than the result source (eg table) name.
   - Moved handling of root (/) to a Web::Machine resource class.
   - Further generalization of WebAPI::DBIC::WebApp.
+  - Deprecate order=foo%20desc in favor of sort=-foo, and tighten spec.
+  - Start support for foo[bar]=... style of parameter naming.
 
 0.002002  2014-11-25 15:25:29+00:00 Europe/Dublin
 

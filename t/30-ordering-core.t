@@ -28,7 +28,10 @@ Name: order by PK asc
 GET /cd?order=me.cdid
 
 Name: order by PK desc
-GET /cd?order=me.cdid%20desc
+GET /cd?order=me.cdid%20desc&fields=cdid,year
 
 Name: order by year desc and title desc
-GET /cd?order=me.year%20desc,title%20desc
+GET /cd?sort=me.year%20desc,title%20desc&fields=cdid,year,title
+
+Name: order by year desc and title desc using JSON API style
+GET /cd?sort=-year,-title&fields=cdid,year,title

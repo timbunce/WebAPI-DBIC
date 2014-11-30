@@ -31,10 +31,11 @@ Name: order by PK desc
 GET /cd?order=me.cdid%20desc
 
 Name: order by year desc and title desc
-GET /cd?order=me.year%20desc,title%20desc
+GET /cd?sort=me.year%20desc,title%20desc
 
 Name: order by field in a relation (and the primary set for test stability)
-GET /cd?prefetch=artist&order=artist.name,cdid%20asc
+# might change later to: sort[artist]=name&sort[cd]=cdid
+GET /cd?prefetch=artist&sort=artist.name,cdid
 
 Name: order by field in two relations
-GET /cd?prefetch=artist,genre&order=genre.name%20desc,artist.name%20asc
+GET /cd?prefetch=artist,genre&order=-genre.name,artist.name
