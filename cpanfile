@@ -22,6 +22,7 @@ requires 'Plack', '1.0033';
 requires 'Plack::App::File';
 requires 'Plack::App::Path::Router', '0.06';
 requires 'Scalar::Util';
+requires 'String::CamelCase';
 requires 'Sub::Exporter';
 requires 'Sub::Quote';
 requires 'Try::Tiny';
