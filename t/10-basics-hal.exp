@@ -210,3 +210,68 @@ Content-type: application/hal+json
    "gig_datetime" : "2014-06-30T19:00:00Z"
 }
 
+=== get view data
+Request:
+GET /classic_albums
+Accept: application/hal+json,application/json
+Response:
+200 OK
+Content-type: application/hal+json
+{
+   "_embedded" : {
+      "classic_albums" : [
+         {
+            "_links" : {
+               "cd" : {
+                  "href" : "/cd/1"
+               },
+               "self" : {
+                  "href" : "/classic_albums/1"
+               }
+            },
+            "artist" : "Caterwauler McCrae",
+            "cdid" : 1,
+            "genre" : "emo",
+            "release_year" : "1999",
+            "title" : "Spoonful of bees"
+         },
+         {
+            "_links" : {
+               "cd" : {
+                  "href" : "/cd/3"
+               },
+               "self" : {
+                  "href" : "/classic_albums/3"
+               }
+            },
+            "artist" : "Caterwauler McCrae",
+            "cdid" : 3,
+            "genre" : "country",
+            "release_year" : "1997",
+            "title" : "Caterwaulin' Blues"
+         },
+         {
+            "_links" : {
+               "cd" : {
+                  "href" : "/cd/5"
+               },
+               "self" : {
+                  "href" : "/classic_albums/5"
+               }
+            },
+            "artist" : "We Are Goth",
+            "cdid" : 5,
+            "genre" : "goth",
+            "release_year" : "1998",
+            "title" : "Come Be Depressed With Us"
+         }
+      ]
+   },
+   "_links" : {
+      "self" : {
+         "href" : "/classic_albums?rows=30&page=1",
+         "title" : "TestSchema::Result::ClassicAlbums"
+      }
+   }
+}
+

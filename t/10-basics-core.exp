@@ -91,3 +91,33 @@ Content-type: application/json
    "gig_datetime" : "2014-06-30T19:00:00Z"
 }
 
+=== get view data
+Request:
+GET /classic_albums
+Response:
+200 OK
+Content-type: application/json
+[
+   {
+      "artist" : "Caterwauler McCrae",
+      "cdid" : 1,
+      "genre" : "emo",
+      "release_year" : "1999",
+      "title" : "Spoonful of bees"
+   },
+   {
+      "artist" : "Caterwauler McCrae",
+      "cdid" : 3,
+      "genre" : "country",
+      "release_year" : "1997",
+      "title" : "Caterwaulin' Blues"
+   },
+   {
+      "artist" : "We Are Goth",
+      "cdid" : 5,
+      "genre" : "goth",
+      "release_year" : "1998",
+      "title" : "Come Be Depressed With Us"
+   }
+]
+

@@ -144,3 +144,45 @@ Content-type: application/vnd.api+json
    ]
 }
 
+=== get view data
+Request:
+GET /classic_albums
+Accept: application/vnd.api+json
+Response:
+200 OK
+Content-type: application/vnd.api+json
+{
+   "classic_albums" : [
+      {
+         "artist" : "Caterwauler McCrae",
+         "cdid" : 1,
+         "genre" : "emo",
+         "href" : "/classic_albums/1",
+         "id" : 1,
+         "release_year" : "1999",
+         "title" : "Spoonful of bees",
+         "type" : "classic_albums"
+      },
+      {
+         "artist" : "Caterwauler McCrae",
+         "cdid" : 3,
+         "genre" : "country",
+         "href" : "/classic_albums/3",
+         "id" : 3,
+         "release_year" : "1997",
+         "title" : "Caterwaulin' Blues",
+         "type" : "classic_albums"
+      },
+      {
+         "artist" : "We Are Goth",
+         "cdid" : 5,
+         "genre" : "goth",
+         "href" : "/classic_albums/5",
+         "id" : 5,
+         "release_year" : "1998",
+         "title" : "Come Be Depressed With Us",
+         "type" : "classic_albums"
+      }
+   ]
+}
+

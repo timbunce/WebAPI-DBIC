@@ -57,6 +57,20 @@ Content-type: application/hal+json
          "templated" : true,
          "title" : "TestSchema CD"
       },
+      "classic_albums" : {
+         "href" : "/classic_albums",
+         "title" : "TestSchema ClassicAlbums"
+      },
+      "classic_albums{/1}" : {
+         "href" : "/classic_albums{/1}",
+         "templated" : true,
+         "title" : "TestSchema ClassicAlbums"
+      },
+      "classic_albums{/1}invoke{/method}" : {
+         "href" : "/classic_albums{/1}invoke{/method}",
+         "templated" : true,
+         "title" : "TestSchema ClassicAlbums"
+      },
       "genre" : {
          "href" : "/genre",
          "title" : "TestSchema Genre"
