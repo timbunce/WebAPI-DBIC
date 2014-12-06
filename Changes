@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+0.002003  2014-12-06 12:59:36+00:00 Europe/Dublin
+
   - Possibly incompatible change: paths are now based on the schema source
     (eg class) name, rather than the result source (eg table) name.
   - Moved handling of root (/) to a Web::Machine resource class.
