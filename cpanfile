@@ -42,4 +42,5 @@ on test => sub {
    requires 'Test::Compile', 'v1.1.0';
    requires 'ToolSet';
    requires 'Data::Printer';
+   requires 'DBIx::Class::Fixtures', '1.001025';
 };

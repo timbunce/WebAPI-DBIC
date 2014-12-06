@@ -6,9 +6,10 @@ package DummyLoadedSchema;
 # WEBAPI_DBIC_SCHEMA=DummyLoadedSchema plackup -Ilib -It/lib webapi-dbic-any.psgi
 
 use Test::DBIx::Class;
+use DBIx::Class::Fixtures;
 
 sub connect {
-    fixtures_ok('basic');
+    DBIx::Class::Fixtures->new({config_dir => 't/etc/fixtures'})->populate({no_deploy => 1, schema => Schema, directory => 't/etc/fixtures/basic'});
     return Schema;
 }
 

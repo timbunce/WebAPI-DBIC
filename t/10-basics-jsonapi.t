@@ -4,7 +4,7 @@
 use lib 't/lib';
 use TestKit;
 
-fixtures_ok qw/basic/;
+fixtures_ok [qw/basic/];
 
 subtest '===== basics - specs =====' => sub {
     my ($self) = @_;

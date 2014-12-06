@@ -1,0 +1,5 @@
+$HASH1 = {
+           attribute => undef,
+           cd        => 1,
+           producer  => 3
+         };

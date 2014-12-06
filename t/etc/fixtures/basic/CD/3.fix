@@ -1,0 +1,10 @@
+$HASH1 = {
+           artist => 1,
+           cdid   => 3,
+           genreid
+                  => 2,
+           single_track
+                  => undef,
+           title  => 'Caterwaulin\' Blues',
+           year   => 1997
+         };

@@ -1,0 +1,4 @@
+$HASH1 = {
+           name       => 'Fred The Phenotype',
+           producerid => 3
+         };

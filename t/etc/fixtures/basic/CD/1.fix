@@ -1,0 +1,10 @@
+$HASH1 = {
+           artist => 1,
+           cdid   => 1,
+           genreid
+                  => 1,
+           single_track
+                  => undef,
+           title  => 'Spoonful of bees',
+           year   => 1999
+         };

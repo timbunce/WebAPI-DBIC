@@ -1,0 +1,6 @@
+$HASH1 = {
+           artistid  => 2,
+           charfield => undef,
+           name      => 'Random Boy Band',
+           rank      => 13
+         };

@@ -1,0 +1,10 @@
+$HASH1 = {
+           artist => 3,
+           cdid   => 5,
+           genreid
+                  => 4,
+           single_track
+                  => undef,
+           title  => 'Come Be Depressed With Us',
+           year   => 1998
+         };
