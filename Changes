@@ -3,6 +3,7 @@ Changes file for WebAPI::DBIC
 {{$NEXT}}
 
   - Renamed WebAPI::DBIC::Resource::Role::Foo$TYPE -> ...::Resource::$TYPE::Role::Foo
+  - Renamed test files similarly to split into per-media-type directories
   - Fix handling of JSON boolean in WebAPI::DBIC::Resource::HAL::Role::Root
 
 0.002003  2014-12-06 12:59:36+00:00 Europe/Dublin
