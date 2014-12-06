@@ -8,6 +8,7 @@ Changes file for WebAPI::DBIC
   - Further generalization of WebAPI::DBIC::WebApp.
   - Deprecate order=foo%20desc in favor of sort=-foo, and tighten spec.
   - Start support for foo[bar]=... style of parameter naming.
+  - Migrate tests to DBIx::Class::Fixtures to enable loading in demo app.
 
 0.002002  2014-11-25 15:25:29+00:00 Europe/Dublin
 
