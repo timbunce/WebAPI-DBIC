@@ -56,7 +56,7 @@ Name: multi type relation in prefetch on item (many_to_many via JSON)
 # many_to_many relationships are not true db relationships. As such you can't use a many_to_many
 # in a prefetch but must traverse the join.
 # Use sort to ensure test stability
-GET /cd/1?sort=cd_to_producer.cd PARAMS: prefetch~json=>{"cd_to_producer"=>"producer"}
+GET /cd/1?sort=cd_to_producer.producer PARAMS: prefetch~json=>{"cd_to_producer"=>"producer"}
 
 Name: filter on nested prefetch
 # Return all artists who have a CD created after 1997 who's producer is Matt S Trout

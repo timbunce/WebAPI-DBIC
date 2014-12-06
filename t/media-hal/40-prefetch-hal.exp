@@ -518,8 +518,8 @@ Content-type: application/hal+json
 
 === multi type relation in prefetch on item (many_to_many via JSON)
 Request:
-GET /cd/1?sort=cd_to_producer.cd PARAMS: prefetch~json=>{"cd_to_producer"=>"producer"}
-GET /cd/1?sort=cd_to_producer.cd&prefetch~json=%7B%22cd_to_producer%22%3A%22producer%22%7D
+GET /cd/1?sort=cd_to_producer.producer PARAMS: prefetch~json=>{"cd_to_producer"=>"producer"}
+GET /cd/1?sort=cd_to_producer.producer&prefetch~json=%7B%22cd_to_producer%22%3A%22producer%22%7D
 Accept: application/hal+json,application/json
 Response:
 200 OK
