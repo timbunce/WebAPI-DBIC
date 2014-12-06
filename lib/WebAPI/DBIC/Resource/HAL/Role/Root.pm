@@ -10,7 +10,7 @@ WebAPI::DBIC::Resource::HAL::Role::Root - provide a description of the API for H
 
 use Moo::Role;
 
-use Types::Serialiser;
+use JSON::MaybeXS qw(JSON);
 
 requires '_build_content_types_provided';
 requires 'encode_json';
@@ -45,7 +45,7 @@ sub render_api_as_hal {
             if ($route->is_component_variable($c)) {
                 my $name = $route->get_component_name($c);
                 push @parts, "{/$name}";
-                $attr{templated} = Types::Serialiser::true;
+                $attr{templated} = JSON->true;
             } else {
                 push @parts, "$c";
             }

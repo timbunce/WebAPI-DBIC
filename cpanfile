@@ -26,7 +26,6 @@ requires 'String::CamelCase';
 requires 'Sub::Exporter';
 requires 'Sub::Quote';
 requires 'Try::Tiny';
-requires 'Types::Serialiser';
 requires 'URI';
 requires 'Data::Dumper::Concise'; # for Dwarn
 
