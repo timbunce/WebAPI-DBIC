@@ -1,8 +1,8 @@
-package WebAPI::DBIC::Resource::Role::ItemHAL;
+package WebAPI::DBIC::Resource::HAL::Role::Item;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::Role::ItemHAL - methods related to handling HAL requests for item resources
+WebAPI::DBIC::Resource::HAL::Role::Item - methods related to handling HAL requests for item resources
 
 =head1 DESCRIPTION
 

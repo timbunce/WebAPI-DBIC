@@ -1,8 +1,8 @@
-package WebAPI::DBIC::Resource::Role::SetJSONAPI;
+package WebAPI::DBIC::Resource::JSONAPI::Role::Set;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::Role::SetHAL - add JSON API content type support for set resources
+WebAPI::DBIC::Resource::JSONAPI::Role::Set - add JSON API content type support for set resources
 
 =head1 DESCRIPTION
 

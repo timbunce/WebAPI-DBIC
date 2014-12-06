@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+  - Renamed WebAPI::DBIC::Resource::Role::Foo$TYPE -> ...::Resource::$TYPE::Role::Foo
+
 0.002003  2014-12-06 12:59:36+00:00 Europe/Dublin
 
   - Possibly incompatible change: paths are now based on the schema source

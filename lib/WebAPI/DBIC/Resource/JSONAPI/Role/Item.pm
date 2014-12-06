@@ -1,8 +1,8 @@
-package WebAPI::DBIC::Resource::Role::ItemJSONAPI;
+package WebAPI::DBIC::Resource::JSONAPI::Role::Item;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::Role::ItemJSONAPI - methods related to handling JSONAPI requests for item resources
+WebAPI::DBIC::Resource::JSONAPI::Role::Item - methods related to handling JSON API requests for item resources
 
 =head1 DESCRIPTION
 

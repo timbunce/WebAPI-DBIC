@@ -1,8 +1,8 @@
-package WebAPI::DBIC::Resource::Role::SetHAL;
+package WebAPI::DBIC::Resource::HAL::Role::Set;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::Role::SetHAL - add HAL content type support for set resources
+WebAPI::DBIC::Resource::HAL::Role::Set - add HAL content type support for set resources
 
 =head1 DESCRIPTION
 

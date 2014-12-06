@@ -1,8 +1,8 @@
-package WebAPI::DBIC::Resource::Role::DBIC_JSONAPI;
+package WebAPI::DBIC::Resource::JSONAPI::Role::DBIC;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::Role::DBIC_JSONAPI - a role with core JSON API methods for DBIx::Class resources
+WebAPI::DBIC::Resource::JSONAPI::Role::DBIC - a role with core JSON API methods for DBIx::Class resources
 
 =cut
 

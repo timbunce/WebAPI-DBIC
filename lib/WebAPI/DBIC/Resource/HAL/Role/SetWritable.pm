@@ -1,8 +1,8 @@
-package WebAPI::DBIC::Resource::Role::SetWritableHAL;
+package WebAPI::DBIC::Resource::HAL::Role::SetWritable;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::Role::SetWritableHAL - methods handling HAL requests to update set resources
+WebAPI::DBIC::Resource::HAL::Role::SetWritable - methods handling HAL requests to update set resources
 
 =head1 DESCRIPTION
 

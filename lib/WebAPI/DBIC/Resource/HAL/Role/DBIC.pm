@@ -1,8 +1,8 @@
-package WebAPI::DBIC::Resource::Role::DBIC_HAL;
+package WebAPI::DBIC::Resource::HAL::Role::DBIC;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::Role::DBIC_HAL - a role with core HAL methods for DBIx::Class resources
+WebAPI::DBIC::Resource::HAL::Role::DBIC - a role with core HAL methods for DBIx::Class resources
 
 =cut
 

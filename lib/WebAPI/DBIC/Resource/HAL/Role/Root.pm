@@ -1,8 +1,8 @@
-package WebAPI::DBIC::Resource::Role::RootHAL;
+package WebAPI::DBIC::Resource::HAL::Role::Root;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::Role::RootHAL - provide a description of the API for HAL browser
+WebAPI::DBIC::Resource::HAL::Role::Root - provide a description of the API for HAL browser
 
 =head1 DESCRIPTION
 

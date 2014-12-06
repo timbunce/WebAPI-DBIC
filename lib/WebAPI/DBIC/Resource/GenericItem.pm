@@ -13,13 +13,13 @@ extends 'WebAPI::DBIC::Resource::GenericCore';
 with    'WebAPI::DBIC::Resource::Role::Item',
         'WebAPI::DBIC::Resource::Role::ItemWritable',
         # Enable HAL support:
-        'WebAPI::DBIC::Resource::Role::DBIC_HAL',
-        'WebAPI::DBIC::Resource::Role::ItemHAL',
-        'WebAPI::DBIC::Resource::Role::ItemWritableHAL',
+        'WebAPI::DBIC::Resource::HAL::Role::DBIC',
+        'WebAPI::DBIC::Resource::HAL::Role::Item',
+        'WebAPI::DBIC::Resource::HAL::Role::ItemWritable',
         # Enable JSON API support:
-        'WebAPI::DBIC::Resource::Role::DBIC_JSONAPI',
-        'WebAPI::DBIC::Resource::Role::ItemJSONAPI',
-        'WebAPI::DBIC::Resource::Role::ItemWritableJSONAPI',
+        'WebAPI::DBIC::Resource::JSONAPI::Role::DBIC',
+        'WebAPI::DBIC::Resource::JSONAPI::Role::Item',
+        'WebAPI::DBIC::Resource::JSONAPI::Role::ItemWritable',
         ;
 
 1;

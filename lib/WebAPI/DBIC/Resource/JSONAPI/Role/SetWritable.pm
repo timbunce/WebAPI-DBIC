@@ -1,8 +1,8 @@
-package WebAPI::DBIC::Resource::Role::SetWritableJSONAPI;
+package WebAPI::DBIC::Resource::JSONAPI::Role::SetWritable;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::Role::SetWritableJSONAPI - methods handling JSON API requests to update set resources
+WebAPI::DBIC::Resource::JSONAPI::Role::SetWritable - methods handling JSON API requests to update set resources
 
 =head1 DESCRIPTION
 

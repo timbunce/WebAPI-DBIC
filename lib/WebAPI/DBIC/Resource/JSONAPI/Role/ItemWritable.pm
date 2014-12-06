@@ -1,8 +1,8 @@
-package WebAPI::DBIC::Resource::Role::ItemWritableHAL;
+package WebAPI::DBIC::Resource::JSONAPI::Role::ItemWritable;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::Role::ItemWritableHAL - methods handling HAL requests to update item resources
+WebAPI::DBIC::Resource::JSONAPI::Role::ItemWritable - methods handling JSON API requests to update item resources
 
 =cut
 
@@ -22,26 +22,26 @@ around '_build_content_types_accepted' => sub {
     my $orig = shift;
     my $self = shift;
     my $types = $self->$orig();
-    unshift @$types, { 'application/hal+json' => 'from_hal_json' };
+    unshift @$types, { 'application/vnd.api+json' => 'from_jsonapi_json' };
     return $types;
 };
 
 
-sub from_hal_json {
+sub from_jsonapi_json {
     my $self = shift;
-    $self->_pre_update_resource_method( "_do_update_embedded_resources_hal" );
+    $self->_pre_update_resource_method( "_do_update_embedded_resources_jsonapi" );
     my $data = $self->decode_json( $self->request->content );
     $self->update_resource($data, is_put_replace => 0);
     return;
 }
 
 
-sub _do_update_embedded_resources_hal {
-    my ($self, $item, $hal, $result_class) = @_;
+sub _do_update_embedded_resources_jsonapi {
+    my ($self, $item, $jsonapi, $result_class) = @_;
 
-    my $links    = delete $hal->{_links};
-    my $meta     = delete $hal->{_meta};
-    my $embedded = delete $hal->{_embedded} || {};
+    my $links    = delete $jsonapi->{_links};
+    my $meta     = delete $jsonapi->{_meta};
+    my $embedded = delete $jsonapi->{_embedded} || {};
 
     for my $rel (keys %$embedded) {
 
@@ -50,9 +50,9 @@ sub _do_update_embedded_resources_hal {
         die "$result_class _embedded $rel isn't a 'single' relationship\n"
             if $rel_info->{attrs}{accessor} ne 'single';
 
-        my $rel_hal = $embedded->{$rel};
+        my $rel_jsonapi = $embedded->{$rel};
         die "_embedded $rel data is not a hash\n"
-            if ref $rel_hal ne 'HASH';
+            if ref $rel_jsonapi ne 'HASH';
 
         # work out what keys to copy from the subitem we're about to update
         # XXX this isn't required unless updating key fields - optimize
@@ -65,18 +65,18 @@ sub _do_update_embedded_resources_hal {
             $fk_map{$our_field} = $sub_field;
 
             die "$result_class already contains a value for '$our_field'\n"
-                if defined $hal->{$our_field}; # null is ok
+                if defined $jsonapi->{$our_field}; # null is ok
         }
 
         # update this subitem (and any resources embedded in it)
         my $subitem = $item->$rel();
-        $subitem = $self->_do_update_resource($subitem, $rel_hal, $rel_info->{source});
+        $subitem = $self->_do_update_resource($subitem, $rel_jsonapi, $rel_info->{source});
 
         # copy the keys of the subitem up to the item we're about to update
         warn "$result_class $rel: propagating keys: @{[ %fk_map ]}\n"
             if $ENV{WEBAPI_DBIC_DEBUG};
         while ( my ($ourfield, $subfield) = each %fk_map) {
-            $hal->{$ourfield} = $subitem->$subfield();
+            $jsonapi->{$ourfield} = $subitem->$subfield();
         }
 
         # XXX perhaps save $subitem to optimise prefetch handling?
