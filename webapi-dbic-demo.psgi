@@ -15,6 +15,12 @@ use Plack::Builder;
 use Plack::App::File;
 use WebAPI::DBIC::WebApp;
 
+use Alien::Web::HalBrowser;
+
+my $hal_app = Plack::App::File->new(
+  root => Alien::Web::HalBrowser->dir
+)->to_app;
+
 use Devel::Dwarn;
 
 my $app = WebAPI::DBIC::WebApp->new({
@@ -33,7 +39,7 @@ builder {
     #enable sub { my $app=shift; sub { Dwarn my $env=shift; my $res = $app->($env); return $res; }; };
 
     mount "$app_prefix/" => builder {
-        mount "/browser" => Plack::App::File->new(root => "hal-browser")->to_app;
+        mount "/browser" => $hal_app;
         mount "/" => $app;
     };
 
