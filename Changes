@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+  - For ResultSets with no primary key defined warn and skip item routes.
+
 0.002004  2014-12-06 18:49:30+00:00 Europe/Dublin
 
   - Renamed WebAPI::DBIC::Resource::Role::Foo$TYPE -> ...::Resource::$TYPE::Role::Foo

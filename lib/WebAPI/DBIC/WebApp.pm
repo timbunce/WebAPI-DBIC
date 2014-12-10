@@ -159,29 +159,38 @@ sub mk_generic_dbic_item_set_routes {
     } if @$invokeable_on_set;
 
 
-    my $item_resource_class = 'WebAPI::DBIC::Resource::GenericItem';
+    my $item_resource_class = 'WebAPI::DBIC::Resource::GenericItem'; # XXX
     use_module $item_resource_class;
-    my @key_fields = $rs->result_source->unique_constraint_columns( $item_resource_class->id_unique_constraint_name );
-    my @idn_fields = 1 .. @key_fields;
-    my $item_path_spec = join "/", map { ":$_" } @idn_fields;
+    my $id_unique_constraint_name = $item_resource_class->id_unique_constraint_name;
+    my $uc = { $rs->result_source->unique_constraints }->{ $id_unique_constraint_name };
 
-    push @routes, "$path/$item_path_spec" => { # item
-        #validations => { },
-        resource_class => $item_resource_class,
-        resource_args  => $resource_default_args,
-        route_defaults => $route_defaults,
-        getargs => $mk_getargs->(@idn_fields),
-    };
+    if ($uc) {
+        my @key_fields = @$uc;
+        my @idn_fields = 1 .. @key_fields;
+        my $item_path_spec = join "/", map { ":$_" } @idn_fields;
 
-    push @routes, "$path/$item_path_spec/invoke/:method" => { # method call on item
-        validations => {
-            method => $qr_names->(@$invokeable_on_item),
-        },
-        resource_class => 'WebAPI::DBIC::Resource::GenericItemInvoke',
-        resource_args  => $resource_default_args,
-        route_defaults => $route_defaults,
-        getargs => $mk_getargs->(@idn_fields, 'method'),
-    } if @$invokeable_on_item;
+        push @routes, "$path/$item_path_spec" => { # item
+            #validations => { },
+            resource_class => $item_resource_class,
+            resource_args  => $resource_default_args,
+            route_defaults => $route_defaults,
+            getargs => $mk_getargs->(@idn_fields),
+        };
+
+        push @routes, "$path/$item_path_spec/invoke/:method" => { # method call on item
+            validations => {
+                method => $qr_names->(@$invokeable_on_item),
+            },
+            resource_class => 'WebAPI::DBIC::Resource::GenericItemInvoke',
+            resource_args  => $resource_default_args,
+            route_defaults => $route_defaults,
+            getargs => $mk_getargs->(@idn_fields, 'method'),
+        } if @$invokeable_on_item;
+    }
+    else {
+        warn sprintf "/%s/:id route skipped because %s has no $id_unique_constraint_name constraint defined\n",
+            $path, $rs->result_class;
+    }
 
     return @routes;
 }
