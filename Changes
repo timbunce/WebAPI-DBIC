@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+0.002005  2014-12-11 21:23:46+00:00 Europe/Dublin
+
   - For ResultSets with no primary key defined warn and skip item routes.
   - Unbundle HAL browser into Alien::Web::HalBrowser (Vanstyn)
   - Make Test::Compile version insufficiency more clear
