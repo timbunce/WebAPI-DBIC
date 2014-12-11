@@ -26,6 +26,11 @@ use warnings;
 use Plack::Builder;
 use Plack::App::File;
 use WebAPI::DBIC::WebApp;
+use Alien::Web::HalBrowser;
+
+my $hal_app = Plack::App::File->new(
+  root => Alien::Web::HalBrowser->dir
+)->to_app;
 
 my $schema_class = $ENV{WEBAPI_DBIC_SCHEMA}
     or die "WEBAPI_DBIC_SCHEMA env var not set";
@@ -45,7 +50,7 @@ builder {
     enable "SimpleLogger";  # show on STDERR
 
     mount "$app_prefix/" => builder {
-        mount "/browser" => Plack::App::File->new(root => "hal-browser")->to_app;
+        mount "/browser" => $hal_app;
         mount "/" => $app;
     };
 

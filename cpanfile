@@ -28,6 +28,7 @@ requires 'Sub::Quote';
 requires 'Try::Tiny';
 requires 'URI';
 requires 'Data::Dumper::Concise'; # for Dwarn
+requires 'Alien::Web::HalBrowser';
 
 on test => sub {
    requires 'autodie';
