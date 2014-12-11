@@ -18,5 +18,5 @@ export WEBAPI_DBIC_WRITABLE=1
 
 export DBI_DSN='dbi:SQLite:RA-ChinookDemo/chinook.db'
 
-plackup -Ilib webapi-dbic-any.psgi
+plackup webapi-dbic-any.psgi
 
