@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+  - Added WebAPI::DBIC::Route class and refactored ::WebApp to use it.
+
 0.002005  2014-12-11 21:23:46+00:00 Europe/Dublin
 
   - For ResultSets with no primary key defined warn and skip item routes.

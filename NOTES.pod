@@ -14,7 +14,8 @@ Things to do, or at least consider, before we stop being alpha:
     Test using a non-pk indentity eg genre name
     Add tests for links being present, correct, and working
 
-    Support CODE ref relationship conditions
+    Implement ::SetInvoke
+    (Ponder /foo/invoke/bar/drill/down/in/results)
 
     JSON API:
     * warn at build-time if a resource has attributes that clash with reserved keys
@@ -23,19 +24,20 @@ Things to do, or at least consider, before we stop being alpha:
     * add optional resultset-class to jsonapi-type name mapping
 
     Refactor ::WebApp
-    - move HAL browser out somewhere and mount via .psgi file
     - move/rethink My::HTTP::Throwable::Factory package block
     - move mk_generic_dbic_item_set_routes out to new module
     Leave just calls to mk_generic_dbic_item_set_routes and the construction
     of Path::Router - though even that could be moved to a better home.
+
+    Document authentication and authorization
+    Add eg _build_initial_search eg for 'show only records owned by current user'
+    Mention https://metacpan.org/pod/DBIx::Class::Schema::RestrictWithObject
 
     Review authorization handling and explore alternatives.
     Document 'basic auth on internet needs https', see also:
     Also http://stackoverflow.com/questions/17530992/authentication-and-or-https-with-plack-psgi-poet-application/24808547#24808547
 
     Review code for DBIx::Class sanity and best practice
-
-    Support non-primary unique constraint as identity
 
     Refactor param handling to abstract ~json both for requests *and* constructing
     link urls (where json data isn't fully handled at the moment, other than pass-thru).
