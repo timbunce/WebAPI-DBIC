@@ -122,9 +122,6 @@ sub mk_generic_dbic_item_set_routes {
     my $route_defaults = {
         # --- fields for route lookup
         result_class => $rs->result_class, # used to lookup the route to a result_class
-        # --- fields for other uses
-        # derive title from result class: WebAPI::Corp::Result::Foo => "Corp Foo"
-        _title => join(" ", (split /::/, $rs->result_class)[-3,-1]),
     };
     my $mk_getargs = sub {
         my @params = @_;

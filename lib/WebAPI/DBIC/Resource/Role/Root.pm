@@ -69,7 +69,8 @@ sub render_root_as_plain { # informal JSON description, XXX liable to change
 
         my $url = $path . join("/", @parts);
         die "Duplicate path: $url" if $links{$url};
-        $links{$url} = $route->defaults->{_title}||"";
+        my $title = join(" ", (split /::/, $route->defaults->{result_class})[-3,-1]);
+        $links{$url} = $title;
     }
 
     return {
