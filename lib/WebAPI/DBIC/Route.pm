@@ -28,10 +28,6 @@ has resource_args => (
     required => 1,
 );
 
-has resource_args_from_route => (
-    is => 'ro',
-);
-
 has route_defaults => (
     is => 'ro',
 );
@@ -55,7 +51,29 @@ sub as_add_route_args {
     }
 
     use_module $self->resource_class; # move to BUILD?
-    
+
+    # introspect route to get path param :names
+    my $prr = Path::Router::Route->new(path => $self->path);
+    my $path_var_names = [
+        map { $prr->get_component_name($_) }
+        grep { $prr->is_component_variable($_) }
+        @{ $prr->components }
+    ];
+
+    my $resource_args_from_route = sub {
+        # XXX we should try to generate more efficient code here
+        my $req = shift;
+        my $args = shift;
+        for (@$path_var_names) { #in path param name order
+            if (m/^[0-9]+$/) { # an id field
+                $args->{id}[$_-1] = shift @_;
+            }
+            else {
+                $args->{$_} = shift @_;
+            }
+        }
+    };
+
     # this sub acts as the interface between the router and
     # the Web::Machine instance handling the resource for that url path
     my $target = sub {
@@ -65,8 +83,7 @@ sub as_add_route_args {
 
         my %resource_args_from_params;
         # perform any required setup for this request & params in @_
-        $self->resource_args_from_route->($request, \%resource_args_from_params, @_)
-            if $self->resource_args_from_route;
+        $resource_args_from_route->($request, \%resource_args_from_params, @_);
 
         warn sprintf "%s: running machine for %s (args: @{[ keys %resource_args_from_params ]})\n",
                 $self->path, $self->resource_class

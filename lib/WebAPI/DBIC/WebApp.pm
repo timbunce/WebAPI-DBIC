@@ -123,22 +123,7 @@ sub mk_generic_dbic_item_set_routes {
         # --- fields for route lookup
         result_class => $rs->result_class, # used to lookup the route to a result_class
     };
-    my $mk_getargs = sub {
-        my @params = @_;
-        # XXX we should try to generate more efficient code here
-        return sub {
-            my $req = shift;
-            my $args = shift;
-            for (@params) { #in path param name order
-                if (m/^[0-9]+$/) { # an id field
-                    $args->{id}[$_-1] = shift @_;
-                }
-                else {
-                    $args->{$_} = shift @_;
-                }
-            }
-        }
-    };
+
     my @routes;
 
     push @routes, WebAPI::DBIC::Route->new(
@@ -146,7 +131,6 @@ sub mk_generic_dbic_item_set_routes {
         resource_class => 'WebAPI::DBIC::Resource::GenericSet',
         resource_args  => $resource_default_args,
         route_defaults => $route_defaults,
-        resource_args_from_route => $mk_getargs->(),
     );
 
     push @routes, WebAPI::DBIC::Route->new( # method call on set
@@ -155,7 +139,6 @@ sub mk_generic_dbic_item_set_routes {
         resource_class => 'WebAPI::DBIC::Resource::GenericSetInvoke',
         resource_args  => $resource_default_args,
         route_defaults => $route_defaults,
-        resource_args_from_route => $mk_getargs->('method'),
     ) if @$invokeable_on_set;
 
 
@@ -171,11 +154,9 @@ sub mk_generic_dbic_item_set_routes {
 
         push @routes, WebAPI::DBIC::Route->new( # item
             path => "$path/$item_path_spec",
-            #validations => { },
             resource_class => $item_resource_class,
             resource_args  => $resource_default_args,
             route_defaults => $route_defaults,
-            resource_args_from_route => $mk_getargs->(@idn_fields),
         );
 
         push @routes, WebAPI::DBIC::Route->new( # method call on item
@@ -186,7 +167,6 @@ sub mk_generic_dbic_item_set_routes {
             resource_class => 'WebAPI::DBIC::Resource::GenericItemInvoke',
             resource_args  => $resource_default_args,
             route_defaults => $route_defaults,
-            resource_args_from_route => $mk_getargs->(@idn_fields, 'method'),
         ) if @$invokeable_on_item;
     }
     else {
