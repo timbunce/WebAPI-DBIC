@@ -53,7 +53,8 @@ sub _build_auto_schema_routesets {
                 ->result_class =~ /^TestSchema::Result/;
 
         # these become args to mk_generic_dbic_item_set_routes
-        push @routes, [ $type_name => $source_name, %opts ];
+        my $set = $self->schema->resultset($source_name);
+        push @routes, [ $type_name => $set, %opts ];
     }
 
     return \@routes;
@@ -92,9 +93,7 @@ sub type_name_for_schema_source {
 
 
 sub mk_generic_dbic_item_set_routes {
-    my ($self, $path, $resultset, %opts) = @_;
-
-    my $rs = $self->schema->resultset($resultset);
+    my ($self, $path, $set, %opts) = @_;
 
     # XXX might want to distinguish writable from non-writable (read-only) methods
     my $invokeable_on_set  = delete $opts{invokeable_on_set}  || [];
@@ -104,8 +103,8 @@ sub mk_generic_dbic_item_set_routes {
     $invokeable_on_item = [] unless $self->writable;
 
     if ($ENV{WEBAPI_DBIC_DEBUG}) {
-        warn sprintf "Auto routes for /%s => resultset %s, result_class %s\n",
-            $path, $resultset, $rs->result_class;
+        warn sprintf "Auto routes for /%s => %s\n",
+            $path, $set->result_class;
     }
 
     my $qr_names = sub {
@@ -116,12 +115,7 @@ sub mk_generic_dbic_item_set_routes {
     my $resource_default_args = {
         writable => $self->writable,
         http_auth_type => $self->http_auth_type,
-        set => $rs,
-    };
-
-    my $route_defaults = {
-        # --- fields for route lookup
-        result_class => $rs->result_class, # used to lookup the route to a result_class
+        set => $set,
     };
 
     my @routes;
@@ -130,7 +124,6 @@ sub mk_generic_dbic_item_set_routes {
         path => $path,
         resource_class => 'WebAPI::DBIC::Resource::GenericSet',
         resource_args  => $resource_default_args,
-        route_defaults => $route_defaults,
     );
 
     push @routes, WebAPI::DBIC::Route->new( # method call on set
@@ -138,17 +131,16 @@ sub mk_generic_dbic_item_set_routes {
         validations => { method => $qr_names->(@$invokeable_on_set) },
         resource_class => 'WebAPI::DBIC::Resource::GenericSetInvoke',
         resource_args  => $resource_default_args,
-        route_defaults => $route_defaults,
     ) if @$invokeable_on_set;
 
 
     my $item_resource_class = 'WebAPI::DBIC::Resource::GenericItem'; # XXX
     use_module $item_resource_class;
     my $id_unique_constraint_name = $item_resource_class->id_unique_constraint_name;
-    my $uc = { $rs->result_source->unique_constraints }->{ $id_unique_constraint_name };
+    my $uc_fields = { $set->result_source->unique_constraints }->{ $id_unique_constraint_name };
 
-    if ($uc) {
-        my @key_fields = @$uc;
+    if ($uc_fields) {
+        my @key_fields = @$uc_fields;
         my @idn_fields = 1 .. @key_fields;
         my $item_path_spec = join "/", map { ":$_" } @idn_fields;
 
@@ -156,7 +148,6 @@ sub mk_generic_dbic_item_set_routes {
             path => "$path/$item_path_spec",
             resource_class => $item_resource_class,
             resource_args  => $resource_default_args,
-            route_defaults => $route_defaults,
         );
 
         push @routes, WebAPI::DBIC::Route->new( # method call on item
@@ -166,12 +157,11 @@ sub mk_generic_dbic_item_set_routes {
             },
             resource_class => 'WebAPI::DBIC::Resource::GenericItemInvoke',
             resource_args  => $resource_default_args,
-            route_defaults => $route_defaults,
         ) if @$invokeable_on_item;
     }
     else {
         warn sprintf "/%s/:id route skipped because %s has no $id_unique_constraint_name constraint defined\n",
-            $path, $rs->result_class;
+            $path, $set->result_class;
     }
 
     return @routes;

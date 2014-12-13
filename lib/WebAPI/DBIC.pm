@@ -14,7 +14,7 @@ WebAPI::DBIC - A composable RESTful JSON API to DBIx::Class schemas using roles 
 The WebAPI::DBIC code has been in production use since early 2013, however it's
 only recently been open sourced (July 2014) so it's still lacking in documentation.
 
-It's also likely to undergo a period of refactoring now there are more
+It's also undergoing a period of refactoring and enhancement now there are more
 developers contributing and the code is being applied to more domains.
 
 Interested? Please get involved! See L</HOW TO GET HELP> below.
