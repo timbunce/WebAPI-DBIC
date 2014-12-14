@@ -65,7 +65,8 @@ sub run_request_spec_tests {
     close $fh;
 
     eq_or_diff slurp($got_file), slurp($exp_file),
-            "$test_file output in $got_file matches $exp_file"
+            "$test_file output in $got_file matches $exp_file",
+            { context => 3 }
         and unlink $got_file;
 }
 
