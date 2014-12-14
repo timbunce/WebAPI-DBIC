@@ -6,6 +6,8 @@
 use lib "t/lib";
 use TestKit;
 
+note $INC{"Cpanel/JSON/XS.pm"}; # temp XXX
+
 fixtures_ok [qw/basic/];
 
 subtest "===== Prefetch =====" => sub {

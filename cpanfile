@@ -12,7 +12,6 @@ requires 'Path::Router', '0.13';
 requires 'DBD::SQLite', '1.46';
 requires 'HTTP::Throwable';
 requires 'HTTP::Headers::ActionPack';
-requires 'Cpanel::JSON::XS'; # https://github.com/timbunce/WebAPI-DBIC/issues/21
 requires 'JSON::MaybeXS';
 requires 'List::Util';
 requires 'Module::Runtime';
@@ -44,4 +43,5 @@ on test => sub {
    requires 'ToolSet';
    requires 'Data::Printer';
    requires 'DBIx::Class::Fixtures', '1.001025';
+   requires 'Cpanel::JSON::XS', '>= 3.0110, != 3.0112'; # https://github.com/timbunce/WebAPI-DBIC/issues/21
 };
