@@ -75,7 +75,7 @@ sub as_add_route_args {
 
     my $resource_class = $self->resource_class;
 
-    # introspect route to get path param :names
+    # introspect path to extract path param :names
     my $prr = Path::Router::Route->new(path => $self->path);
     my $path_var_names = [
         map { $prr->get_component_name($_) }
@@ -83,6 +83,7 @@ sub as_add_route_args {
         @{ $prr->components }
     ];
 
+    # this logic ought to move into the resource_class
     my $resource_args_from_route = sub {
         # XXX we could try to generate more efficient code here
         my $req = shift;
@@ -101,15 +102,13 @@ sub as_add_route_args {
     # this sub acts as the interface between the router and
     # the Web::Machine instance handling the resource for that url path
     my $target = sub {
-        my $request = shift; # url args remain in @_
-
-        #local $SIG{__DIE__} = \&Carp::confess;
+        my $request = shift; # URL args from router remain in @_
 
         my %resource_args_from_params;
         # perform any required setup for this request & params in @_
         $resource_args_from_route->($request, \%resource_args_from_params, @_);
 
-        warn sprintf "%s: running machine for %s (args: @{[ keys %resource_args_from_params ]})\n",
+        warn sprintf "%s: running %s machine (@{[ keys %resource_args_from_params ]})\n",
                 $self->path, $resource_class
             if $ENV{WEBAPI_DBIC_DEBUG};
 
@@ -119,12 +118,9 @@ sub as_add_route_args {
             tracing => $ENV{WEBAPI_DBIC_DEBUG},
         )->to_app;
 
-        my $resp = eval { $app->($request->env) };
-        #Dwarn $resp;
-        if ($@) { # XXX report and rethrow
-            warn sprintf "EXCEPTION during request for %s: %s", $self->path, $@;
-            die; ## no critic (ErrorHandling::RequireCarping)
-        }
+        #local $SIG{__DIE__} = \&Carp::confess;
+        #Dwarn
+        my $resp = $app->($request->env);
 
         return $resp;
     };
