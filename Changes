@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+0.002007  2014-12-14 22:29:58+00:00 Europe/Dublin
+
  - Add dependency on Cpanel::JSON::XS to preserve numerics in JSON #21
  - Add a CONTRIBUTING file, based on ETHER's
 
