@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+0.002006  2014-12-14 16:41:01+00:00 Europe/Dublin
+
   - Added WebAPI::DBIC::Route class and refactored ::WebApp to use it.
   - Workaround Test::Differences context size bug RT#100912
   - Switch expected test results to use non-stringified integers
