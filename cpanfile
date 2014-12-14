@@ -12,6 +12,7 @@ requires 'Path::Router', '0.13';
 requires 'DBD::SQLite', '1.46';
 requires 'HTTP::Throwable';
 requires 'HTTP::Headers::ActionPack';
+requires 'Cpanel::JSON::XS'; # https://github.com/timbunce/WebAPI-DBIC/issues/21
 requires 'JSON::MaybeXS';
 requires 'List::Util';
 requires 'Module::Runtime';
