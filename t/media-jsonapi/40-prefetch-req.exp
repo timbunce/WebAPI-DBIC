@@ -239,15 +239,15 @@ Content-type: application/vnd.api+json
 {
    "artist" : [
       {
-         "artistid" : "1",
+         "artistid" : 1,
          "charfield" : null,
          "href" : "/artist/1",
-         "id" : "1",
+         "id" : 1,
          "links" : {
             "cds" : [
-               "1",
-               "2",
-               "3"
+               1,
+               2,
+               3
             ]
          },
          "name" : "Caterwauler McCrae",
@@ -259,10 +259,10 @@ Content-type: application/vnd.api+json
       "cds" : [
          {
             "artist" : 1,
-            "cdid" : "1",
+            "cdid" : 1,
             "genreid" : 1,
             "href" : "/cd/1",
-            "id" : "1",
+            "id" : 1,
             "single_track" : null,
             "title" : "Spoonful of bees",
             "type" : "cd",
@@ -270,10 +270,10 @@ Content-type: application/vnd.api+json
          },
          {
             "artist" : 1,
-            "cdid" : "2",
+            "cdid" : 2,
             "genreid" : 2,
             "href" : "/cd/2",
-            "id" : "2",
+            "id" : 2,
             "single_track" : null,
             "title" : "Forkful of bees",
             "type" : "cd",
@@ -281,10 +281,10 @@ Content-type: application/vnd.api+json
          },
          {
             "artist" : 1,
-            "cdid" : "3",
+            "cdid" : 3,
             "genreid" : 2,
             "href" : "/cd/3",
-            "id" : "3",
+            "id" : 3,
             "single_track" : null,
             "title" : "Caterwaulin' Blues",
             "type" : "cd",
@@ -310,15 +310,15 @@ Content-type: application/vnd.api+json
 {
    "artist" : [
       {
-         "artistid" : "1",
+         "artistid" : 1,
          "charfield" : null,
          "href" : "/artist/1",
-         "id" : "1",
+         "id" : 1,
          "links" : {
             "cds" : [
-               "1",
-               "2",
-               "3"
+               1,
+               2,
+               3
             ]
          },
          "name" : "Caterwauler McCrae",
@@ -326,13 +326,13 @@ Content-type: application/vnd.api+json
          "type" : "artist"
       },
       {
-         "artistid" : "2",
+         "artistid" : 2,
          "charfield" : null,
          "href" : "/artist/2",
-         "id" : "2",
+         "id" : 2,
          "links" : {
             "cds" : [
-               "4"
+               4
             ]
          },
          "name" : "Random Boy Band",
@@ -344,10 +344,10 @@ Content-type: application/vnd.api+json
       "cds" : [
          {
             "artist" : 1,
-            "cdid" : "1",
+            "cdid" : 1,
             "genreid" : 1,
             "href" : "/cd/1",
-            "id" : "1",
+            "id" : 1,
             "single_track" : null,
             "title" : "Spoonful of bees",
             "type" : "cd",
@@ -355,10 +355,10 @@ Content-type: application/vnd.api+json
          },
          {
             "artist" : 1,
-            "cdid" : "2",
+            "cdid" : 2,
             "genreid" : 2,
             "href" : "/cd/2",
-            "id" : "2",
+            "id" : 2,
             "single_track" : null,
             "title" : "Forkful of bees",
             "type" : "cd",
@@ -366,10 +366,10 @@ Content-type: application/vnd.api+json
          },
          {
             "artist" : 1,
-            "cdid" : "3",
+            "cdid" : 3,
             "genreid" : 2,
             "href" : "/cd/3",
-            "id" : "3",
+            "id" : 3,
             "single_track" : null,
             "title" : "Caterwaulin' Blues",
             "type" : "cd",
@@ -377,10 +377,10 @@ Content-type: application/vnd.api+json
          },
          {
             "artist" : 2,
-            "cdid" : "4",
+            "cdid" : 4,
             "genreid" : 3,
             "href" : "/cd/4",
-            "id" : "4",
+            "id" : 4,
             "single_track" : null,
             "title" : "Generic Manufactured Singles",
             "type" : "cd",
@@ -408,10 +408,10 @@ Content-type: application/vnd.api+json
    "cd" : [
       {
          "artist" : 1,
-         "cdid" : "1",
+         "cdid" : 1,
          "genreid" : 1,
          "href" : "/cd/1",
-         "id" : "1",
+         "id" : 1,
          "single_track" : null,
          "title" : "Spoonful of bees",
          "type" : "cd",
@@ -431,13 +431,13 @@ Content-type: application/vnd.api+json
 {
    "artist" : [
       {
-         "artistid" : "1",
+         "artistid" : 1,
          "charfield" : null,
          "href" : "/artist/1",
-         "id" : "1",
+         "id" : 1,
          "links" : {
             "cds" : [
-               "1"
+               1
             ]
          },
          "name" : "Caterwauler McCrae",
@@ -449,10 +449,10 @@ Content-type: application/vnd.api+json
       "cds" : [
          {
             "artist" : 1,
-            "cdid" : "1",
+            "cdid" : 1,
             "genreid" : 1,
             "href" : "/cd/1",
-            "id" : "1",
+            "id" : 1,
             "single_track" : null,
             "title" : "Spoonful of bees",
             "type" : "cd",

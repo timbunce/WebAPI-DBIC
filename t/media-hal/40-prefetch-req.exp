@@ -276,7 +276,7 @@ Content-type: application/hal+json
                }
             },
             "artist" : 1,
-            "cdid" : "1",
+            "cdid" : 1,
             "genreid" : 1,
             "single_track" : null,
             "title" : "Spoonful of bees",
@@ -301,7 +301,7 @@ Content-type: application/hal+json
                }
             },
             "artist" : 1,
-            "cdid" : "2",
+            "cdid" : 2,
             "genreid" : 2,
             "single_track" : null,
             "title" : "Forkful of bees",
@@ -326,7 +326,7 @@ Content-type: application/hal+json
                }
             },
             "artist" : 1,
-            "cdid" : "3",
+            "cdid" : 3,
             "genreid" : 2,
             "single_track" : null,
             "title" : "Caterwaulin' Blues",
@@ -345,7 +345,7 @@ Content-type: application/hal+json
          "href" : "/artist/1"
       }
    },
-   "artistid" : "1",
+   "artistid" : 1,
    "charfield" : null,
    "name" : "Caterwauler McCrae",
    "rank" : 13
@@ -383,7 +383,7 @@ Content-type: application/hal+json
                         }
                      },
                      "artist" : 1,
-                     "cdid" : "1",
+                     "cdid" : 1,
                      "genreid" : 1,
                      "single_track" : null,
                      "title" : "Spoonful of bees",
@@ -408,7 +408,7 @@ Content-type: application/hal+json
                         }
                      },
                      "artist" : 1,
-                     "cdid" : "2",
+                     "cdid" : 2,
                      "genreid" : 2,
                      "single_track" : null,
                      "title" : "Forkful of bees",
@@ -433,7 +433,7 @@ Content-type: application/hal+json
                         }
                      },
                      "artist" : 1,
-                     "cdid" : "3",
+                     "cdid" : 3,
                      "genreid" : 2,
                      "single_track" : null,
                      "title" : "Caterwaulin' Blues",
@@ -452,7 +452,7 @@ Content-type: application/hal+json
                   "href" : "/artist/1"
                }
             },
-            "artistid" : "1",
+            "artistid" : 1,
             "charfield" : null,
             "name" : "Caterwauler McCrae",
             "rank" : 13
@@ -479,7 +479,7 @@ Content-type: application/hal+json
                         }
                      },
                      "artist" : 2,
-                     "cdid" : "4",
+                     "cdid" : 4,
                      "genreid" : 3,
                      "single_track" : null,
                      "title" : "Generic Manufactured Singles",
@@ -498,7 +498,7 @@ Content-type: application/hal+json
                   "href" : "/artist/2"
                }
             },
-            "artistid" : "2",
+            "artistid" : 2,
             "charfield" : null,
             "name" : "Random Boy Band",
             "rank" : 13
@@ -546,8 +546,8 @@ Content-type: application/hal+json
                }
             },
             "attribute" : null,
-            "cd" : "1",
-            "producer" : "1"
+            "cd" : 1,
+            "producer" : 1
          },
          {
             "_embedded" : {
@@ -568,8 +568,8 @@ Content-type: application/hal+json
                }
             },
             "attribute" : null,
-            "cd" : "1",
-            "producer" : "2"
+            "cd" : 1,
+            "producer" : 2
          },
          {
             "_embedded" : {
@@ -590,8 +590,8 @@ Content-type: application/hal+json
                }
             },
             "attribute" : null,
-            "cd" : "1",
-            "producer" : "3"
+            "cd" : 1,
+            "producer" : 3
          }
       ]
    },
@@ -613,7 +613,7 @@ Content-type: application/hal+json
       }
    },
    "artist" : 1,
-   "cdid" : "1",
+   "cdid" : 1,
    "genreid" : 1,
    "single_track" : null,
    "title" : "Spoonful of bees",
@@ -656,8 +656,8 @@ Content-type: application/hal+json
                                  }
                               },
                               "attribute" : null,
-                              "cd" : "1",
-                              "producer" : "1"
+                              "cd" : 1,
+                              "producer" : 1
                            }
                         ]
                      },
@@ -679,7 +679,7 @@ Content-type: application/hal+json
                         }
                      },
                      "artist" : 1,
-                     "cdid" : "1",
+                     "cdid" : 1,
                      "genreid" : 1,
                      "single_track" : null,
                      "title" : "Spoonful of bees",
@@ -698,7 +698,7 @@ Content-type: application/hal+json
                   "href" : "/artist/1"
                }
             },
-            "artistid" : "1",
+            "artistid" : 1,
             "charfield" : null,
             "name" : "Caterwauler McCrae",
             "rank" : 13

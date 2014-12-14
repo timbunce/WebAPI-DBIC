@@ -9,7 +9,7 @@ requires 'Web::Machine', '0.15';
 
 requires 'Path::Router', '0.13';
 
-requires 'Carp';
+requires 'DBD::SQLite', '1.46';
 requires 'HTTP::Throwable';
 requires 'HTTP::Headers::ActionPack';
 requires 'JSON::MaybeXS';
@@ -34,7 +34,7 @@ on test => sub {
    requires 'autodie';
    requires 'Module::Pluggable';
    requires 'Sort::Key';
-   requires 'Test::DBIx::Class';
+   requires 'Test::DBIx::Class', '0.43';
    requires 'Test::HTTP::Response';
    requires 'Test::More' => '0.98';
    requires 'Test::Most';
