@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+ - Added type_name_inflect to control inflection of paths and type names
+
 0.002007  2014-12-14 22:29:58+00:00 Europe/Dublin
 
  - Add dependency on Cpanel::JSON::XS to preserve numerics in JSON #21

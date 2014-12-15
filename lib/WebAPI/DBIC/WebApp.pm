@@ -5,6 +5,7 @@ use Moo;
 use Module::Runtime qw(use_module);
 use WebAPI::DBIC::Route;
 use String::CamelCase qw(camelize decamelize);
+use Lingua::EN::Inflect::Number qw(to_S to_PL);
 use Carp qw(croak confess);
 use JSON::MaybeXS qw(JSON);
 
@@ -28,7 +29,9 @@ has router_class => (is => 'ro', builder => 1);
 # specify what information should be used to define the url path/type of a schema class
 # (result_name is deprecated and only supported for backwards compatibility)
 has type_name_from  => (is => 'ro', default => 'source_name'); # 'source_name', 'result_name'
-# decamelize how type_name_from should be formatted
+# how type_name_from should be inflected
+has type_name_inflect => (is => 'ro', default => 'original'); # 'original', 'singular', 'plural'
+# how type_name_from should be capitalized
 has type_name_style => (is => 'ro', default => 'decamelize'); # 'original', 'camelize', 'decamelize'
 
 
@@ -76,6 +79,15 @@ sub type_name_for_schema_source {
     else {
         confess "Invaid type_name_from: ".$self->type_name_from;
     }
+
+
+    if ($self->type_name_inflect eq 'singular') {
+        $type_name = to_S($type_name);
+    }
+    elsif ($self->type_name_inflect eq 'plural') {
+        $type_name = to_PL($type_name);
+    }
+
 
     if ($self->type_name_style eq 'decamelize') {
         $type_name = decamelize($type_name);
