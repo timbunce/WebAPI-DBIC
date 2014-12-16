@@ -42,10 +42,8 @@ sub _build_route_maker {
 
 sub to_psgi_app {
     my ($self) = @_;
-#local $SIG{__WARN__} = \&Carp::cluck;
-    my $router = WebAPI::DBIC::Router->new;
 
-    my $route_maker = $self;
+    my $router = WebAPI::DBIC::Router->new; # XXX
 
     for my $route_spec (@{ $self->routes }) {
 

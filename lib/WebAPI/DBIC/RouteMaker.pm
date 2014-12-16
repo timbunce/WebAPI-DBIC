@@ -16,7 +16,8 @@ use namespace::clean;
 
 has schema => (is => 'ro', required => 1);
 has resource_default_args => (is => 'ro', default => sub { {} });
-has router_class => (is => 'ro', builder => 1);
+has resource_class_for_item        => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericItem');
+has resource_class_for_item_invoke => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericItemInvoke');
 has routes => (
     is => 'ro',
     lazy => 1,
@@ -26,16 +27,13 @@ has routes => (
 # specify what information should be used to define the url path/type of a schema class
 # (result_name is deprecated and only supported for backwards compatibility)
 has type_name_from  => (is => 'ro', default => 'source_name'); # 'source_name', 'result_name'
+
 # how type_name_from should be inflected
 has type_name_inflect => (is => 'ro', default => 'original'); # 'original', 'singular', 'plural'
+
 # how type_name_from should be capitalized
 has type_name_style => (is => 'ro', default => 'decamelize'); # 'original', 'camelize', 'decamelize'
 
-
-sub _build_router_class {
-    require WebAPI::DBIC::Router;
-    return 'WebAPI::DBIC::Router';
-}
 
 sub type_name_for_schema_source {
     my ($self, $source_name) = @_;
@@ -85,75 +83,97 @@ sub _qr_names {
 }
 
 
-sub mk_generic_dbic_item_set_routes {
+sub get_routes_for_resultset {
     my ($self, $path, $set, %opts) = @_;
-
-    my $invokeable_on_set  = delete $opts{invokeable_on_set}  || [];
-    my $invokeable_on_item = delete $opts{invokeable_on_item} || [];
 
     if ($ENV{WEBAPI_DBIC_DEBUG}) {
         warn sprintf "Auto routes for /%s => %s\n",
             $path, $set->result_class;
     }
 
-    my %resource_default_args = %{ $self->resource_default_args };
-    $resource_default_args{set} = $set;
-
     my @routes;
 
-    push @routes, WebAPI::DBIC::Route->new(
-        path => $path,
-        resource_class => 'WebAPI::DBIC::Resource::GenericSet',
-        resource_args  => \%resource_default_args,
-    );
+    push @routes, $self->get_routes_for_set($path, $set, {
+        invokable_methods => delete($opts{invokeable_methods_on_set}),
+    });
 
-    push @routes, $self->get_route_for_set_invoke_methods($path, $set, $invokeable_on_set);
+    push @routes, $self->get_routes_for_item($path, $set, {
+        invokable_methods => delete($opts{invokeable_methods_on_item})
+    });
 
-
-    my $item_resource_class = 'WebAPI::DBIC::Resource::GenericItem'; # XXX
-    use_module $item_resource_class;
-    my $id_unique_constraint_name = $item_resource_class->id_unique_constraint_name;
-    my $uc_fields = { $set->result_source->unique_constraints }->{ $id_unique_constraint_name };
-
-    if ($uc_fields) {
-        my @key_fields = @$uc_fields;
-        my @idn_fields = 1 .. @key_fields;
-        my $item_path_spec = join "/", map { ":$_" } @idn_fields;
-
-        push @routes, WebAPI::DBIC::Route->new( # item
-            path => "$path/$item_path_spec",
-            resource_class => $item_resource_class,
-            resource_args  => \%resource_default_args,
-        );
-
-        # XXX hack for testing
-        push @$invokeable_on_item, 'get_column'
-            if $set->result_class eq 'TestSchema::Result::Artist';
-
-        push @routes, WebAPI::DBIC::Route->new( # method call on item
-            path => "$path/$item_path_spec/invoke/:method",
-            validations => {
-                method => _qr_names(@$invokeable_on_item),
-            },
-            resource_class => 'WebAPI::DBIC::Resource::GenericItemInvoke',
-            resource_args  => \%resource_default_args,
-        ) if @$invokeable_on_item;
-    }
-    else {
-        warn sprintf "/%s/:id route skipped because %s has no $id_unique_constraint_name constraint defined\n",
-            $path, $set->result_class;
-    }
+    croak "Unrecognized options: @{[ keys %opts ]}"
+        if %opts;
 
     return @routes;
 }
 
 
-sub get_route_for_set_invoke_methods {
-    my ($self, $path, $set, $methods) = @_;
+sub get_routes_for_item {
+    my ($self, $path, $set, $opts) = @_;
+    $opts ||= {};
+    my $methods = $opts->{invokable_methods};
 
-    return unless @$methods;
+    use_module $self->resource_class_for_item;
+    my $id_unique_constraint_name = $self->resource_class_for_item->id_unique_constraint_name;
+    my $key_fields = { $set->result_source->unique_constraints }->{ $id_unique_constraint_name };
 
-    return WebAPI::DBIC::Route->new( # method call on set
+    unless ($key_fields) {
+        warn sprintf "/%s/:id route skipped because %s has no $id_unique_constraint_name constraint defined\n",
+            $path, $set->result_class;
+        return;
+    }
+
+    # id fields have sequential numeric names
+    # so .../:1 for a resource with a single key field
+    # and .../:1/:2/:3 etc for a resource with  multiple key fields
+    my $item_path_spec = join "/", map { ":$_" } 1 .. @$key_fields;
+
+    my @routes;
+
+    push @routes, WebAPI::DBIC::Route->new( # item
+        path => "$path/$item_path_spec",
+        resource_class => $self->resource_class_for_item,
+        resource_args  => {
+            %{ $self->resource_default_args },
+            set => $set,
+        },
+    );
+
+    # XXX temporary hack just for testing
+    push @$methods, 'get_column'
+        if $set->result_class eq 'TestSchema::Result::Artist';
+
+    push @routes, WebAPI::DBIC::Route->new( # method call on item
+        path => "$path/$item_path_spec/invoke/:method",
+        validations => { method => _qr_names(@$methods), },
+        resource_class => $self->resource_class_for_item_invoke,
+        resource_args  => {
+            %{ $self->resource_default_args },
+            set => $set,
+        },
+    ) if $methods && @$methods;
+
+    return @routes;
+}
+
+
+sub get_routes_for_set {
+    my ($self, $path, $set, $opts) = @_;
+    $opts ||= {};
+    my $methods = $opts->{invokable_methods};
+
+    my @routes;
+   
+    push @routes, WebAPI::DBIC::Route->new(
+        path => $path,
+        resource_class => 'WebAPI::DBIC::Resource::GenericSet',
+        resource_args  => {
+            %{ $self->resource_default_args },
+            set => $set,
+        },
+    );
+
+    push @routes, WebAPI::DBIC::Route->new( # method call on set
         path => "$path/invoke/:method",
         validations => { method => _qr_names(@$methods) },
         resource_class => 'WebAPI::DBIC::Resource::GenericSetInvoke',
@@ -161,7 +181,9 @@ sub get_route_for_set_invoke_methods {
             %{ $self->resource_default_args },
             set => $set,
         },
-    );
+    ) if $methods && @$methods;
+
+    return @routes;
 }
 
 
@@ -183,21 +205,18 @@ sub routes_for {
     if (not ref $route_spec) {
         $route_spec = $self->schema->resultset($route_spec);
     }
-    elsif ($route_spec->does('WebAPI::DBIC::Resource::Role::Router')) {
-        return $route_spec;
+    elsif ($route_spec->does('WebAPI::DBIC::Resource::Role::Route')) {
+        return $route_spec; # is already a route
     }
-
 
     # $route_spec is now a ResultSet
     my $source_name = $route_spec->result_source->name; # XXX wrong
     $source_name = $$source_name if ref($source_name) eq 'SCALAR';
-    die Dwarn if ref $source_name;
 
     my $type_name = $self->type_name_for_schema_source($source_name);
 
-    return $self->mk_generic_dbic_item_set_routes($type_name, $route_spec);
+    return $self->get_routes_for_resultset($type_name, $route_spec);
 }
 
 
 1;
-__END__

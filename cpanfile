@@ -25,6 +25,7 @@ requires 'Scalar::Util';
 requires 'String::CamelCase';
 requires 'Sub::Exporter';
 requires 'Sub::Quote';
+requires 'Sub::Util';
 requires 'Try::Tiny';
 requires 'URI';
 requires 'Lingua::EN::Inflect::Number', '1.11';
