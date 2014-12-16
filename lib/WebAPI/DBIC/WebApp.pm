@@ -22,9 +22,12 @@ use namespace::clean;
 has schema => (is => 'ro', required => 1);
 has writable => (is => 'ro', default => 1);
 has http_auth_type => (is => 'ro', default => 'Basic');
-has extra_schema_routesets => (is => 'ro', lazy => 1, builder => 1);
-has auto_schema_routesets => (is => 'ro', lazy => 1, builder => 1);
 has router_class => (is => 'ro', builder => 1);
+has routes => (
+    is => 'ro',
+    lazy => 1,
+    default => sub { [ shift->schema->sources ] },
+);
 
 # specify what information should be used to define the url path/type of a schema class
 # (result_name is deprecated and only supported for backwards compatibility)
@@ -40,7 +43,6 @@ sub _build_router_class {
     return 'WebAPI::DBIC::Router';
 }
 
-sub _build_extra_schema_routesets { [] }
 sub _build_auto_schema_routesets {
     my ($self) = @_;
 
@@ -77,9 +79,8 @@ sub type_name_for_schema_source {
         $type_name = $$type_name if ref($type_name) eq 'SCALAR';
     }
     else {
-        confess "Invaid type_name_from: ".$self->type_name_from;
+        confess "Invalid type_name_from: ".$self->type_name_from;
     }
-
 
     if ($self->type_name_inflect eq 'singular') {
         $type_name = to_S($type_name);
@@ -87,7 +88,10 @@ sub type_name_for_schema_source {
     elsif ($self->type_name_inflect eq 'plural') {
         $type_name = to_PL($type_name);
     }
-
+    else {
+        confess "Invalid type_name_inflect: ".$self->type_name_inflect
+            unless $self->type_name_inflect eq 'original';
+    }
 
     if ($self->type_name_style eq 'decamelize') {
         $type_name = decamelize($type_name);
@@ -96,7 +100,7 @@ sub type_name_for_schema_source {
         $type_name = camelize($type_name);
     }
     else {
-        confess "Invaid type_name_style: ".$self->type_name_from
+        confess "Invalid type_name_style: ".$self->type_name_from
             unless $self->type_name_style eq 'original';
     }
 
@@ -111,6 +115,7 @@ sub mk_generic_dbic_item_set_routes {
     my $invokeable_on_set  = delete $opts{invokeable_on_set}  || [];
     my $invokeable_on_item = delete $opts{invokeable_on_item} || [];
     # disable all methods if not writable, for safety: (perhaps allow get_* methods)
+    # move this into Invokable role
     $invokeable_on_set  = [] unless $self->writable;
     $invokeable_on_item = [] unless $self->writable;
 
@@ -180,31 +185,52 @@ sub mk_generic_dbic_item_set_routes {
 }
 
 
-sub all_routes {
-    my ($self) = @_;
 
-    my @routes = map {
-        $self->mk_generic_dbic_item_set_routes(@$_)
-    } (@{ $self->auto_schema_routesets }, @{ $self->extra_schema_routesets });
+sub routes_for {
+    my ($self, $route_spec) = @_;
 
-    return @routes;
+    if (not ref $route_spec) {
+        $route_spec = $self->schema->resultset($route_spec);
+    }
+    elsif ($route_spec->does('WebAPI::DBIC::Resource::Role::Router')) {
+        return $route_spec;
+    }
+
+    # $route_spec is now a ResultSet
+    my $source_name = $route_spec->result_source->name; # XXX wrong
+    $source_name = $$source_name if ref($source_name) eq 'SCALAR';
+    die Dwarn if ref $source_name;
+
+    my $type_name = $self->type_name_for_schema_source($source_name);
+
+    return $self->mk_generic_dbic_item_set_routes($type_name, $route_spec);
 }
 
 
 sub to_psgi_app {
     my ($self) = @_;
-
+#local $SIG{__WARN__} = \&Carp::cluck;
     my $router = $self->router_class->new;
 
-    my @routes = $self->all_routes;
+    my $route_maker = $self;
 
-    push @routes, WebAPI::DBIC::Route->new(
-        path => '',
-        resource_class => 'WebAPI::DBIC::Resource::GenericRoot',
-        resource_args  => {},
-    );
+    for my $route_spec (@{ $self->routes }) {
 
-    $router->add_route( $_->as_add_route_args ) for @routes;
+        for my $route ($route_maker->routes_for($route_spec)) {
+
+            $router->add_route( $route->as_add_route_args );
+
+        }
+    }
+
+    if (0 && not $router->uri_for('')) {
+        my $root_route = WebAPI::DBIC::Route->new(
+            path => '',
+            resource_class => 'WebAPI::DBIC::Resource::GenericRoot',
+            resource_args  => {},
+        );
+        $router->add_route( $root_route );
+    }
 
     return $router->to_psgi_app; # return Plack app
 }
