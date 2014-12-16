@@ -1,5 +1,10 @@
 =head1 TODO
 
+    # disable all methods if not writable, for safety: (perhaps allow get_* methods)
+    # move this into Invokable role
+    $invokeable_on_set  = [] unless $self->writable;
+    $invokeable_on_item = [] unless $self->writable;
+
 double/tripple query execution on items! and with/without me. (SQL differs by prefix on pk.)
 
 This is all fairly random.

@@ -18,6 +18,7 @@ require WebAPI::HTTP::Throwable::Factory;
 
 has http_auth_type => (
    is => 'ro',
+   default => 'Basic',
 );
 
 has throwable => (
