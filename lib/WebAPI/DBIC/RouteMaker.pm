@@ -5,6 +5,7 @@ use Moo;
 use Module::Runtime qw(use_module);
 use Sub::Util qw(subname);
 use WebAPI::DBIC::Route;
+use Scalar::Util qw(blessed);
 use String::CamelCase qw(camelize decamelize);
 use Lingua::EN::Inflect::Number qw(to_S to_PL);
 use Carp qw(croak confess);
@@ -14,10 +15,13 @@ use Devel::Dwarn;
 use namespace::clean;
 
 
-has schema => (is => 'ro', required => 1);
 has resource_default_args => (is => 'ro', default => sub { {} });
 has resource_class_for_item        => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericItem');
 has resource_class_for_item_invoke => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericItemInvoke');
+has resource_class_for_set         => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericSet');
+has resource_class_for_set_invoke  => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericSetInvoke');
+
+has schema => (is => 'ro', required => 1); # XXX could be optional if routes fully specified
 has routes => (
     is => 'ro',
     lazy => 1,
@@ -32,19 +36,18 @@ has type_name_from  => (is => 'ro', default => 'source_name'); # 'source_name', 
 has type_name_inflect => (is => 'ro', default => 'original'); # 'original', 'singular', 'plural'
 
 # how type_name_from should be capitalized
-has type_name_style => (is => 'ro', default => 'decamelize'); # 'original', 'camelize', 'decamelize'
+has type_name_style => (is => 'ro', default => 'under_score'); # 'original', 'CamelCase', 'camelCase', 'under_score'
 
 
-sub type_name_for_schema_source {
-    my ($self, $source_name) = @_;
+sub type_name_for_resultset {
+    my ($self, $rs) = @_;
 
     my $type_name;
     if ($self->type_name_from eq 'source_name') {
-        $type_name = $source_name;
+        $type_name = $rs->result_source->source_name;
     }
     elsif ($self->type_name_from eq 'result_name') { # deprecated
-        my $result_source = $self->schema->source($source_name);
-        $type_name = $result_source->name; # eg table name
+        $type_name = $rs->name; # eg table name
         $type_name = $$type_name if ref($type_name) eq 'SCALAR';
     }
     else {
@@ -62,11 +65,14 @@ sub type_name_for_schema_source {
             unless $self->type_name_inflect eq 'original';
     }
 
-    if ($self->type_name_style eq 'decamelize') {
+    if ($self->type_name_style eq 'under_score') {
         $type_name = decamelize($type_name);
     }
-    elsif ($self->type_name_style eq 'camelize') {
+    elsif ($self->type_name_style eq 'CamelCase') {
         $type_name = camelize($type_name);
+    }
+    elsif ($self->type_name_style eq 'camelCase') {
+        $type_name = lcfirst(camelize($type_name));
     }
     else {
         confess "Invalid type_name_style: ".$self->type_name_from
@@ -83,7 +89,7 @@ sub _qr_names {
 }
 
 
-sub get_routes_for_resultset {
+sub make_routes_for_resultset {
     my ($self, $path, $set, %opts) = @_;
 
     if ($ENV{WEBAPI_DBIC_DEBUG}) {
@@ -93,11 +99,11 @@ sub get_routes_for_resultset {
 
     my @routes;
 
-    push @routes, $self->get_routes_for_set($path, $set, {
+    push @routes, $self->make_routes_for_set($path, $set, {
         invokable_methods => delete($opts{invokeable_methods_on_set}),
     });
 
-    push @routes, $self->get_routes_for_item($path, $set, {
+    push @routes, $self->make_routes_for_item($path, $set, {
         invokable_methods => delete($opts{invokeable_methods_on_item})
     });
 
@@ -108,7 +114,7 @@ sub get_routes_for_resultset {
 }
 
 
-sub get_routes_for_item {
+sub make_routes_for_item {
     my ($self, $path, $set, $opts) = @_;
     $opts ||= {};
     my $methods = $opts->{invokable_methods};
@@ -157,7 +163,7 @@ sub get_routes_for_item {
 }
 
 
-sub get_routes_for_set {
+sub make_routes_for_set {
     my ($self, $path, $set, $opts) = @_;
     $opts ||= {};
     my $methods = $opts->{invokable_methods};
@@ -166,7 +172,7 @@ sub get_routes_for_set {
    
     push @routes, WebAPI::DBIC::Route->new(
         path => $path,
-        resource_class => 'WebAPI::DBIC::Resource::GenericSet',
+        resource_class => $self->resource_class_for_set,
         resource_args  => {
             %{ $self->resource_default_args },
             set => $set,
@@ -176,7 +182,7 @@ sub get_routes_for_set {
     push @routes, WebAPI::DBIC::Route->new( # method call on set
         path => "$path/invoke/:method",
         validations => { method => _qr_names(@$methods) },
-        resource_class => 'WebAPI::DBIC::Resource::GenericSetInvoke',
+        resource_class => $self->resource_class_for_set_invoke,
         resource_args  => {
             %{ $self->resource_default_args },
             set => $set,
@@ -187,19 +193,21 @@ sub get_routes_for_set {
 }
 
 
-sub get_root_route {
+sub make_root_route {
     my $self = shift;
     my $root_route = WebAPI::DBIC::Route->new(
         path => '',
         resource_class => 'WebAPI::DBIC::Resource::GenericRoot',
-        resource_args  => {},
+        resource_args  => {
+            %{ $self->resource_default_args },
+        },
     );
     return $root_route;
 }
 
 
 
-sub routes_for {
+sub make_routes_for {
     my ($self, $route_spec) = @_;
 
     if (not ref $route_spec) {
@@ -209,13 +217,13 @@ sub routes_for {
         return $route_spec; # is already a route
     }
 
-    # $route_spec is now a ResultSet
-    my $source_name = $route_spec->result_source->name; # XXX wrong
-    $source_name = $$source_name if ref($source_name) eq 'SCALAR';
+    unless (blessed $route_spec and $route_spec->isa('DBIx::Class::ResultSet')) {
+        croak "Don't know how to convert '$route_spec' into to a DBIx::Class::ResultSet or WebAPI::DBIC::Resource::Role::Route";
+    }
 
-    my $type_name = $self->type_name_for_schema_source($source_name);
+    my $type_name = $self->type_name_for_resultset($route_spec);
 
-    return $self->get_routes_for_resultset($type_name, $route_spec);
+    return $self->make_routes_for_resultset($type_name, $route_spec);
 }
 
 

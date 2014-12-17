@@ -47,7 +47,7 @@ sub to_psgi_app {
 
     for my $route_spec (@{ $self->routes }) {
 
-        for my $route ($self->route_maker->routes_for($route_spec)) {
+        for my $route ($self->route_maker->make_routes_for($route_spec)) {
 
             $router->add_route( $route->as_add_route_args );
 
@@ -55,7 +55,7 @@ sub to_psgi_app {
     }
 
     if (not $router->match('/')) {
-        $router->add_route( $self->route_maker->get_root_route->as_add_route_args );
+        $router->add_route( $self->route_maker->make_root_route->as_add_route_args );
     }
 
     return $router->to_psgi_app; # return Plack app
