@@ -23,6 +23,7 @@ use Plack::App::Path::Router;
 has router => (
     is => 'ro',
     default => sub { Path::Router->new },
+    handles => [ qw(match) ],
 );
 
 

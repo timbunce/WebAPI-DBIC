@@ -42,18 +42,8 @@ Content-type: application/hal+json
          "templated" : true,
          "title" : "TestSchema CD_to_Producer"
       },
-      "cd_to_producer{/1}{/2}invoke{/method}" : {
-         "href" : "/cd_to_producer{/1}{/2}invoke{/method}",
-         "templated" : true,
-         "title" : "TestSchema CD_to_Producer"
-      },
       "cd{/1}" : {
          "href" : "/cd{/1}",
-         "templated" : true,
-         "title" : "TestSchema CD"
-      },
-      "cd{/1}invoke{/method}" : {
-         "href" : "/cd{/1}invoke{/method}",
          "templated" : true,
          "title" : "TestSchema CD"
       },
@@ -66,22 +56,12 @@ Content-type: application/hal+json
          "templated" : true,
          "title" : "TestSchema ClassicAlbums"
       },
-      "classic_albums{/1}invoke{/method}" : {
-         "href" : "/classic_albums{/1}invoke{/method}",
-         "templated" : true,
-         "title" : "TestSchema ClassicAlbums"
-      },
       "genre" : {
          "href" : "/genre",
          "title" : "TestSchema Genre"
       },
       "genre{/1}" : {
          "href" : "/genre{/1}",
-         "templated" : true,
-         "title" : "TestSchema Genre"
-      },
-      "genre{/1}invoke{/method}" : {
-         "href" : "/genre{/1}invoke{/method}",
          "templated" : true,
          "title" : "TestSchema Genre"
       },
@@ -94,22 +74,12 @@ Content-type: application/hal+json
          "templated" : true,
          "title" : "TestSchema Gig"
       },
-      "gig{/1}{/2}invoke{/method}" : {
-         "href" : "/gig{/1}{/2}invoke{/method}",
-         "templated" : true,
-         "title" : "TestSchema Gig"
-      },
       "producer" : {
          "href" : "/producer",
          "title" : "TestSchema Producer"
       },
       "producer{/1}" : {
          "href" : "/producer{/1}",
-         "templated" : true,
-         "title" : "TestSchema Producer"
-      },
-      "producer{/1}invoke{/method}" : {
-         "href" : "/producer{/1}invoke{/method}",
          "templated" : true,
          "title" : "TestSchema Producer"
       },
@@ -122,11 +92,6 @@ Content-type: application/hal+json
       },
       "track{/1}" : {
          "href" : "/track{/1}",
-         "templated" : true,
-         "title" : "TestSchema Track"
-      },
-      "track{/1}invoke{/method}" : {
-         "href" : "/track{/1}invoke{/method}",
          "templated" : true,
          "title" : "TestSchema Track"
       }

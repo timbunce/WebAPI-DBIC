@@ -20,25 +20,18 @@ Content-type: application/json
       "/artist/:1/invoke/:method" : "TestSchema Artist",
       "/cd" : "TestSchema CD",
       "/cd/:1" : "TestSchema CD",
-      "/cd/:1/invoke/:method" : "TestSchema CD",
       "/cd_to_producer" : "TestSchema CD_to_Producer",
       "/cd_to_producer/:1/:2" : "TestSchema CD_to_Producer",
-      "/cd_to_producer/:1/:2/invoke/:method" : "TestSchema CD_to_Producer",
       "/classic_albums" : "TestSchema ClassicAlbums",
       "/classic_albums/:1" : "TestSchema ClassicAlbums",
-      "/classic_albums/:1/invoke/:method" : "TestSchema ClassicAlbums",
       "/genre" : "TestSchema Genre",
       "/genre/:1" : "TestSchema Genre",
-      "/genre/:1/invoke/:method" : "TestSchema Genre",
       "/gig" : "TestSchema Gig",
       "/gig/:1/:2" : "TestSchema Gig",
-      "/gig/:1/:2/invoke/:method" : "TestSchema Gig",
       "/producer" : "TestSchema Producer",
       "/producer/:1" : "TestSchema Producer",
-      "/producer/:1/invoke/:method" : "TestSchema Producer",
       "/track" : "TestSchema Track",
-      "/track/:1" : "TestSchema Track",
-      "/track/:1/invoke/:method" : "TestSchema Track"
+      "/track/:1" : "TestSchema Track"
    }
 }
 
