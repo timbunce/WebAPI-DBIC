@@ -1,32 +1,32 @@
 package WebAPI::DBIC::RouteMaker;
 
+=head1 NAME
+
+WebAPI::DBIC::RouteMaker - Make routes for resultsets
+
+=cut
+
 use Moo;
 
 use Module::Runtime qw(use_module);
 use Sub::Util qw(subname);
-use WebAPI::DBIC::Route;
 use Scalar::Util qw(blessed);
 use String::CamelCase qw(camelize decamelize);
 use Lingua::EN::Inflect::Number qw(to_S to_PL);
 use Carp qw(croak confess);
-
 use Devel::Dwarn;
+
+use WebAPI::DBIC::Route;
 
 use namespace::clean;
 
 
-has resource_default_args => (is => 'ro', default => sub { {} });
 has resource_class_for_item        => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericItem');
 has resource_class_for_item_invoke => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericItemInvoke');
 has resource_class_for_set         => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericSet');
 has resource_class_for_set_invoke  => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericSetInvoke');
-
-has schema => (is => 'ro', required => 1); # XXX could be optional if routes fully specified
-has routes => (
-    is => 'ro',
-    lazy => 1,
-    default => sub { [ shift->schema->sources ] },
-);
+has resource_default_args => (is => 'ro', default => sub { {} });
+has schema => (is => 'ro');
 
 # specify what information should be used to define the url path/type of a schema class
 # (result_name is deprecated and only supported for backwards compatibility)
@@ -211,7 +211,9 @@ sub make_routes_for {
     my ($self, $route_spec) = @_;
 
     if (not ref $route_spec) {
-        $route_spec = $self->schema->resultset($route_spec);
+        my $schema = $self->schema
+            or croak "Can't convert '$route_spec' to a resultset because schema isn't set";
+        $route_spec = $schema->resultset($route_spec);
     }
     elsif ($route_spec->does('WebAPI::DBIC::Resource::Role::Route')) {
         return $route_spec; # is already a route
@@ -223,7 +225,12 @@ sub make_routes_for {
 
     my $type_name = $self->type_name_for_resultset($route_spec);
 
-    return $self->make_routes_for_resultset($type_name, $route_spec);
+    my %opts = ( # XXX ?
+        invokeable_methods_on_item => undef,
+        invokeable_methods_on_set  => undef,
+    );
+
+    return $self->make_routes_for_resultset($type_name, $route_spec, %opts);
 }
 
 
