@@ -16,7 +16,15 @@ is the same as:
 
     $app = WebAPI::DBIC::WebApp->new({
         schema => $schema,
+        routes => [ $schema->sources ],
+    })->to_psgi_app;
+
+which is the same as:
+
+    $app = WebAPI::DBIC::WebApp->new({
+        schema => $schema,
         route_maker => WebAPI::DBIC::RouteMaker->new(
+            schema => $schema,
             type_name_inflect => 'singular',    # XXX will change to plural soon
             type_name_style   => 'under_score', # or 'camelCase' etc
             resource_class_for_item        'WebAPI::DBIC::Resource::GenericItem',

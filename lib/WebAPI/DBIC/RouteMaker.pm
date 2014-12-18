@@ -210,9 +210,18 @@ sub make_root_route {
 sub make_routes_for {
     my ($self, $route_spec) = @_;
 
+    my %opts;
+
+    if (ref $route_spec eq 'HASH') {
+        # invokeable_methods_on_item => undef,
+        # invokeable_methods_on_set  => undef,
+        %opts = %$route_spec;
+        $route_spec = delete $opts{set};
+    }
+
     if (not ref $route_spec) {
         my $schema = $self->schema
-            or croak "Can't convert '$route_spec' to a resultset because schema isn't set";
+            or croak "Can't convert '$route_spec' to a resultset because schema isn't set in $self";
         $route_spec = $schema->resultset($route_spec);
     }
     elsif ($route_spec->does('WebAPI::DBIC::Resource::Role::Route')) {
@@ -225,12 +234,7 @@ sub make_routes_for {
 
     my $type_name = $self->type_name_for_resultset($route_spec);
 
-    my %opts = ( # XXX ?
-        invokeable_methods_on_item => undef,
-        invokeable_methods_on_set  => undef,
-    );
-
-    return $self->make_routes_for_resultset($type_name, $route_spec, %opts);
+    return $self->make_routes_for_resultset($type_name, $route_spec, \%opts);
 }
 
 
