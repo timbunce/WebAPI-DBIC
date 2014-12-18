@@ -234,7 +234,7 @@ sub make_routes_for {
 
     my $type_name = $self->type_name_for_resultset($route_spec);
 
-    return $self->make_routes_for_resultset($type_name, $route_spec, \%opts);
+    return $self->make_routes_for_resultset($type_name, $route_spec, %opts);
 }
 
 
