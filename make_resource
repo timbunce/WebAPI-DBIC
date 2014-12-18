@@ -1,0 +1,7 @@
+#!/usr/bin/env perl
+
+use WebAPI::DBIC::Resource::Loader;
+use Module::Runtime qw/use_module/;
+
+my $schema = use_module($ARGV[1])->connect;
+WebAPI::DBIC::Resource::Loader->new(schema => $schema, namespace => $ARGV[0], output_dir => $ARGV[2])->make_resources;
