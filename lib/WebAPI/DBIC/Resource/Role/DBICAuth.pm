@@ -55,25 +55,28 @@ sub is_authorized {
     if ($http_auth_type =~ /^none/i) {
         # This role was included in the resource, so auth was desired, yet auth
         # has been disabled. That seems worthy of a warning.
-        my $name = $self->set->result_source->result_class; # XXX the path would be better
+        my $name = $self->request->path;
         warn "HTTP authentication configured but disabled for $name\n"
             unless our $warn_once->{"http_auth_type $name"}++;
         return 1
     }
     elsif ($http_auth_type =~ /^basic/i) {
 
-        my $auth_realm = $self->set->result_source->schema->storage->connect_info->[0]->{dsn} # dsn
-            or die "panic: no dsn set";
+        # https://metacpan.org/pod/DBIx::Class::Storage::DBI#connect_info
+        my $ci = $self->set->result_source->schema->storage->connect_info;
+        # extract the dsn (doesn't handle $ci->[0] being a code ref)
+        my $dsn = (ref $ci->[0]) ? $ci->[0]->{dsn} : $ci->[0];
+        confess "Can't determine DSN to use as auth realm from @$ci"
+            if !$dsn or ref $dsn;
 
+        my $auth_realm = $dsn;
         if ( $auth_header ) {
             return 1 if $self->connect_schema_as($auth_header->username, $auth_header->password);
         }
         return create_header( 'WWWAuthenticate' => [ 'Basic' => ( realm => $auth_realm ) ] );
     }
-    else {
-        die "Unsupported value for http_auth_type: $http_auth_type";
-    }
 
+    die "Unsupported value for http_auth_type: $http_auth_type";
 }
 
 

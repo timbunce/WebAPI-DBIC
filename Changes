@@ -4,6 +4,7 @@ Changes file for WebAPI::DBIC
 
  - Major update to WebAPI::DBIC::WebApp.
  - Added type_name_inflect to control inflection of paths and type names
+ - Auth handles more kinds of schema connection_info data
 
 0.002007  2014-12-14 22:29:58+00:00 Europe/Dublin
 
