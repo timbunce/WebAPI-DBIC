@@ -25,6 +25,10 @@ use Devel::Dwarn;
 
 my $app = WebAPI::DBIC::WebApp->new({
     schema => DummyLoadedSchema->connect,
+    resource_default_args => {
+        writable => 1,
+        http_auth_type => 'none',
+    }
 })->to_psgi_app;
 
 my $app_prefix = "/clients/v1";

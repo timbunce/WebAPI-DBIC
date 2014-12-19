@@ -23,16 +23,19 @@ which is the same as:
 
     $app = WebAPI::DBIC::WebApp->new({
         schema => $schema,
-        route_maker => WebAPI::DBIC::RouteMaker->new(
-            schema => $schema,
+        type_namer => WebAPI::DBIC::TypeNamer->new(
             type_name_inflect => 'singular',    # XXX will change to plural soon
             type_name_style   => 'under_score', # or 'camelCase' etc
+        ),
+        route_maker => WebAPI::DBIC::RouteMaker->new(
+            schema => $schema,
             resource_class_for_item        'WebAPI::DBIC::Resource::GenericItem',
             resource_class_for_item_invoke 'WebAPI::DBIC::Resource::GenericItemInvoke',
             resource_class_for_set         'WebAPI::DBIC::Resource::GenericSet',
             resource_class_for_set_invoke  'WebAPI::DBIC::Resource::GenericSetInvoke',
         ),
         routes => [ $schema->sources ],
+        resource_default_args => { }
     })->to_psgi_app;
 
 The elements in C<routes> are passed to the specified C<route_maker>.
@@ -72,13 +75,15 @@ has route_maker => (is => 'ro', lazy => 1, builder => 1);
 has resource_default_args => (
     is => 'ro',
     default => sub { {
-        writable => 1, # XXX move to TestDS
-    } });
+        writable => 1, # XXX move to TestDS and make this false
+        http_auth_type => 'Basic',
+    } }
+);
 
 has routes => (
     is => 'ro',
     lazy => 1,
-    default => sub { [ shift->schema->sources ] },
+    default => sub { [ sort shift->schema->sources ] },
 );
 
 

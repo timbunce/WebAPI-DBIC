@@ -2,7 +2,7 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
- - Major update to WebAPI::DBIC::WebApp.
+ - Major update to WebAPI::DBIC::WebApp. Added RouteMaker and TypeNamer.
  - Added type_name_inflect to control inflection of paths and type names
  - Auth handles more kinds of schema connection_info data
 

@@ -11,8 +11,6 @@ use Moo;
 use Module::Runtime qw(use_module);
 use Sub::Util qw(subname);
 use Scalar::Util qw(blessed);
-use String::CamelCase qw(camelize decamelize);
-use Lingua::EN::Inflect::Number qw(to_S to_PL);
 use Carp qw(croak confess);
 use Devel::Dwarn;
 
@@ -26,61 +24,14 @@ has resource_class_for_item_invoke => (is => 'ro', default => 'WebAPI::DBIC::Res
 has resource_class_for_set         => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericSet');
 has resource_class_for_set_invoke  => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericSetInvoke');
 has resource_default_args => (is => 'ro', default => sub { {} });
+
+has type_namer => (is => 'ro',
+    default => sub {
+        require WebAPI::DBIC::TypeNamer;
+        return WebAPI::DBIC::TypeNamer->new
+    },
+);
 has schema => (is => 'ro');
-
-# specify what information should be used to define the url path/type of a schema class
-# (result_name is deprecated and only supported for backwards compatibility)
-has type_name_from  => (is => 'ro', default => 'source_name'); # 'source_name', 'result_name'
-
-# how type_name_from should be inflected
-has type_name_inflect => (is => 'ro', default => 'original'); # 'original', 'singular', 'plural'
-
-# how type_name_from should be capitalized
-has type_name_style => (is => 'ro', default => 'under_score'); # 'original', 'CamelCase', 'camelCase', 'under_score'
-
-
-sub type_name_for_resultset {
-    my ($self, $rs) = @_;
-
-    my $type_name;
-    if ($self->type_name_from eq 'source_name') {
-        $type_name = $rs->result_source->source_name;
-    }
-    elsif ($self->type_name_from eq 'result_name') { # deprecated
-        $type_name = $rs->name; # eg table name
-        $type_name = $$type_name if ref($type_name) eq 'SCALAR';
-    }
-    else {
-        confess "Invalid type_name_from: ".$self->type_name_from;
-    }
-
-    if ($self->type_name_inflect eq 'singular') {
-        $type_name = to_S($type_name);
-    }
-    elsif ($self->type_name_inflect eq 'plural') {
-        $type_name = to_PL($type_name);
-    }
-    else {
-        confess "Invalid type_name_inflect: ".$self->type_name_inflect
-            unless $self->type_name_inflect eq 'original';
-    }
-
-    if ($self->type_name_style eq 'under_score') {
-        $type_name = decamelize($type_name);
-    }
-    elsif ($self->type_name_style eq 'CamelCase') {
-        $type_name = camelize($type_name);
-    }
-    elsif ($self->type_name_style eq 'camelCase') {
-        $type_name = lcfirst(camelize($type_name));
-    }
-    else {
-        confess "Invalid type_name_style: ".$self->type_name_from
-            unless $self->type_name_style eq 'original';
-    }
-
-    return $type_name;
-}
 
 
 sub _qr_names {
@@ -124,7 +75,7 @@ sub make_routes_for_item {
     my $key_fields = { $set->result_source->unique_constraints }->{ $id_unique_constraint_name };
 
     unless ($key_fields) {
-        warn sprintf "/%s/:id route skipped because %s has no $id_unique_constraint_name constraint defined\n",
+        warn sprintf "/%s/:id route skipped because %s has no '$id_unique_constraint_name' constraint defined\n",
             $path, $set->result_class;
         return;
     }
@@ -142,6 +93,7 @@ sub make_routes_for_item {
         resource_args  => {
             %{ $self->resource_default_args },
             set => $set,
+            type_namer => $self->type_namer,
         },
     );
 
@@ -156,6 +108,7 @@ sub make_routes_for_item {
         resource_args  => {
             %{ $self->resource_default_args },
             set => $set,
+            type_namer => $self->type_namer,
         },
     ) if $methods && @$methods;
 
@@ -176,6 +129,7 @@ sub make_routes_for_set {
         resource_args  => {
             %{ $self->resource_default_args },
             set => $set,
+            type_namer => $self->type_namer,
         },
     );
 
@@ -186,6 +140,7 @@ sub make_routes_for_set {
         resource_args  => {
             %{ $self->resource_default_args },
             set => $set,
+            type_namer => $self->type_namer,
         },
     ) if $methods && @$methods;
 
@@ -200,6 +155,7 @@ sub make_root_route {
         resource_class => 'WebAPI::DBIC::Resource::GenericRoot',
         resource_args  => {
             %{ $self->resource_default_args },
+            type_namer => $self->type_namer,
         },
     );
     return $root_route;
@@ -232,7 +188,7 @@ sub make_routes_for {
         croak "Don't know how to convert '$route_spec' into to a DBIx::Class::ResultSet or WebAPI::DBIC::Resource::Role::Route";
     }
 
-    my $type_name = $self->type_name_for_resultset($route_spec);
+    my $type_name = $self->type_namer->type_name_for_resultset($route_spec);
 
     return $self->make_routes_for_resultset($type_name, $route_spec, %opts);
 }

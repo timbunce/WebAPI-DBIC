@@ -1,10 +1,5 @@
 =head1 TODO
 
-    # disable all methods if not writable, for safety: (perhaps allow get_* methods)
-    # move this into Invokable role
-    $invokeable_on_set  = [] unless $self->writable;
-    $invokeable_on_item = [] unless $self->writable;
-
 double/tripple query execution on items! and with/without me. (SQL differs by prefix on pk.)
 
 This is all fairly random.
@@ -27,6 +22,7 @@ Things to do, or at least consider, before we stop being alpha:
     eg id (that's not the unique key being used for id), type, href, or links.
     http://jsonapi.org/format/#document-structure-resource-object-attributes
     * add optional resultset-class to jsonapi-type name mapping
+    * explore https://github.com/json-api/browser
 
     Refactor ::WebApp
     - move/rethink My::HTTP::Throwable::Factory package block

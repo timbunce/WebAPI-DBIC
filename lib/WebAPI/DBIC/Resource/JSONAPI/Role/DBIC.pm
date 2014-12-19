@@ -18,27 +18,13 @@ requires 'render_item_as_plain_hash';
 requires 'path_for_item';
 requires 'add_params_to_url';
 requires 'prefetch';
+requires 'type_namer';
 
 
-my %result_class_to_jsonapi_type; # XXX ought to live elsewhere
 
-
-sub jsonapi_type { # XXX this is a hack - needs more thought
+sub jsonapi_type {
     my ($self) = @_;
-    my $result_class = $self->set->result_source->result_class;
-    my $path = $self->jsonapi_type_for_result_class($result_class)
-        or confess sprintf("panic: no route found to %s result_class %s",
-            $self, $result_class
-        );
-    return $path;
-}
-sub jsonapi_type_for_result_class { # XXX this is a hack - needs more thought
-    my ($self, $result_class) = @_;
-    my $url = $self->uri_for(result_class => $result_class)
-        or return undef;
-    my $path = URI->new($url,'http')->path;
-    $path =~ s!^/([^/]+)!$1! or die "panic: Can't get jsonapi_type from $path";
-    return $path;
+    return $self->type_namer->type_name_for_resultset($self->set);
 }
 
 
@@ -55,8 +41,7 @@ sub top_link_for_relname { # XXX cacheable
     my $rel_info = $self->set->result_class->relationship_info($relname);
     my $result_class = $rel_info->{class}||die "panic";
 
-    my $rel_jsonapi_type = $result_class_to_jsonapi_type{$result_class}
-        ||= $self->jsonapi_type_for_result_class($result_class);
+    my $rel_jsonapi_type = $self->type_namer->type_name_for_result_class($result_class);
 
     my $path = $self->jsonapi_type .".". $relname;
     return $path => {
@@ -158,7 +143,7 @@ sub render_item_as_jsonapi_hash {
     my $data = $self->render_item_as_plain_hash($item);
 
     $data->{id} //= $item->id;
-    $data->{type} = $self->jsonapi_type_for_result_class($item->result_source->result_class);
+    $data->{type} = $self->type_namer->type_name_for_result_class($item->result_source->result_class);
     $data->{href} = $self->path_for_item($item);
 
     #$self->_render_prefetch_jsonapi($item, $data, $_) for @{$self->prefetch||[]};

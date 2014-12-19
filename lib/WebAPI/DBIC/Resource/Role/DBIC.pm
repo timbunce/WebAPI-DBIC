@@ -30,6 +30,10 @@ has writable => (
    is => 'ro',
 );
 
+has type_namer => (
+   is => 'ro',
+);
+
 has prefetch => (
     is => 'rw',
     default => sub { [] },
