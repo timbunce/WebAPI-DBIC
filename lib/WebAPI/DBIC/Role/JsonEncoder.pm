@@ -20,6 +20,10 @@ has _json_encoder => (
    },
 );
 
-sub _build_json_encoder { return JSON->new->ascii }
+sub _build_json_encoder {
+    my $codec = JSON->new->ascii;
+    $codec->canonical->pretty if $ENV{WEBAPI_DBIC_DEBUG};
+    return $codec;
+}
 
 1;
