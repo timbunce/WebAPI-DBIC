@@ -51,7 +51,6 @@ sub connect_schema_as { # XXX sub rather than method?
 sub is_authorized {
     my ($self, $auth_header) = @_;
 
-    warn
     my $http_auth_type = $self->http_auth_type || '';
     if ($http_auth_type =~ /^none/i) {
         # This role was included in the resource, so auth was desired, yet auth
