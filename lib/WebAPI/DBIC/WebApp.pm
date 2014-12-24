@@ -23,16 +23,16 @@ which is the same as:
 
     $app = WebAPI::DBIC::WebApp->new({
         schema => $schema,
-        type_namer => WebAPI::DBIC::TypeNamer->new(
-            type_name_inflect => 'singular',    # XXX will change to plural soon
-            type_name_style   => 'under_score', # or 'camelCase' etc
-        ),
         route_maker => WebAPI::DBIC::RouteMaker->new(
             schema => $schema,
             resource_class_for_item        'WebAPI::DBIC::Resource::GenericItem',
             resource_class_for_item_invoke 'WebAPI::DBIC::Resource::GenericItemInvoke',
             resource_class_for_set         'WebAPI::DBIC::Resource::GenericSet',
             resource_class_for_set_invoke  'WebAPI::DBIC::Resource::GenericSetInvoke',
+            type_namer => WebAPI::DBIC::TypeNamer->new( # EXPERIMENTAL
+                type_name_inflect => 'singular',    # XXX will change to plural soon
+                type_name_style   => 'under_score', # or 'camelCase' etc
+            ),
         ),
         routes => [ $schema->sources ],
         resource_default_args => { }

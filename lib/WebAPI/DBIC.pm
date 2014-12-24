@@ -13,9 +13,8 @@ WebAPI::DBIC - A composable RESTful JSON API to DBIx::Class schemas using roles 
 
 The WebAPI::DBIC code has been in production use since early 2013, however it's
 only recently been open sourced (July 2014) so it's still lacking in documentation.
-
-It's also undergoing a period of refactoring and enhancement now there are more
-developers contributing and the code is being applied to more domains.
+It's also undergoing a period of refactoring, enhancement and evolution now
+there are more developers contributing and the code is being applied to more domains.
 
 Interested? Please get involved! See L</HOW TO GET HELP> below.
 
@@ -46,8 +45,8 @@ The Collection+JSON hypermedia type could be added in future.
 * An example .psgi file that gives you an instant web service for any
 DBIx::Class schema.
 
-* Includes a built-in copy of the generic HAL API browser application so you
-can be browsing your new API in mimutes.
+* Includes a generic HAL API browser application so you can be browsing your
+new API in minutes.
 
 =head2 HAL - Hypertext Application Language
 
