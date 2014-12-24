@@ -244,7 +244,7 @@ Content-type: application/vnd.api+json
          "href" : "/artist/1",
          "id" : 1,
          "links" : {
-            "cds" : [
+            "cd" : [
                1,
                2,
                3
@@ -256,7 +256,7 @@ Content-type: application/vnd.api+json
       }
    ],
    "linked" : {
-      "cds" : [
+      "cd" : [
          {
             "artist" : 1,
             "cdid" : 1,
@@ -315,7 +315,7 @@ Content-type: application/vnd.api+json
          "href" : "/artist/1",
          "id" : 1,
          "links" : {
-            "cds" : [
+            "cd" : [
                1,
                2,
                3
@@ -331,7 +331,7 @@ Content-type: application/vnd.api+json
          "href" : "/artist/2",
          "id" : 2,
          "links" : {
-            "cds" : [
+            "cd" : [
                4
             ]
          },
@@ -341,7 +341,7 @@ Content-type: application/vnd.api+json
       }
    ],
    "linked" : {
-      "cds" : [
+      "cd" : [
          {
             "artist" : 1,
             "cdid" : 1,
@@ -436,7 +436,7 @@ Content-type: application/vnd.api+json
          "href" : "/artist/1",
          "id" : 1,
          "links" : {
-            "cds" : [
+            "cd" : [
                1
             ]
          },
@@ -446,7 +446,7 @@ Content-type: application/vnd.api+json
       }
    ],
    "linked" : {
-      "cds" : [
+      "cd" : [
          {
             "artist" : 1,
             "cdid" : 1,
