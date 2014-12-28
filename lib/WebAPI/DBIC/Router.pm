@@ -51,6 +51,7 @@ sub to_psgi_app {
 
 
 sub uri_for { # called by WebAPI::DBIC::Resource::Role::Router
+    local $SIG{__DIE__}; # https://github.com/timbunce/WebAPI-DBIC/issues/22
     return shift->router->uri_for(@_);
 }
 
