@@ -36,7 +36,7 @@ L<Path::Router> as the router. (Other routers could be supported.)
 
 * Rich support for multiple hypermedia types, including JSON API
 (application/vnd.api+json) and HAL (application/hal+json).
-The Collection+JSON hypermedia type could be added in future.
+The Collection+JSON and JSON-LD hypermedia types could be added in future.
 
 * Automatic detection and exposure of result set relationships.
 
@@ -105,7 +105,7 @@ Main TO-DOs in approximate order of likely implementation:
 
 The L<Web::Machine> module provides a RESTful web framework modeled as a formal
 state machine. This is a rigorous and powerful approach, originally developed
-in Haskel and since ported to many other languages.
+in Erlang and since ported to many other languages.
 
 See L<https://raw.githubusercontent.com/basho/webmachine/develop/docs/http-headers-status-v3.png>
 for an image of the state machine.
@@ -368,10 +368,7 @@ simply with L<Catalyst::Action::FromPSGI>.  Here's an example integration:
 
    WebAPI::DBIC::WebApp->new({
      schema   => $c->model('DB')->schema,
-     writable => 0,            # set true if desired
-     http_auth_type => 'none', # will use Catalysts' auth for the given path
-                               # consider leveraging chaining or another
-                               # ActionRole for auth
+     ...
    })->to_psgi_app
  }
 
