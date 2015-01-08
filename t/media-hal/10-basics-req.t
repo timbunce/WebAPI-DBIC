@@ -9,7 +9,7 @@ fixtures_ok [qw/basic/];
 subtest '===== basics - specs =====' => sub {
     my ($self) = @_;
 
-    my $app = WebAPI::DBIC::WebApp->new({
+    my $app = TestWebApp->new({
         schema => Schema,
     })->to_psgi_app;
 

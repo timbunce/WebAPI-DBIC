@@ -75,10 +75,7 @@ has schema => (is => 'ro', required => 1);
 has route_maker => (is => 'ro', lazy => 1, builder => 1);
 has resource_default_args => (
     is => 'ro',
-    default => sub { {
-        writable => 1, # XXX move to TestDS and make this false
-        http_auth_type => 'Basic',
-    } }
+    default => sub { { } },
 );
 
 has routes => (

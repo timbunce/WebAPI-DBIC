@@ -29,15 +29,12 @@ sub FOREIGNBUILDARGS {
 
 has writable => (
     is => 'ro',
-);
-
-has type_namer => (
-   is => 'ro',
+    default => $ENV{WEBAPI_DBIC_WRITABLE},
 );
 
 has http_auth_type => (
    is => 'ro',
-   default => 'Basic',
+   default => $ENV{WEBAPI_DBIC_HTTP_AUTH_TYPE} || 'Basic',
 );
 
 has throwable => (
@@ -45,5 +42,8 @@ has throwable => (
     default => 'WebAPI::HTTP::Throwable::Factory',
 );
 
+has type_namer => (
+   is => 'ro',
+);
 
 1;

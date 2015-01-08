@@ -52,15 +52,17 @@ sub is_authorized {
     my ($self, $auth_header) = @_;
 
     my $http_auth_type = $self->http_auth_type || '';
-    if ($http_auth_type =~ /^none/i) {
+    if ($http_auth_type =~ /^(none|disabled)$/) {
         # This role was included in the resource, so auth was desired, yet auth
-        # has been disabled. That seems worthy of a warning.
-        my $name = $self->request->path;
-        warn "HTTP authentication configured but disabled for $name\n"
-            unless our $warn_once->{"http_auth_type $name"}++;
+        # has been specified. That seems worthy of a warning.
+        # 'none' gives a warning, but 'disabled' is silent.
+        (my $name = $self->request->path) =~ s:/\d+$::;
+        warn "HTTP authentication configured but not enabled for $name\n"
+            if $http_auth_type ne 'disabled'
+            and not our $warn_once->{"http_auth_type $name"}++;
         return 1
     }
-    elsif ($http_auth_type =~ /^basic/i) {
+    elsif ($http_auth_type =~ /^Basic/) {
 
         # https://metacpan.org/pod/DBIx::Class::Storage::DBI#connect_info
         my $ci = $self->set->result_source->schema->storage->connect_info;
@@ -69,7 +71,7 @@ sub is_authorized {
         confess "Can't determine DSN to use as auth realm from @$ci"
             if !$dsn or ref $dsn;
 
-        my $auth_realm = $dsn;
+        my $auth_realm = "Insecure unless https! - $dsn"; # XXX get via a method
         if ( $auth_header ) {
             return 1 if $self->connect_schema_as($auth_header->username, $auth_header->password);
         }

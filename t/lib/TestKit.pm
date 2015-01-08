@@ -14,8 +14,8 @@ ToolSet->export(
     'Plack::Test'          => undef,
     'Devel::Dwarn'         => undef,
     'Data::Printer'        => undef,
-    # app
-    'WebAPI::DBIC::WebApp' => undef,
+    # app, via test wrapper
+    'TestWebApp'           => undef,
     # local t/lib modules
     'TestDS'               => undef,
     'TestDS_HAL'           => undef,

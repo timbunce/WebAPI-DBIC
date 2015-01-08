@@ -9,7 +9,7 @@ fixtures_ok [qw/basic/];
 subtest "===== Get with fields param =====" => sub {
     my ($self) = @_;
 
-    my $app = WebAPI::DBIC::WebApp->new({
+    my $app = TestWebApp->new({
         schema => Schema,
     })->to_psgi_app;
 
