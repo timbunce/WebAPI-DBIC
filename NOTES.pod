@@ -1,8 +1,8 @@
 =head1 TODO
 
-double/tripple query execution on items! and with/without me. (SQL differs by prefix on pk.)
-
 This is all fairly random.
+
+double/tripple query execution on items! and with/without me. (SQL differs by prefix on pk.)
 
 Things to do, or at least consider, before we stop being alpha:
 
@@ -24,12 +24,6 @@ Things to do, or at least consider, before we stop being alpha:
     * add optional resultset-class to jsonapi-type name mapping
     * explore https://github.com/json-api/browser
 
-    Refactor ::WebApp
-    - move/rethink My::HTTP::Throwable::Factory package block
-    - move mk_generic_dbic_item_set_routes out to new module
-    Leave just calls to mk_generic_dbic_item_set_routes and the construction
-    of Path::Router - though even that could be moved to a better home.
-
     Document authentication and authorization
     Add eg _build_initial_search eg for 'show only records owned by current user'
     Mention https://metacpan.org/pod/DBIx::Class::Schema::RestrictWithObject
@@ -50,6 +44,7 @@ Things to do, or at least consider, before we stop being alpha:
     Allow (and prefer?) prefetch=me over prefetch=self?
 
     Adopt Log::Any for logging and debug?
+    Note relevant env vars, eg WEBAPI_DBIC_DEBUG, PATH_ROUTER_DEBUG
 
     Review code and docs for XXX / TODO /TBD markers
 
@@ -69,6 +64,11 @@ Things to do, or at least consider, before we stop being alpha:
 Other items:
 
     Refactor transaction handling.
+
+    Consider viability of reworking to be able to stream results using callbacks
+    http://www.catalystframework.org/calendar/2014/11
+    Would presumably require a streaming JSON encoder
+    (or encode row-by-row and fake a closing "]" at the end)
 
     Better error reporting (in HAL format)
     Reconsider and/or polish HTTP::Throwable::Role::JSONBody
@@ -104,6 +104,9 @@ Other items:
 
     Look for further ideas in
     https://metacpan.org/module/Catalyst::Controller::DBIC::API
+    https://metacpan.org/pod/Leyland
+    https://metacpan.org/pod/McBain
+    https://metacpan.org/pod/Raisin
 
 =head2 HTTP Caching
 
