@@ -9,6 +9,7 @@ WebAPI::DBIC::Route - A URL path to a WebAPI::DBIC Resource
 =cut
 
 use Moo;
+use MooX::StrictConstructor;
 
 use Module::Runtime qw(use_module);
 
@@ -108,8 +109,10 @@ sub as_add_route_args {
         # perform any required setup for this request & params in @_
         $resource_args_from_route->($request, \%resource_args_from_params, @_);
 
-        warn sprintf "%s: running %s machine (@{[ keys %resource_args_from_params ]})\n",
-                $self->path, $resource_class
+        warn sprintf "/%s: running %s machine (extra args: %s; default args: %s)\n",
+                $self->path, $resource_class,
+                join(",", sort keys %resource_args_from_params),
+                join(",", sort keys %{$self->resource_args})
             if $ENV{WEBAPI_DBIC_DEBUG};
 
         my $app = Web::Machine->new(

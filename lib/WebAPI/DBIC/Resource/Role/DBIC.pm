@@ -26,13 +26,6 @@ has set => (
    required => 1,
 );
 
-has writable => (
-   is => 'ro',
-);
-
-has type_namer => (
-   is => 'ro',
-);
 
 has prefetch => (
     is => 'rw',
@@ -84,7 +77,6 @@ sub web_machine_resource {
         throwable => $self->throwable,
         prefetch  => [], # don't propagate prefetch by default
         set => undef,
-        id => undef,
         #  XXX others? which and why? generalize
         %resource_args
     );

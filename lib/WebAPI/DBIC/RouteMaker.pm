@@ -14,18 +14,20 @@ use Scalar::Util qw(blessed);
 use Carp qw(croak confess);
 use Devel::Dwarn;
 
-use WebAPI::DBIC::Route;
+use namespace::clean -except => [qw(meta)];
+use MooX::StrictConstructor;
 
-use namespace::clean;
+use WebAPI::DBIC::Route;
 
 
 has resource_class_for_item        => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericItem');
 has resource_class_for_item_invoke => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericItemInvoke');
 has resource_class_for_set         => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericSet');
 has resource_class_for_set_invoke  => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericSetInvoke');
-has resource_default_args => (is => 'ro', default => sub { {} });
+has resource_default_args          => (is => 'ro', default => sub { {} });
 
-has type_namer => (is => 'ro',
+has type_namer => (
+    is => 'ro',
     default => sub {
         require WebAPI::DBIC::TypeNamer;
         return WebAPI::DBIC::TypeNamer->new

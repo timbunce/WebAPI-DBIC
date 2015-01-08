@@ -19,6 +19,9 @@ use Carp qw(croak);
 use Path::Router;
 use Plack::App::Path::Router;
 
+use namespace::clean -except => [qw(meta)];
+use MooX::StrictConstructor;
+
 
 has router => (
     is => 'ro',

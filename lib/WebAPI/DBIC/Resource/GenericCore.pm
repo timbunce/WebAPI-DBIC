@@ -7,7 +7,7 @@ WebAPI::DBIC::Resource::GenericCore - a set of core roles to implement a generic
 =cut
 
 use Moo;
-use namespace::clean;
+use MooX::StrictConstructor;
 
 extends 'WebAPI::DBIC::Resource::Base';
 with    'WebAPI::DBIC::Role::JsonEncoder',

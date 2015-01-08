@@ -61,13 +61,14 @@ use Module::Runtime qw(use_module);
 use Carp qw(croak confess);
 use Devel::Dwarn;
 
+use namespace::clean -except => [qw(meta)];
+use MooX::StrictConstructor;
+
 use Web::Machine;
 
 use WebAPI::DBIC::RouteMaker;
 use WebAPI::DBIC::Router;
 use WebAPI::DBIC::Route;
-
-use namespace::clean;
 
 
 has schema => (is => 'ro', required => 1);

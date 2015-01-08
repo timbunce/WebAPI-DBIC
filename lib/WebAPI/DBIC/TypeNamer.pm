@@ -7,7 +7,8 @@ use Lingua::EN::Inflect::Number qw(to_S to_PL);
 use Carp qw(croak confess);
 use Devel::Dwarn;
 
-use namespace::clean;
+use namespace::clean -except => [qw(meta)];
+use MooX::StrictConstructor;
 
 
 # specify what information should be used to define the url path/type of a schema class

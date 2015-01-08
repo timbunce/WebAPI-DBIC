@@ -72,7 +72,6 @@ sub _render_prefetch {
         elsif ($subitem->isa('DBIx::Class::ResultSet')) { # one-to-many rel
             my $rel_set_resource = $self->web_machine_resource(
                 set         => $subitem,
-                item        => undef,
                 prefetch    => ref $sub_rel eq 'ARRAY' ? $sub_rel : [$sub_rel],
             );
             $data->{_embedded}{$rel} = $rel_set_resource->render_set_as_list_of_hal($subitem);

@@ -25,8 +25,15 @@ requires 'set';
 has id => (         # array of 1 or more key values from url path
    is => 'ro',
    #isa => array ref
-   required => 1,
+   lazy => 1,
+   builder => '_build_id'
 );
+
+sub _build_id {
+    # we could possibly try to extract an id from item() if that's set
+    # (but we'd need to avoid infinite recursion)
+    die sprintf "No id provided for %s", ref shift;
+}
 
 has item => (
    is => 'rw', # XXX
