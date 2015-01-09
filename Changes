@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+0.003002  2015-01-09 18:00:43+00:00 Europe/Dublin
+
  - Remove resource_default_args from WepApp, set via route_maker now.
  - Added plackonce utility for ad-hoc testing of single requests.
  - Added MooX::StrictConstructor and fix up issues it found.
