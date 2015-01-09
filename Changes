@@ -2,6 +2,11 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+ - Remove resource_default_args from WepApp, set via route_maker now.
+ - Added plackonce utility for ad-hoc testing of single requests.
+ - Added MooX::StrictConstructor and fix up issues it found.
+ - Workaround for Path::Router Plack::Middleware::StackTrace interaction.
+
 0.003001  2014-12-24 15:34:48+00:00 Europe/Dublin (TRIAL RELEASE)
 
  - Major update to WebAPI::DBIC::WebApp. Added RouteMaker and TypeNamer (experimental).
