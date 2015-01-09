@@ -1,0 +1,58 @@
+#!/usr/bin/env perl
+
+# plackonce [options] someapp.psgi GET /some/url
+#
+# --type=S      - set Content-Type header to S
+# --accept=S    - set Accept header to S
+# --header H=S  - set header H to S
+#
+# The --type and --accept options can use abbreviations for common types:
+#   json = application/json
+#   vaj  = application/vnd.api+json
+#   hal  = application/hal+json
+
+use strict;
+use warnings;
+
+use HTTP::Request;
+use HTTP::Response;
+use HTTP::Message::PSGI;
+
+use Getopt::Long;
+
+my $typemap = {
+    json => 'application/json',
+    vaj  => 'application/vnd.api+json',
+    hal  => 'application/hal+json',
+};
+
+my %headers;
+sub set_header {
+    my ($header, $value, $map) = @_;
+    $value = $map->{$value} if $map && exists $map->{$value};
+    $headers{$header} = $value;
+}
+
+
+GetOptions(
+    'type|t=s'     => sub { set_header('Accept',       $_[1], $typemap) },
+    'accept|a=s'   => sub { set_header('Content-Type', $_[1], $typemap) },
+    'header|h=s%'  => sub { set_header($_[0], $_[1], undef) },
+) or exit 1;
+
+sub usage {
+    die "usage: $0 foo.psgi GET '/some/url?param=bar'\n";
+}
+
+my $psgi   = shift or usage();
+my $method = shift or usage();
+my $url    = shift or usage();
+
+my $app = require $psgi;
+
+my $request = HTTP::Request->new($method, $url);
+$request->header(%headers);
+$request->dump;
+
+my $res = HTTP::Response->from_psgi( $app->($request->to_psgi) );
+$res->dump;
