@@ -53,6 +53,7 @@ sub render_item_as_hal_hash {
     return $data;
 }
 
+
 sub _render_prefetch {
     my ($self, $item, $data, $prefetch) = @_;
 
@@ -81,6 +82,7 @@ sub _render_prefetch {
         }
     }
 }
+
 
 sub render_set_as_list_of_hal {
     my ($self, $set, $render_method) = @_;

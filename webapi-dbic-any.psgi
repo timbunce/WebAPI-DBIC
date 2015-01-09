@@ -40,10 +40,6 @@ my $schema = $schema_class->connect(); # uses DBI_DSN, DBI_USER, DBI_PASS env va
 
 my $app = WebAPI::DBIC::WebApp->new({
     schema   => $schema,
-    resource_default_args => {
-        writable => $ENV{WEBAPI_DBIC_WRITABLE}, # read-only if not set
-        http_auth_type => $ENV{WEBAPI_DBIC_HTTP_AUTH_TYPE} || 'Basic', # Basic is insecure
-    }
 })->to_psgi_app;
 
 my $app_prefix = "/webapi-dbic";

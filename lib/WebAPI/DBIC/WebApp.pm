@@ -23,19 +23,18 @@ which is the same as:
 
     $app = WebAPI::DBIC::WebApp->new({
         schema => $schema,
+        routes => [ $schema->sources ],
         route_maker => WebAPI::DBIC::RouteMaker->new(
-            schema => $schema,
-            resource_class_for_item        'WebAPI::DBIC::Resource::GenericItem',
-            resource_class_for_item_invoke 'WebAPI::DBIC::Resource::GenericItemInvoke',
-            resource_class_for_set         'WebAPI::DBIC::Resource::GenericSet',
-            resource_class_for_set_invoke  'WebAPI::DBIC::Resource::GenericSetInvoke',
+            resource_class_for_item        => 'WebAPI::DBIC::Resource::GenericItem',
+            resource_class_for_item_invoke => 'WebAPI::DBIC::Resource::GenericItemInvoke',
+            resource_class_for_set         => 'WebAPI::DBIC::Resource::GenericSet',
+            resource_class_for_set_invoke  => 'WebAPI::DBIC::Resource::GenericSetInvoke',
+            resource_default_args          => { },
             type_namer => WebAPI::DBIC::TypeNamer->new( # EXPERIMENTAL
                 type_name_inflect => 'singular',    # XXX will change to plural soon
                 type_name_style   => 'under_score', # or 'camelCase' etc
             ),
         ),
-        routes => [ $schema->sources ],
-        resource_default_args => { }
     })->to_psgi_app;
 
 The elements in C<routes> are passed to the specified C<route_maker>.
@@ -60,6 +59,7 @@ use Moo;
 use Module::Runtime qw(use_module);
 use Carp qw(croak confess);
 use Devel::Dwarn;
+use Safe::Isa;
 
 use namespace::clean -except => [qw(meta)];
 use MooX::StrictConstructor;
@@ -72,11 +72,6 @@ use WebAPI::DBIC::Route;
 
 
 has schema => (is => 'ro', required => 1);
-has route_maker => (is => 'ro', lazy => 1, builder => 1);
-has resource_default_args => (
-    is => 'ro',
-    default => sub { { } },
-);
 
 has routes => (
     is => 'ro',
@@ -84,14 +79,19 @@ has routes => (
     default => sub { [ sort shift->schema->sources ] },
 );
 
+has route_maker => (
+    is => 'ro',
+    lazy => 1,
+    builder => 1,
+    isa => sub {
+        die "$_[0] is not a WebAPI::DBIC::RouteMaker" unless $_[0]->$_isa('WebAPI::DBIC::RouteMaker');
+    },
+);
 
 sub _build_route_maker {
     my ($self) = @_;
 
-    return WebAPI::DBIC::RouteMaker->new(
-        schema => $self->schema,
-        resource_default_args => $self->resource_default_args,
-    );
+    return WebAPI::DBIC::RouteMaker->new();
 }
 
 
@@ -100,6 +100,10 @@ sub to_psgi_app {
     my ($self) = @_;
 
     my $router = WebAPI::DBIC::Router->new; # XXX
+
+    # set the route_maker schema here so users don't have
+    # to set schema in both WebApp and RouteMaker
+    $self->route_maker->schema($self->schema);
 
     for my $route_spec (@{ $self->routes }) {
 

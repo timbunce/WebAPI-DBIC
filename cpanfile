@@ -22,6 +22,7 @@ requires 'parent';
 requires 'Plack', '1.0033';
 requires 'Plack::App::File';
 requires 'Plack::App::Path::Router', '0.06';
+requires 'Safe::Isa';
 requires 'Scalar::Util';
 requires 'String::CamelCase';
 requires 'Sub::Exporter';
@@ -32,6 +33,7 @@ requires 'URI';
 requires 'Lingua::EN::Inflect::Number', '1.11';
 requires 'Lingua::EN::Inflect', '1.894'; # recent for predictable behaviour
 requires 'Data::Dumper::Concise'; # for Dwarn
+
 requires 'Alien::Web::HalBrowser';
 
 on test => sub {

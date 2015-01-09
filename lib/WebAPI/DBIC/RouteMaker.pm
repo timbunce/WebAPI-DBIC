@@ -20,6 +20,8 @@ use MooX::StrictConstructor;
 use WebAPI::DBIC::Route;
 
 
+has schema => (is => 'rw');
+
 has resource_class_for_item        => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericItem');
 has resource_class_for_item_invoke => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericItemInvoke');
 has resource_class_for_set         => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericSet');
@@ -33,7 +35,6 @@ has type_namer => (
         return WebAPI::DBIC::TypeNamer->new
     },
 );
-has schema => (is => 'ro');
 
 
 sub _qr_names {
