@@ -70,9 +70,9 @@ sub render_jsonapi_response { # return top-level document hashref
             my $rel_info = $set->result_class->relationship_info($relname);
             my $result_class = $rel_info->{class}||die "panic";
 
-            my @idcolumns = $result_class->unique_constraint_columns('primary');
+            my @idcolumns = $result_class->unique_constraint_columns('primary'); # XXX wrong
             if (@idcolumns > 1) { # eg many-to-many that doesn't have a separate id
-                warn "Result class $result_class has has multiple keys so relations like $relname won't have links generated.\n"
+                warn "Result class $result_class has multiple keys (@idcolumns) so relations like $relname won't have links generated.\n"
                     unless our $warn_once->{"$result_class $relname"}++;
                 next;
             }
