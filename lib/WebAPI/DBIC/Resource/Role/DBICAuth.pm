@@ -62,7 +62,7 @@ sub is_authorized {
             and not our $warn_once->{"http_auth_type $name"}++;
         return 1
     }
-    elsif ($http_auth_type =~ /^Basic/) {
+    elsif ($http_auth_type eq 'Basic') {
 
         # https://metacpan.org/pod/DBIx::Class::Storage::DBI#connect_info
         my $ci = $self->set->result_source->schema->storage->connect_info;
