@@ -6,12 +6,12 @@ WebAPI::DBIC::Resource::Role::DBICParams - methods for handling url parameters
 
 =cut
 
+use Moo::Role;
+
 use Carp;
 use Scalar::Util qw(blessed);
 use Try::Tiny;
-
-use Moo::Role;
-
+use Devel::Dwarn;
 
 requires 'set';
 requires 'throwable';
@@ -144,6 +144,7 @@ sub _handle_prefetch_param {
     $prefetch = [grep { !defined $_->{self}} @$prefetch];
 
     my $prefetch_or_join = $self->param('fields') ? 'join' : 'prefetch';
+    Dwarn { $prefetch_or_join => $prefetch } if $ENV{WEBAPI_DBIC_DEBUG};
     $self->set( $self->set->search_rs(undef, { $prefetch_or_join => $prefetch }))
         if scalar @$prefetch;
 
