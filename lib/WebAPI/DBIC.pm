@@ -2,8 +2,6 @@ package WebAPI::DBIC;
 
 use strict; # keep our kwalitee up!
 use warnings;
-1;
-__END__
 
 =head1 NAME
 
@@ -77,36 +75,17 @@ See L<http://jsonapi.org/> for more details.
 
 For Ember, L<https://github.com/kurko/ember-json-api> can be used as an adaptor.
 
-STATUS:
-
 Support for JSON API within WebAPI::DBIC is maturing rapidly.
 
 Fetching compound documents, including "links" data (relationship templates)
 and "linked" (side-loaded/prefetch) resources, is supported.
 The sort= parameter is supported, in it's simple form.
 
-Main TO-DOs in approximate order of likely implementation:
-
- - settle on how "type" is defined (currently it's derived from the router)
- - provide "links" separately to prefetch logic
- - support collection urls, e.g. /photos/1,2,3
- - support relationship urls, e.g. /photos/1/links/photographer
- - support include= in addition to prefetch=
- - support multiple sorts, e.g. sort[posts]=-created,title&sort[people]=name
- - support the "name[type]" style of field= param value
- - support creating resources via the application/vnd.api+json media type
- - support updating resources via the application/vnd.api+json media type
- - support updating relationships via the application/vnd.api+json media type
- - support the suggest error format
- - support PATCH requests
-
-
 =head2 Web::Machine
 
 The L<Web::Machine> module provides a RESTful web framework modeled as a formal
 state machine. This is a rigorous and powerful approach, originally developed
 in Erlang and since ported to many other languages.
-
 See L<https://raw.githubusercontent.com/basho/webmachine/develop/docs/http-headers-status-v3.png>
 for an image of the state machine.
 
@@ -114,13 +93,11 @@ By building on Web::Machine, WebAPI::DBIC removes the need to implement all the
 logic needed for accurate and full-featured HTTP protocol behaviour.
 You just provide small pieces of logic at the decision points you care about
 and Web::Machine looks after the rest.
-
 See L<https://github.com/basho/webmachine/wiki> for more information.
 
 Web::Machine provides the logic to handle a HTTP request for a I<single resource>.
-
 With WebAPI::DBIC those resources typically represent a DBIx::Class result set,
-a row, or a method invocation on a row. They are implemented as a subclass of
+a row, or a method invocation on a row or result set. They are implemented as a subclass of
 L<Web::Machine::Resource> that consumes a some set of WebAPI::DBIC roles which add
 the desired functionality to the resource.
 
@@ -970,3 +947,5 @@ Note that this default behaviour is liable to change. If you want to make
 method calls like this you should define your own resource based on the one provided.
 
 =cut
+
+1;

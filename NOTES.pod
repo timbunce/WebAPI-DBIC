@@ -6,6 +6,17 @@ double/tripple query execution on items! and with/without me. (SQL differs by pr
 
 Things to do, or at least consider, before we stop being alpha:
 
+    TODOs for JSON API:
+    - provide "links" separately to prefetch logic
+    - support collection urls, e.g. /photos/1,2,3
+    - support relationship urls, e.g. /photos/1/links/photographer
+    - support include= in addition to prefetch=
+    - support multiple sorts, e.g. sort[posts]=-created,title&sort[people]=name
+    - support the "name[type]" style of field= param value
+    - support creating resources via the application/vnd.api+json media type
+    - support updating resources via the application/vnd.api+json media type
+    - support updating relationships via the application/vnd.api+json media type
+
     Test string keys, including unicode
     Look into at least basic support for documentation links in HAL
     Profiling
