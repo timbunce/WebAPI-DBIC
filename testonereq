@@ -1,0 +1,2 @@
+#!/bin/sh -x
+WEBAPI_DBIC_DEBUG=1 WEBAPI_DBIC_HTTP_AUTH_TYPE=disabled perl -Ilib plackonce -t vaj -a vaj webapi-dbic-demo.psgi "$@"

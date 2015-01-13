@@ -2,6 +2,8 @@
 
 # plackonce [options] someapp.psgi GET /some/url
 #
+# Possibly should be reworked to use https://metacpan.org/pod/Web::Simple::Application
+#
 # --type=S      - set Content-Type header to S
 # --accept=S    - set Accept header to S
 # --header H=S  - set header H to S
@@ -52,7 +54,7 @@ my $app = require $psgi;
 
 my $request = HTTP::Request->new($method, $url);
 $request->header(%headers);
-$request->dump;
+$request->dump(maxlength => 2000);
 
 my $res = HTTP::Response->from_psgi( $app->($request->to_psgi) );
-$res->dump;
+$res->dump(maxlength => 5000);
