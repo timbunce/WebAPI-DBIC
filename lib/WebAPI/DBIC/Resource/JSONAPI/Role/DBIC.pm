@@ -51,73 +51,81 @@ sub top_link_for_relname { # XXX cacheable
 }
 
 
+sub render_jsonapi_prefetch_rel {
+    my ($self, $set, $relname, $sub_rel, $top_links, $compound_links, $item_edit_rel_hooks) = @_;
+
+    my $rel_info = $set->result_class->relationship_info($relname);
+    my $result_class = $rel_info->{class}||die "panic";
+
+    my @idcolumns = $result_class->unique_constraint_columns('primary'); # XXX wrong
+    if (@idcolumns > 1) { # eg many-to-many that doesn't have a separate id
+        warn "Result class $result_class has multiple keys (@idcolumns) so relations like $relname won't have links generated.\n"
+            unless our $warn_once->{"$result_class $relname"}++;
+        return;
+    }
+
+    my ($top_link_key, $top_link_value) = $self->top_link_for_relname($relname)
+        or return;
+    $top_links->{$top_link_key} = $top_link_value;
+
+    my $rel_typename = $self->type_namer->type_name_for_result_class($rel_info->{class});
+
+    die "panic: item_edit_rel_hooks for $relname already defined"
+        if $item_edit_rel_hooks->{$relname};
+    $item_edit_rel_hooks->{$relname} = sub {
+        my ($jsonapi_obj, $row) = @_;
+
+        my $subitem = $row->$relname();
+
+        my $compound_links_for_rel = $compound_links->{$rel_typename} ||= {};
+
+        my $link_keys;
+        if (not defined $subitem) {
+            $link_keys = undef;
+        }
+        elsif ($subitem->isa('DBIx::Class::ResultSet')) { # one-to-many rel
+            $link_keys = [];
+            while (my $subrow = $subitem->next) {
+                my $id = $subrow->id;
+                push @$link_keys, $id;
+                $compound_links_for_rel->{$id} = $self->render_item_as_jsonapi_hash($subrow); # XXX typename
+            }
+        }
+        elsif ($subitem->isa('DBIx::Class::Row')) { # one-to-many rel
+            $link_keys = $subitem->id;
+            $compound_links_for_rel->{$subitem->id} = $self->render_item_as_jsonapi_hash($subitem); # XXX typename
+        }
+        else {
+            die "panic: don't know how to handle $row $relname value $subitem";
+        }
+
+        $jsonapi_obj->{links}{$rel_typename} = $link_keys;
+    }
+}
+
+
 sub render_jsonapi_response { # return top-level document hashref
     my ($self) = @_;
 
     my $set = $self->set;
 
-    my %item_edit_rel_hooks;
-
-    my %top_links;
-    my %compound_links;
+    my $top_links = {};
+    my $compound_links = {};
+    my $item_edit_rel_hooks = {};
 
     for my $prefetch (@{$self->prefetch||[]}) {
+        #warn "prefetch $prefetch";
+        next if $self->param('distinct');
+
         while (my ($relname, $sub_rel) = each %{$prefetch}){
-
-            next if $self->param('distinct');
-
-            #Dwarn
-            my $rel_info = $set->result_class->relationship_info($relname);
-            my $result_class = $rel_info->{class}||die "panic";
-
-            my @idcolumns = $result_class->unique_constraint_columns('primary'); # XXX wrong
-            if (@idcolumns > 1) { # eg many-to-many that doesn't have a separate id
-                warn "Result class $result_class has multiple keys (@idcolumns) so relations like $relname won't have links generated.\n"
-                    unless our $warn_once->{"$result_class $relname"}++;
-                next;
-            }
-
-            my ($top_link_key, $top_link_value) = $self->top_link_for_relname($relname)
-                or next;
-            $top_links{$top_link_key} = $top_link_value;
-
-            my $rel_typename = $self->type_namer->type_name_for_result_class($rel_info->{class});
-
-            $item_edit_rel_hooks{$relname} = sub { 
-                my ($jsonapi_obj, $row) = @_;
-
-                my $subitem = $row->$relname();
-
-                my $compound_links_for_rel = $compound_links{$rel_typename} ||= {};
-
-                my $link_keys;
-                if (not defined $subitem) {
-                    $link_keys = undef;
-                }
-                elsif ($subitem->isa('DBIx::Class::ResultSet')) { # one-to-many rel
-                    $link_keys = [];
-                    while (my $subrow = $subitem->next) {
-                        my $id = $subrow->id;
-                        push @$link_keys, $id;
-                        $compound_links_for_rel->{$id} = $self->render_item_as_jsonapi_hash($subrow); # XXX typename
-                    }
-                }
-                elsif ($subitem->isa('DBIx::Class::Row')) { # one-to-many rel
-                    $link_keys = $subitem->id;
-                    $compound_links_for_rel->{$subitem->id} = $self->render_item_as_jsonapi_hash($subitem); # XXX typename
-                }
-                else {
-                    die "panic: don't know how to handle $row $relname value $subitem";
-                }
-
-                $jsonapi_obj->{links}{$rel_typename} = $link_keys;
-            }
+            #warn "prefetch $prefetch - $relname, $sub_rel";
+            $self->render_jsonapi_prefetch_rel($set, $relname, $sub_rel, $top_links, $compound_links, $item_edit_rel_hooks);
         }
     }
 
     my $set_data = $self->render_set_as_array_of_jsonapi_resource_objects($set, undef, sub {
         my ($jsonapi_obj, $row) = @_;
-        $_->($jsonapi_obj, $row) for values %item_edit_rel_hooks;
+        $_->($jsonapi_obj, $row) for values %$item_edit_rel_hooks;
     });
 
     # construct top document to return
@@ -126,13 +134,13 @@ sub render_jsonapi_response { # return top-level document hashref
         $top_set_key => $set_data,
     };
 
-    if (keys %top_links) {
-        $top_doc->{links} = \%top_links
+    if (keys %$top_links) {
+        $top_doc->{links} = $top_links
     }
 
-    if (keys %compound_links) {
-        #Dwarn \%compound_links;
-        while ( my ($k, $v) = each %compound_links) {
+    if (keys %$compound_links) {
+        #Dwarn $compound_links;
+        while ( my ($k, $v) = each %$compound_links) {
             # sort just for test stability,
             $top_doc->{linked}{$k} = [ @{$v}{ sort keys %$v } ];
         }
