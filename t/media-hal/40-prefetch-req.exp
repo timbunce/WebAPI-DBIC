@@ -516,7 +516,111 @@ Content-type: application/hal+json
    }
 }
 
-=== multi type relation in prefetch on item (many_to_many via JSON)
+=== multi type relation in prefetch on item (many_to_many via JSON) ArrayRef Syntax
+Request:
+GET /cd/1?sort=cd_to_producer.producer PARAMS: prefetch~json=>[{"cd_to_producer"=>"producer"}]
+GET /cd/1?sort=cd_to_producer.producer&prefetch~json=%5B%7B%22cd_to_producer%22%3A%22producer%22%7D%5D
+Accept: application/hal+json,application/json
+Response:
+200 OK
+Content-type: application/hal+json
+{
+   "_embedded" : {
+      "cd_to_producer" : [
+         {
+            "_embedded" : {
+               "producer" : {
+                  "name" : "Matt S Trout",
+                  "producerid" : 1
+               }
+            },
+            "_links" : {
+               "cd" : {
+                  "href" : "/cd/1"
+               },
+               "producer" : {
+                  "href" : "/producer/1"
+               },
+               "self" : {
+                  "href" : "/cd_to_producer/1/1"
+               }
+            },
+            "attribute" : null,
+            "cd" : 1,
+            "producer" : 1
+         },
+         {
+            "_embedded" : {
+               "producer" : {
+                  "name" : "Bob The Builder",
+                  "producerid" : 2
+               }
+            },
+            "_links" : {
+               "cd" : {
+                  "href" : "/cd/1"
+               },
+               "producer" : {
+                  "href" : "/producer/2"
+               },
+               "self" : {
+                  "href" : "/cd_to_producer/1/2"
+               }
+            },
+            "attribute" : null,
+            "cd" : 1,
+            "producer" : 2
+         },
+         {
+            "_embedded" : {
+               "producer" : {
+                  "name" : "Fred The Phenotype",
+                  "producerid" : 3
+               }
+            },
+            "_links" : {
+               "cd" : {
+                  "href" : "/cd/1"
+               },
+               "producer" : {
+                  "href" : "/producer/3"
+               },
+               "self" : {
+                  "href" : "/cd_to_producer/1/3"
+               }
+            },
+            "attribute" : null,
+            "cd" : 1,
+            "producer" : 3
+         }
+      ]
+   },
+   "_links" : {
+      "artist" : {
+         "href" : "/artist/1"
+      },
+      "cd_to_producer" : {
+         "href" : "/cd_to_producer?me.cd=1"
+      },
+      "genre" : {
+         "href" : "/genre/1"
+      },
+      "self" : {
+         "href" : "/cd/1"
+      },
+      "tracks" : {
+         "href" : "/track?me.cd=1"
+      }
+   },
+   "artist" : 1,
+   "cdid" : 1,
+   "genreid" : 1,
+   "single_track" : null,
+   "title" : "Spoonful of bees",
+   "year" : "1999"
+}
+
+=== multi type relation in prefetch on item (many_to_many via JSON) HashRef Syntax
 Request:
 GET /cd/1?sort=cd_to_producer.producer PARAMS: prefetch~json=>{"cd_to_producer"=>"producer"}
 GET /cd/1?sort=cd_to_producer.producer&prefetch~json=%7B%22cd_to_producer%22%3A%22producer%22%7D

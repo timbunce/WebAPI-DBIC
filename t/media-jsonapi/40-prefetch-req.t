@@ -50,9 +50,16 @@ Name: multi type relation (has_many) in prefetch on set
 # Artist->search({}, {prefetch => 'cds'})
 GET /artist?prefetch=cds&order=me.artistid,cds.cdid&rows=2
 
-Name: multi type relation in prefetch on item (many_to_many via JSON)
+Name: multi type relation in prefetch on item (many_to_many via JSON) ArrayRef Syntax
 # Return all cds and all producers
-# cd->search({}, {prefetch => {cd_to_producers => 'producer'})
+# cd->search({}, {prefetch => [{cd_to_producers => 'producer'}])
+# many_to_many relationships are not true db relationships. As such you can't use a many_to_many
+# in a prefetch but must traverse the join.
+GET /cd/1 PARAMS: prefetch~json=>[{"cd_to_producer"=>"producer"}]
+
+Name: multi type relation in prefetch on item (many_to_many via JSON) HashRef Syntax
+# Return all cds and all producers
+# cd->search({}, {prefetch => [{cd_to_producers => 'producer'}])
 # many_to_many relationships are not true db relationships. As such you can't use a many_to_many
 # in a prefetch but must traverse the join.
 GET /cd/1 PARAMS: prefetch~json=>{"cd_to_producer"=>"producer"}

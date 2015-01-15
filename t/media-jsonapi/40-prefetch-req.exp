@@ -396,7 +396,31 @@ Content-type: application/vnd.api+json
    }
 }
 
-=== multi type relation in prefetch on item (many_to_many via JSON)
+=== multi type relation in prefetch on item (many_to_many via JSON) ArrayRef Syntax
+Request:
+GET /cd/1 PARAMS: prefetch~json=>[{"cd_to_producer"=>"producer"}]
+GET /cd/1?prefetch~json=%5B%7B%22cd_to_producer%22%3A%22producer%22%7D%5D
+Accept: application/vnd.api+json
+Response:
+200 OK
+Content-type: application/vnd.api+json
+{
+   "cd" : [
+      {
+         "artist" : 1,
+         "cdid" : 1,
+         "genreid" : 1,
+         "href" : "/cd/1",
+         "id" : 1,
+         "single_track" : null,
+         "title" : "Spoonful of bees",
+         "type" : "cd",
+         "year" : "1999"
+      }
+   ]
+}
+
+=== multi type relation in prefetch on item (many_to_many via JSON) HashRef Syntax
 Request:
 GET /cd/1 PARAMS: prefetch~json=>{"cd_to_producer"=>"producer"}
 GET /cd/1?prefetch~json=%7B%22cd_to_producer%22%3A%22producer%22%7D

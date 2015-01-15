@@ -164,7 +164,7 @@ sub _resolve_prefetch {
 
     if (ref $prefetch eq 'ARRAY') {
         push @return, map {
-            $self->_resolve_prefetch($_, $result_class)
+            @{$self->_resolve_prefetch($_, $result_class)}
         } @$prefetch;
     } elsif (ref $prefetch eq 'HASH') {
         for my $rel (keys %$prefetch) {
@@ -188,7 +188,7 @@ sub _resolve_prefetch {
                 push @errors, @validate_errors;
             } else {
                 push @return, {
-                    $rel => {},
+                    $rel => [{}],
                 };
             }
         }
