@@ -1083,3 +1083,40 @@ Content-type: application/hal+json
    "genreid" : 1
 }
 
+=== prefetch on item with id primary key #28
+Request:
+GET /country/1?prefetch=cities
+Accept: application/hal+json,application/json
+Response:
+200 OK
+Content-type: application/hal+json
+{
+   "_embedded" : {
+      "cities" : [
+         {
+            "_links" : {
+               "country" : {
+                  "href" : "/country/1"
+               },
+               "self" : {
+                  "href" : "/city/1"
+               }
+            },
+            "country_id" : 1,
+            "id" : 1,
+            "name" : "London"
+         }
+      ]
+   },
+   "_links" : {
+      "cities" : {
+         "href" : "/city?me.country_id=1"
+      },
+      "self" : {
+         "href" : "/country/1"
+      }
+   },
+   "id" : 1,
+   "name" : "England"
+}
+

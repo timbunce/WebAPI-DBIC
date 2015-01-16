@@ -85,3 +85,6 @@ GET /cd?rows=2&page=1&prefetch=artist,genre&fields=cdid,artist,genreid,genre.gen
 
 Name: prefetch on item with partial response of prefetched item
 GET /cd/1?prefetch=artist,genre&fields=cdid,artist,genreid,artist.artistid,genre.genreid
+
+Name: prefetch on item with id primary key #28
+GET /country/1?prefetch=cities
