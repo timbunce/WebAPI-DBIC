@@ -716,7 +716,7 @@ Content-type: application/vnd.api+json
 === prefetch on item with id primary key #28
 Request:
 GET /country/1?prefetch=cities
-Accept: application/vnd.api+json,application/json
+Accept: application/vnd.api+json
 Response:
 200 OK
 Content-type: application/vnd.api+json
@@ -726,9 +726,12 @@ Content-type: application/vnd.api+json
          "href" : "/country/1",
          "id" : 1,
          "links" : {
-            "city" : 1
+            "city" : [
+               1
+            ]
          },
-         "name" : "England"
+         "name" : "England",
+         "type" : "country"
       }
    ],
    "linked" : {
@@ -737,14 +740,16 @@ Content-type: application/vnd.api+json
             "country_id" : 1,
             "href" : "/city/1",
             "id" : 1,
-            "name" : "London"
+            "name" : "London",
+            "type" : "city"
          }
       ]
    },
    "links" : {
-      "country.city" : {
-         "href" : "/city/{city.city}",
+      "country.cities" : {
+         "href" : "/city?me.country_id={cities.id}",
          "type" : "city"
       }
    }
 }
+
