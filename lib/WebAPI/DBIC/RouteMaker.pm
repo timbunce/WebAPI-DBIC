@@ -169,6 +169,12 @@ sub make_root_route {
 sub make_routes_for {
     my ($self, $route_spec) = @_;
 
+    # route_spec:
+    #   'People'
+    #   { set => 'People', path => undef }
+    #   { set => $self->set->resultset('People'), path => undef }
+    #   WebAPI::DBIC::Route->new(...) - gets used directly
+
     my %opts;
 
     if (ref $route_spec eq 'HASH') {
@@ -191,9 +197,9 @@ sub make_routes_for {
         croak "Don't know how to convert '$route_spec' into to a DBIx::Class::ResultSet or WebAPI::DBIC::Resource::Role::Route";
     }
 
-    my $type_name = $self->type_namer->type_name_for_resultset($route_spec);
+    my $path = $opts{path} || $self->type_namer->type_name_for_resultset($route_spec);
 
-    return $self->make_routes_for_resultset($type_name, $route_spec, %opts);
+    return $self->make_routes_for_resultset($path, $route_spec, %opts);
 }
 
 

@@ -6,6 +6,8 @@ double/tripple query execution on items! and with/without me. (SQL differs by pr
 
 Things to do, or at least consider, before we stop being alpha:
 
+    Add tests and docs for RouteMaker make_routes_for args and options
+
     TODOs for JSON API:
     - provide "links" separately to prefetch logic
     - support collection urls, e.g. /photos/1,2,3
