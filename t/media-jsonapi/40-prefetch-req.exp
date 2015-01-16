@@ -713,3 +713,43 @@ Content-type: application/vnd.api+json
    }
 }
 
+=== prefetch on item with id primary key #28
+Request:
+GET /country/1?prefetch=cities
+Accept: application/vnd.api+json
+Response:
+200 OK
+Content-type: application/vnd.api+json
+{
+   "country" : [
+      {
+         "href" : "/country/1",
+         "id" : 1,
+         "links" : {
+            "city" : [
+               1
+            ]
+         },
+         "name" : "England",
+         "type" : "country"
+      }
+   ],
+   "linked" : {
+      "city" : [
+         {
+            "country_id" : 1,
+            "href" : "/city/1",
+            "id" : 1,
+            "name" : "London",
+            "type" : "city"
+         }
+      ]
+   },
+   "links" : {
+      "country.cities" : {
+         "href" : "/city?me.country_id={cities.id}",
+         "type" : "city"
+      }
+   }
+}
+

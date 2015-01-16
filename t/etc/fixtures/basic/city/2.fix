@@ -1,0 +1,5 @@
+$HASH1 = {
+    id => 2,
+    name => 'Edinburgh',
+    country_id => 2,
+};
