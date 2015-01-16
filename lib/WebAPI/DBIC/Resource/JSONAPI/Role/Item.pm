@@ -37,7 +37,7 @@ sub to_json_as_jsonapi {
     # XXX this narrowing ought to be moved elsewhere
     # it's a bad idea to be a side effect of to_json_as_jsonapi
     my @id_cols = $self->set->result_source->unique_constraint_columns( $self->id_unique_constraint_name );
-    @id_cols = map { "me.$_" } @id_cols;
+    @id_cols = map { $self->set->current_source_alias.".$_" } @id_cols;
     my %id_search; @id_search{ @id_cols } = @{ $self->id };
     $self->set( $self->set->search_rs(\%id_search) ); # narrow the set
 
