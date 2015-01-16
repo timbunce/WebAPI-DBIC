@@ -197,7 +197,7 @@ sub make_routes_for {
         croak "Don't know how to convert '$route_spec' into to a DBIx::Class::ResultSet or WebAPI::DBIC::Resource::Role::Route";
     }
 
-    my $path = $opts{path} || $self->type_namer->type_name_for_resultset($route_spec);
+    my $path = delete($opts{path}) || $self->type_namer->type_name_for_resultset($route_spec);
 
     return $self->make_routes_for_resultset($path, $route_spec, %opts);
 }
