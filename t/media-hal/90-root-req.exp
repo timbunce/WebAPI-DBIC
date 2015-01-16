@@ -47,6 +47,15 @@ Content-type: application/hal+json
          "templated" : true,
          "title" : "TestSchema CD"
       },
+      "city" : {
+         "href" : "/city",
+         "title" : "TestSchema City"
+      },
+      "city{/1}" : {
+         "href" : "/city{/1}",
+         "templated" : true,
+         "title" : "TestSchema City"
+      },
       "classic_albums" : {
          "href" : "/classic_albums",
          "title" : "TestSchema ClassicAlbums"
@@ -55,6 +64,15 @@ Content-type: application/hal+json
          "href" : "/classic_albums{/1}",
          "templated" : true,
          "title" : "TestSchema ClassicAlbums"
+      },
+      "country" : {
+         "href" : "/country",
+         "title" : "TestSchema Country"
+      },
+      "country{/1}" : {
+         "href" : "/country{/1}",
+         "templated" : true,
+         "title" : "TestSchema Country"
       },
       "genre" : {
          "href" : "/genre",
