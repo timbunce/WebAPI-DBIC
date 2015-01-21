@@ -66,50 +66,8 @@ sub create_resources_from_activemodel { # XXX unify with create_resource in SetW
 }
 
 
-# recurse to create resources in $activemodel->{_embedded}
-#   and update coresponding attributes in $activemodel
-# then create $activemodel itself
 sub _create_embedded_resources_from_activemodel {
     my ($self, $activemodel, $result_class) = @_;
-
-    my $links    = delete $activemodel->{_links};
-    my $meta     = delete $activemodel->{_meta};
-    my $embedded = delete $activemodel->{_embedded} || {};
-
-    for my $rel (keys %$embedded) {
-
-        my $rel_info = $result_class->relationship_info($rel)
-            or die "$result_class doesn't have a '$rel' relation\n";
-        die "$result_class _embedded $rel isn't a 'single' relationship\n"
-            if $rel_info->{attrs}{accessor} ne 'single';
-
-        my $rel_activemodel = $embedded->{$rel};
-        die "_embedded $rel data is not a hash\n"
-            if ref $rel_activemodel ne 'HASH';
-
-        # work out what keys to copy from the subitem we're about to create
-        my %fk_map;
-        my $cond = $rel_info->{cond};
-        for my $sub_field (keys %$cond) {
-            my $our_field = $cond->{$sub_field};
-            $our_field =~ s/^self\.//x    or confess "panic $rel $our_field";
-            $sub_field =~ s/^foreign\.//x or confess "panic $rel $sub_field";
-            $fk_map{$our_field} = $sub_field;
-
-            die "$result_class already contains a value for '$our_field'\n"
-                if defined $activemodel->{$our_field}; # null is ok
-        }
-
-        # create this subitem (and any resources embedded in it)
-        my $subitem = $self->_create_embedded_resources_from_activemodel($rel_activemodel, $rel_info->{source});
-
-        # copy the keys of the subitem up to the item we're about to create
-        warn "$result_class $rel: propagating keys: @{[ %fk_map ]}\n"
-            if $ENV{WEBAPI_DBIC_DEBUG};
-        while ( my ($ourfield, $subfield) = each %fk_map) {
-            $activemodel->{$ourfield} = $subitem->$subfield();
-        }
-    }
 
     return $self->set->result_source->schema->resultset($result_class)->create($activemodel);
 }

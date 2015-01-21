@@ -2,7 +2,7 @@ package WebAPI::DBIC::Resource::ActiveModel::Role::Item;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::ActiveModel::Role::Item - methods related to handling JSON API requests for item resources
+WebAPI::DBIC::Resource::ActiveModel::Role::Item - methods related to handling requests for item resources
 
 =head1 DESCRIPTION
 
@@ -11,7 +11,7 @@ for GET and HEAD requests for requests representing individual resources,
 e.g. a single row of a database table.
 
 The response is intended to be compatible with the Ember Data ActiveModelAdapter
-http://emberjs.com/api/data/classes/DS.ActiveModelAdapter.html
+L<http://emberjs.com/api/data/classes/DS.ActiveModelAdapter.html>
 
 =cut
 

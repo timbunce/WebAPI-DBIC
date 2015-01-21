@@ -11,40 +11,15 @@ Content-type: application/json
          "artist" : 1,
          "cdid" : 1,
          "genreid" : 1,
-         "href" : "/cd/1",
-         "id" : 1,
          "links" : {
             "artist" : 1,
             "genre" : 1
          },
          "single_track" : null,
          "title" : "Spoonful of bees",
-         "type" : "cd",
          "year" : "1999"
       }
-   ],
-   "linked" : {
-      "artist" : [
-         {
-            "artistid" : 1,
-            "charfield" : null,
-            "href" : "/artist/1",
-            "id" : 1,
-            "name" : "Caterwauler McCrae",
-            "rank" : 13,
-            "type" : "artist"
-         }
-      ],
-      "genre" : [
-         {
-            "genreid" : 1,
-            "href" : "/genre/1",
-            "id" : 1,
-            "name" : "emo",
-            "type" : "genre"
-         }
-      ]
-   }
+   ]
 }
 
 === prefetch on a set using two belongs_to relationships
@@ -60,62 +35,27 @@ Content-type: application/json
          "artist" : 1,
          "cdid" : 1,
          "genreid" : 1,
-         "href" : "/cd/1",
-         "id" : 1,
          "links" : {
             "artist" : 1,
             "genre" : 1
          },
          "single_track" : null,
          "title" : "Spoonful of bees",
-         "type" : "cd",
          "year" : "1999"
       },
       {
          "artist" : 1,
          "cdid" : 2,
          "genreid" : 2,
-         "href" : "/cd/2",
-         "id" : 2,
          "links" : {
             "artist" : 1,
             "genre" : 2
          },
          "single_track" : null,
          "title" : "Forkful of bees",
-         "type" : "cd",
          "year" : "2001"
       }
-   ],
-   "linked" : {
-      "artist" : [
-         {
-            "artistid" : 1,
-            "charfield" : null,
-            "href" : "/artist/1",
-            "id" : 1,
-            "name" : "Caterwauler McCrae",
-            "rank" : 13,
-            "type" : "artist"
-         }
-      ],
-      "genre" : [
-         {
-            "genreid" : 1,
-            "href" : "/genre/1",
-            "id" : 1,
-            "name" : "emo",
-            "type" : "genre"
-         },
-         {
-            "genreid" : 2,
-            "href" : "/genre/2",
-            "id" : 2,
-            "name" : "country",
-            "type" : "genre"
-         }
-      ]
-   }
+   ]
 }
 
 === filter on prefetched relation field
@@ -131,30 +71,14 @@ Content-type: application/json
          "artist" : 2,
          "cdid" : 4,
          "genreid" : 3,
-         "href" : "/cd/4",
-         "id" : 4,
          "links" : {
             "artist" : 2
          },
          "single_track" : null,
          "title" : "Generic Manufactured Singles",
-         "type" : "cd",
          "year" : "2001"
       }
-   ],
-   "linked" : {
-      "artist" : [
-         {
-            "artistid" : 2,
-            "charfield" : null,
-            "href" : "/artist/2",
-            "id" : 2,
-            "name" : "Random Boy Band",
-            "rank" : 13,
-            "type" : "artist"
-         }
-      ]
-   }
+   ]
 }
 
 === filter on prefetch with JSON
@@ -171,30 +95,14 @@ Content-type: application/json
          "artist" : 2,
          "cdid" : 4,
          "genreid" : 3,
-         "href" : "/cd/4",
-         "id" : 4,
          "links" : {
             "artist" : 2
          },
          "single_track" : null,
          "title" : "Generic Manufactured Singles",
-         "type" : "cd",
          "year" : "2001"
       }
-   ],
-   "linked" : {
-      "artist" : [
-         {
-            "artistid" : 2,
-            "charfield" : null,
-            "href" : "/artist/2",
-            "id" : 2,
-            "name" : "Random Boy Band",
-            "rank" : 13,
-            "type" : "artist"
-         }
-      ]
-   }
+   ]
 }
 
 === multi type relation (has_many) in prefetch on item
@@ -209,8 +117,6 @@ Content-type: application/json
       {
          "artistid" : 1,
          "charfield" : null,
-         "href" : "/artist/1",
-         "id" : 1,
          "links" : {
             "cd" : [
                1,
@@ -219,47 +125,9 @@ Content-type: application/json
             ]
          },
          "name" : "Caterwauler McCrae",
-         "rank" : 13,
-         "type" : "artist"
+         "rank" : 13
       }
-   ],
-   "linked" : {
-      "cd" : [
-         {
-            "artist" : 1,
-            "cdid" : 1,
-            "genreid" : 1,
-            "href" : "/cd/1",
-            "id" : 1,
-            "single_track" : null,
-            "title" : "Spoonful of bees",
-            "type" : "cd",
-            "year" : "1999"
-         },
-         {
-            "artist" : 1,
-            "cdid" : 2,
-            "genreid" : 2,
-            "href" : "/cd/2",
-            "id" : 2,
-            "single_track" : null,
-            "title" : "Forkful of bees",
-            "type" : "cd",
-            "year" : "2001"
-         },
-         {
-            "artist" : 1,
-            "cdid" : 3,
-            "genreid" : 2,
-            "href" : "/cd/3",
-            "id" : 3,
-            "single_track" : null,
-            "title" : "Caterwaulin' Blues",
-            "type" : "cd",
-            "year" : "1997"
-         }
-      ]
-   }
+   ]
 }
 
 === multi type relation (has_many) in prefetch on set
@@ -274,8 +142,6 @@ Content-type: application/json
       {
          "artistid" : 1,
          "charfield" : null,
-         "href" : "/artist/1",
-         "id" : 1,
          "links" : {
             "cd" : [
                1,
@@ -284,72 +150,20 @@ Content-type: application/json
             ]
          },
          "name" : "Caterwauler McCrae",
-         "rank" : 13,
-         "type" : "artist"
+         "rank" : 13
       },
       {
          "artistid" : 2,
          "charfield" : null,
-         "href" : "/artist/2",
-         "id" : 2,
          "links" : {
             "cd" : [
                4
             ]
          },
          "name" : "Random Boy Band",
-         "rank" : 13,
-         "type" : "artist"
+         "rank" : 13
       }
-   ],
-   "linked" : {
-      "cd" : [
-         {
-            "artist" : 1,
-            "cdid" : 1,
-            "genreid" : 1,
-            "href" : "/cd/1",
-            "id" : 1,
-            "single_track" : null,
-            "title" : "Spoonful of bees",
-            "type" : "cd",
-            "year" : "1999"
-         },
-         {
-            "artist" : 1,
-            "cdid" : 2,
-            "genreid" : 2,
-            "href" : "/cd/2",
-            "id" : 2,
-            "single_track" : null,
-            "title" : "Forkful of bees",
-            "type" : "cd",
-            "year" : "2001"
-         },
-         {
-            "artist" : 1,
-            "cdid" : 3,
-            "genreid" : 2,
-            "href" : "/cd/3",
-            "id" : 3,
-            "single_track" : null,
-            "title" : "Caterwaulin' Blues",
-            "type" : "cd",
-            "year" : "1997"
-         },
-         {
-            "artist" : 2,
-            "cdid" : 4,
-            "genreid" : 3,
-            "href" : "/cd/4",
-            "id" : 4,
-            "single_track" : null,
-            "title" : "Generic Manufactured Singles",
-            "type" : "cd",
-            "year" : "2001"
-         }
-      ]
-   }
+   ]
 }
 
 === multi type relation in prefetch on item (many_to_many via JSON) ArrayRef Syntax
@@ -366,11 +180,8 @@ Content-type: application/json
          "artist" : 1,
          "cdid" : 1,
          "genreid" : 1,
-         "href" : "/cd/1",
-         "id" : 1,
          "single_track" : null,
          "title" : "Spoonful of bees",
-         "type" : "cd",
          "year" : "1999"
       }
    ]
@@ -390,11 +201,8 @@ Content-type: application/json
          "artist" : 1,
          "cdid" : 1,
          "genreid" : 1,
-         "href" : "/cd/1",
-         "id" : 1,
          "single_track" : null,
          "title" : "Spoonful of bees",
-         "type" : "cd",
          "year" : "1999"
       }
    ]
@@ -413,33 +221,15 @@ Content-type: application/json
       {
          "artistid" : 1,
          "charfield" : null,
-         "href" : "/artist/1",
-         "id" : 1,
          "links" : {
             "cd" : [
                1
             ]
          },
          "name" : "Caterwauler McCrae",
-         "rank" : 13,
-         "type" : "artist"
+         "rank" : 13
       }
-   ],
-   "linked" : {
-      "cd" : [
-         {
-            "artist" : 1,
-            "cdid" : 1,
-            "genreid" : 1,
-            "href" : "/cd/1",
-            "id" : 1,
-            "single_track" : null,
-            "title" : "Spoonful of bees",
-            "type" : "cd",
-            "year" : "1999"
-         }
-      ]
-   }
+   ]
 }
 
 === prefetch with query on ambiguous field
@@ -455,58 +245,36 @@ Content-type: application/json
          "artist" : 1,
          "cdid" : 1,
          "genreid" : 1,
-         "href" : "/cd/1",
-         "id" : 1,
          "links" : {
             "artist" : 1
          },
          "single_track" : null,
          "title" : "Spoonful of bees",
-         "type" : "cd",
          "year" : "1999"
       },
       {
          "artist" : 1,
          "cdid" : 2,
          "genreid" : 2,
-         "href" : "/cd/2",
-         "id" : 2,
          "links" : {
             "artist" : 1
          },
          "single_track" : null,
          "title" : "Forkful of bees",
-         "type" : "cd",
          "year" : "2001"
       },
       {
          "artist" : 1,
          "cdid" : 3,
          "genreid" : 2,
-         "href" : "/cd/3",
-         "id" : 3,
          "links" : {
             "artist" : 1
          },
          "single_track" : null,
          "title" : "Caterwaulin' Blues",
-         "type" : "cd",
          "year" : "1997"
       }
-   ],
-   "linked" : {
-      "artist" : [
-         {
-            "artistid" : 1,
-            "charfield" : null,
-            "href" : "/artist/1",
-            "id" : 1,
-            "name" : "Caterwauler McCrae",
-            "rank" : 13,
-            "type" : "artist"
-         }
-      ]
-   }
+   ]
 }
 
 === prefetch on invalid name
@@ -548,51 +316,21 @@ Content-type: application/json
          "artist" : 1,
          "cdid" : 1,
          "genreid" : 1,
-         "href" : "/cd/1",
-         "id" : 1,
          "links" : {
             "artist" : 1,
             "genre" : 1
-         },
-         "type" : "cd"
+         }
       },
       {
          "artist" : 1,
          "cdid" : 2,
          "genreid" : 2,
-         "href" : "/cd/2",
-         "id" : 2,
          "links" : {
             "artist" : 1,
             "genre" : 2
-         },
-         "type" : "cd"
+         }
       }
-   ],
-   "linked" : {
-      "artist" : [
-         {
-            "artistid" : 1,
-            "href" : "/artist/1",
-            "id" : 1,
-            "type" : "artist"
-         }
-      ],
-      "genre" : [
-         {
-            "genreid" : 1,
-            "href" : "/genre/1",
-            "id" : 1,
-            "type" : "genre"
-         },
-         {
-            "genreid" : 2,
-            "href" : "/genre/2",
-            "id" : 2,
-            "type" : "genre"
-         }
-      ]
-   }
+   ]
 }
 
 === prefetch on item with partial response of prefetched item
@@ -608,33 +346,12 @@ Content-type: application/json
          "artist" : 1,
          "cdid" : 1,
          "genreid" : 1,
-         "href" : "/cd/1",
-         "id" : 1,
          "links" : {
             "artist" : 1,
             "genre" : 1
-         },
-         "type" : "cd"
+         }
       }
-   ],
-   "linked" : {
-      "artist" : [
-         {
-            "artistid" : 1,
-            "href" : "/artist/1",
-            "id" : 1,
-            "type" : "artist"
-         }
-      ],
-      "genre" : [
-         {
-            "genreid" : 1,
-            "href" : "/genre/1",
-            "id" : 1,
-            "type" : "genre"
-         }
-      ]
-   }
+   ]
 }
 
 === prefetch on item with id primary key #28
@@ -647,27 +364,14 @@ Content-type: application/json
 {
    "country" : [
       {
-         "href" : "/country/1",
          "id" : 1,
          "links" : {
             "city" : [
                1
             ]
          },
-         "name" : "England",
-         "type" : "country"
+         "name" : "England"
       }
-   ],
-   "linked" : {
-      "city" : [
-         {
-            "country_id" : 1,
-            "href" : "/city/1",
-            "id" : 1,
-            "name" : "London",
-            "type" : "city"
-         }
-      ]
-   }
+   ]
 }
 

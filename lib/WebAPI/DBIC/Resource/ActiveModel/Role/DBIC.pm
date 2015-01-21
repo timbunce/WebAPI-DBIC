@@ -111,14 +111,14 @@ sub render_activemodel_response { # return top-level document hashref
     };
 
     if (keys %$top_links) {
-        $top_doc->{links} = $top_links
+#        $top_doc->{links} = $top_links
     }
 
     if (keys %$compound_links) {
         #Dwarn $compound_links;
         while ( my ($k, $v) = each %$compound_links) {
             # sort just for test stability,
-            $top_doc->{linked}{$k} = [ @{$v}{ sort keys %$v } ];
+#            $top_doc->{linked}{$k} = [ @{$v}{ sort keys %$v } ];
         }
     }
 
@@ -138,9 +138,9 @@ sub render_item_as_activemodel_hash {
 
     my $data = $self->render_item_as_plain_hash($item);
 
-    $data->{id} //= $item->id;
-    $data->{type} = $self->type_namer->type_name_for_result_class($item->result_source->result_class);
-    $data->{href} = $self->path_for_item($item);
+#    $data->{id} //= $item->id;
+#    $data->{type} = $self->type_namer->type_name_for_result_class($item->result_source->result_class);
+#    $data->{href} = $self->path_for_item($item);
 
     #$self->_render_prefetch_activemodel($item, $data, $_) for @{$self->prefetch||[]};
 
@@ -190,43 +190,6 @@ sub render_set_as_array_of_activemodel_resource_objects {
 
 
 
-
-sub _activemodel_page_links {
-    my ($self, $set, $base, $page_items, $total_items) = @_;
-
-    # XXX we ought to allow at least the self link when not pages
-    return () unless $set->is_paged;
-
-    # XXX we break encapsulation here, sadly, because calling
-    # $set->pager->current_page triggers a "select count(*)".
-    # XXX When we're using a later version of DBIx::Class we can use this:
-    # https://metacpan.org/source/RIBASUSHI/DBIx-Class-0.08208/lib/DBIx/Class/ResultSet/Pager.pm
-    # and do something like $rs->pager->total_entries(sub { 99999999 })
-    my $rows = $set->{attrs}{rows} or confess "panic: rows not set";
-    my $page = $set->{attrs}{page} or confess "panic: page not set";
-
-    # XXX this self link this should probably be subtractive, ie include all
-    # params by default except any known to cause problems
-    my $url = $self->add_params_to_url($base, { distinct=>1, with=>1, me=>1 }, { rows => $rows });
-    my $linkurl = $url->as_string;
-    $linkurl .= "&page="; # hack to optimize appending page 5 times below
-
-    my @link_kvs;
-    push @link_kvs, self  => {
-        href => $linkurl.($page),
-        title => $set->result_class,
-    };
-    push @link_kvs, next  => { href => $linkurl.($page+1) }
-        if $page_items == $rows;
-    push @link_kvs, prev  => { href => $linkurl.($page-1) }
-        if $page > 1;
-    push @link_kvs, first => { href => $linkurl.1 }
-        if $page > 1;
-    push @link_kvs, last  => { href => $linkurl.$set->pager->last_page }
-        if $total_items and $page != $set->pager->last_page;
-
-    return @link_kvs;
-}
 
 
 1;

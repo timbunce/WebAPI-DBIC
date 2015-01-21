@@ -32,8 +32,9 @@ L<Path::Router> as the router. (Other routers could be supported.)
 
 * The resource roles can be added to your existing application.
 
-* Rich support for multiple hypermedia types, including JSON API
-(application/vnd.api+json) and HAL (application/hal+json).
+* Rich support for multiple hypermedia types, including ActiveModel / Ember-Data
+(application/json), JSON API (application/vnd.api+json)
+and HAL (application/hal+json).
 The Collection+JSON and JSON-LD hypermedia types could be added in future.
 
 * Automatic detection and exposure of result set relationships.
@@ -45,6 +46,19 @@ DBIx::Class schema.
 
 * Includes a generic HAL API browser application so you can be browsing your
 new API in minutes.
+
+=head2 ActiveModel - For Ember and similar front-end frameworks
+
+Designed to match the output of the active_model_serializers Ruby gem
+and thus be directly usable as a backend for frameworks compatible withit,
+including Ember.
+
+This uses the C<application/json> media type.
+
+Support for ActiveModel is new and likely to be unstable at the fringes. 
+
+See L<http://emberjs.com/api/data/classes/DS.ActiveModelAdapter.html>
+for more information.
 
 =head2 HAL - Hypertext Application Language
 
@@ -73,13 +87,12 @@ achieved without compromising readability, flexibility, and discoverability.
 
 See L<http://jsonapi.org/> for more details.
 
-For Ember, L<https://github.com/kurko/ember-json-api> can be used as an adaptor.
+Development of JSON API support for WebAPI::DBIC has stalled due to instability
+of the specification as it moves towards an official 1.0 release.  See, for example,
+L<https://github.com/json-api/json-api/issues/159#issuecomment-70675184>
 
-Support for JSON API within WebAPI::DBIC is maturing rapidly.
-
-Fetching compound documents, including "links" data (relationship templates)
-and "linked" (side-loaded/prefetch) resources, is supported.
-The sort= parameter is supported, in it's simple form.
+For Ember, L<https://github.com/kurko/ember-json-api> can be used as an adaptor
+but has it's own set of issues. I'd recommend using ActiveModel, described above, instead.
 
 =head2 Web::Machine
 

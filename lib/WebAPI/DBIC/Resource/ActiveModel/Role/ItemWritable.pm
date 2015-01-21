@@ -29,9 +29,13 @@ around '_build_content_types_accepted' => sub {
 
 sub from_activemodel_json {
     my $self = shift;
+
     $self->_pre_update_resource_method( "_do_update_embedded_resources_activemodel" );
+
     my $data = $self->decode_json( $self->request->content );
+
     $self->update_resource($data, is_put_replace => 0);
+
     return;
 }
 
@@ -39,8 +43,6 @@ sub from_activemodel_json {
 sub _do_update_embedded_resources_activemodel {
     my ($self, $item, $activemodel, $result_class) = @_;
 
-    my $links    = delete $activemodel->{_links};
-    my $meta     = delete $activemodel->{_meta};
     my $embedded = delete $activemodel->{_embedded} || {};
 
     for my $rel (keys %$embedded) {

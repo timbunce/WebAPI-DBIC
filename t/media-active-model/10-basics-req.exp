@@ -10,11 +10,8 @@ Content-type: application/json
       {
          "artistid" : 1,
          "charfield" : null,
-         "href" : "/artist/1",
-         "id" : 1,
          "name" : "Caterwauler McCrae",
-         "rank" : 13,
-         "type" : "artist"
+         "rank" : 13
       }
    ]
 }
@@ -31,11 +28,8 @@ Content-type: application/json
       {
          "artistid" : 2,
          "charfield" : null,
-         "href" : "/artist/2",
-         "id" : 2,
          "name" : "Random Boy Band",
-         "rank" : 13,
-         "type" : "artist"
+         "rank" : 13
       }
    ]
 }
@@ -52,56 +46,38 @@ Content-type: application/json
       {
          "artistid" : 1,
          "charfield" : null,
-         "href" : "/artist/1",
-         "id" : 1,
          "name" : "Caterwauler McCrae",
-         "rank" : 13,
-         "type" : "artist"
+         "rank" : 13
       },
       {
          "artistid" : 2,
          "charfield" : null,
-         "href" : "/artist/2",
-         "id" : 2,
          "name" : "Random Boy Band",
-         "rank" : 13,
-         "type" : "artist"
+         "rank" : 13
       },
       {
          "artistid" : 3,
          "charfield" : null,
-         "href" : "/artist/3",
-         "id" : 3,
          "name" : "We Are Goth",
-         "rank" : 13,
-         "type" : "artist"
+         "rank" : 13
       },
       {
          "artistid" : 4,
          "charfield" : null,
-         "href" : "/artist/4",
-         "id" : 4,
          "name" : "KielbaSka",
-         "rank" : 13,
-         "type" : "artist"
+         "rank" : 13
       },
       {
          "artistid" : 5,
          "charfield" : null,
-         "href" : "/artist/5",
-         "id" : 5,
          "name" : "Gruntfiddle",
-         "rank" : 13,
-         "type" : "artist"
+         "rank" : 13
       },
       {
          "artistid" : 6,
          "charfield" : null,
-         "href" : "/artist/6",
-         "id" : 6,
          "name" : "A-ha Na Na",
-         "rank" : 13,
-         "type" : "artist"
+         "rank" : 13
       }
    ]
 }
@@ -117,10 +93,7 @@ Content-type: application/json
    "gig" : [
       {
          "artistid" : 1,
-         "gig_datetime" : "2014-01-01T01:01:01Z",
-         "href" : "/gig/1/2014-01-01T01:01:01Z",
-         "id" : 1,
-         "type" : "gig"
+         "gig_datetime" : "2014-01-01T01:01:01Z"
       }
    ]
 }
@@ -136,10 +109,7 @@ Content-type: application/json
    "gig" : [
       {
          "artistid" : 2,
-         "gig_datetime" : "2014-06-30T19:00:00Z",
-         "href" : "/gig/2/2014-06-30T19:00:00Z",
-         "id" : 2,
-         "type" : "gig"
+         "gig_datetime" : "2014-06-30T19:00:00Z"
       }
    ]
 }
@@ -157,31 +127,22 @@ Content-type: application/json
          "artist" : "Caterwauler McCrae",
          "cdid" : 1,
          "genre" : "emo",
-         "href" : "/classic_albums/1",
-         "id" : 1,
          "release_year" : "1999",
-         "title" : "Spoonful of bees",
-         "type" : "classic_albums"
+         "title" : "Spoonful of bees"
       },
       {
          "artist" : "Caterwauler McCrae",
          "cdid" : 3,
          "genre" : "country",
-         "href" : "/classic_albums/3",
-         "id" : 3,
          "release_year" : "1997",
-         "title" : "Caterwaulin' Blues",
-         "type" : "classic_albums"
+         "title" : "Caterwaulin' Blues"
       },
       {
          "artist" : "We Are Goth",
          "cdid" : 5,
          "genre" : "goth",
-         "href" : "/classic_albums/5",
-         "id" : 5,
          "release_year" : "1998",
-         "title" : "Come Be Depressed With Us",
-         "type" : "classic_albums"
+         "title" : "Come Be Depressed With Us"
       }
    ]
 }
