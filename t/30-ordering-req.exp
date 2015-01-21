@@ -1,9 +1,10 @@
 === order by PK asc
 Request:
 GET /cd?order=me.cdid
+Accept: application/vnd.wapid+json
 Response:
 200 OK
-Content-type: application/json
+Content-type: application/vnd.wapid+json
 [
    {
       "artist" : 1,
@@ -50,9 +51,10 @@ Content-type: application/json
 === order by PK desc
 Request:
 GET /cd?order=me.cdid%20desc&fields=cdid,year
+Accept: application/vnd.wapid+json
 Response:
 200 OK
-Content-type: application/json
+Content-type: application/vnd.wapid+json
 [
    {
       "cdid" : 5,
@@ -79,9 +81,10 @@ Content-type: application/json
 === order by year desc and title desc
 Request:
 GET /cd?sort=me.year%20desc,title%20desc&fields=cdid,year,title
+Accept: application/vnd.wapid+json
 Response:
 200 OK
-Content-type: application/json
+Content-type: application/vnd.wapid+json
 [
    {
       "cdid" : 4,
@@ -113,9 +116,10 @@ Content-type: application/json
 === order by year desc and title desc using JSON API style
 Request:
 GET /cd?sort=-year,-title&fields=cdid,year,title
+Accept: application/vnd.wapid+json
 Response:
 200 OK
-Content-type: application/json
+Content-type: application/vnd.wapid+json
 [
    {
       "cdid" : 4,

@@ -21,6 +21,7 @@ done_testing();
 
 __DATA__
 Config:
+Accept: application/vnd.wapid+json
 
 Name: get 1 row
 GET /artist?rows=1

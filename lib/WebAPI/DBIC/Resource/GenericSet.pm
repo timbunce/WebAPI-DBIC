@@ -12,6 +12,10 @@ use namespace::clean;
 extends 'WebAPI::DBIC::Resource::GenericCore';
 with    'WebAPI::DBIC::Resource::Role::Set',
         'WebAPI::DBIC::Resource::Role::SetWritable',
+        # Enable ActiveModel support:
+        'WebAPI::DBIC::Resource::ActiveModel::Role::DBIC', # XXX move out?
+        'WebAPI::DBIC::Resource::ActiveModel::Role::Set',
+        'WebAPI::DBIC::Resource::ActiveModel::Role::SetWritable',
         # Enable HAL support:
         'WebAPI::DBIC::Resource::HAL::Role::DBIC', # XXX move out?
         'WebAPI::DBIC::Resource::HAL::Role::Set',

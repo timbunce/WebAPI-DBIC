@@ -188,9 +188,9 @@ sub dsreq {
     $headers = (blessed $headers)
         ? $headers->clone
         : HTTP::Headers->new(@{$headers||[]});
-    $headers->init_header('Content-Type' => 'application/json')
+    $headers->init_header('Content-Type' => 'application/vnd.wapid+json')
         unless $headers->header('Content-Type');
-    $headers->init_header('Accept' => 'application/json')
+    $headers->init_header('Accept' => 'application/vnd.wapid+json')
         unless $headers->header('Accept');
     $headers->authorization_basic(_get_authorization_user_pass())
         unless $headers->header('Authorization');
@@ -207,7 +207,7 @@ sub dsreq {
 
 sub dsresp_json_data {
     my ($res) = @_;
-    return undef unless $res->header('Content-type') =~ qr{^application/(?:hal\+)?json$};
+    return undef unless $res->header('Content-type') =~ qr{^application/.*json$};
     return undef unless $res->header('Content-Length');
     my $content = $res->content;
     my $data = JSON->new->decode($content);

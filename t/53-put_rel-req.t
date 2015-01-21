@@ -59,6 +59,7 @@ done_testing();
 
 __DATA__
 Config:
+Accept: application/vnd.wapid+json
 
 Name: POST to the set to create a Track to edit (on an existing CD)
 POST /track?prefetch=self

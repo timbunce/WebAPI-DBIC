@@ -4,7 +4,6 @@
 use lib 't/lib';
 use TestKit;
 
-
 fixtures_ok [qw/basic/];
 
 subtest '===== basics - specs =====' => sub {
@@ -22,7 +21,7 @@ done_testing();
 
 __DATA__
 Config:
-Accept: application/vnd.wapid+json
+Accept: application/json
 
 Name: get single item
 GET /artist/1

@@ -9,8 +9,6 @@ WebAPI::DBIC::Resource::Role::Item - methods related to handling requests for it
 Handles GET and HEAD requests for requests representing individual resources,
 e.g. a single row of a database table.
 
-Supports the C<application/json> content types.
-
 =cut
 
 use Moo::Role;
@@ -51,7 +49,7 @@ has content_types_provided => (
 );
 
 sub _build_content_types_provided {
-    return [ { 'application/json' => 'to_json_as_plain' } ]
+    return [ { 'application/vnd.wapid+json' => 'to_json_as_plain' } ]
 }
 
 sub to_json_as_plain { return $_[0]->encode_json($_[0]->render_item_as_plain_hash($_[0]->item)) }
