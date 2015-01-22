@@ -44,6 +44,7 @@ sub render_activemodel_prefetch_rel {
     my $link_url_templated = $self->get_url_template_for_set_relationship($self->set, $relname);
     return if not defined $link_url_templated;
 
+    # TODO: This is not a type_name, need to decide what to call it and treat it differently
     my $rel_typename = $self->type_namer->type_name_for_result_class($rel_info->{class});
 
     die "panic: item_edit_rel_hooks for $relname already defined"
@@ -75,7 +76,7 @@ sub render_activemodel_prefetch_rel {
             die "panic: don't know how to handle $row $relname value $subitem";
         }
 
-        $activemodel_obj->{links}{$rel_typename} = $link_keys;
+        $activemodel_obj->{$rel_typename} = $link_keys;
     }
 }
 
