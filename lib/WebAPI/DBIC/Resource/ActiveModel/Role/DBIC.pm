@@ -29,7 +29,7 @@ sub activemodel_type {
 
 
 sub render_activemodel_prefetch_rel {
-    my ($self, $set, $relname, $sub_rel, $top_links, $compound_links, $item_edit_rel_hooks) = @_;
+    my ($self, $set, $relname, $sub_rel, $top_links, $rel_sets, $item_edit_rel_hooks) = @_;
 
     my $rel_info = $set->result_class->relationship_info($relname);
     my $result_class = $rel_info->{class}||die "panic";
@@ -44,17 +44,17 @@ sub render_activemodel_prefetch_rel {
     my $link_url_templated = $self->get_url_template_for_set_relationship($self->set, $relname);
     return if not defined $link_url_templated;
 
-    # TODO: This is not a type_name, need to decide what to call it and treat it differently
     my $rel_typename = $self->type_namer->type_name_for_result_class($rel_info->{class});
 
     die "panic: item_edit_rel_hooks for $relname already defined"
         if $item_edit_rel_hooks->{$relname};
+
     $item_edit_rel_hooks->{$relname} = sub {
         my ($activemodel_obj, $row) = @_;
 
         my $subitem = $row->$relname();
 
-        my $compound_links_for_rel = $compound_links->{$rel_typename} ||= {};
+        my $related_set = $rel_sets->{$rel_typename} ||= {};
 
         my $link_keys;
         if (not defined $subitem) {
@@ -65,18 +65,22 @@ sub render_activemodel_prefetch_rel {
             while (my $subrow = $subitem->next) {
                 my $id = $subrow->id;
                 push @$link_keys, $id;
-                $compound_links_for_rel->{$id} = $self->render_item_as_activemodel_hash($subrow); # XXX typename
+                $related_set->{$id} = $self->render_item_as_activemodel_hash($subrow); # XXX typename
             }
         }
-        elsif ($subitem->isa('DBIx::Class::Row')) { # one-to-many rel
+        elsif ($subitem->isa('DBIx::Class::Row')) { # one-to-one rel
             $link_keys = $subitem->id;
-            $compound_links_for_rel->{$subitem->id} = $self->render_item_as_activemodel_hash($subitem); # XXX typename
+            $related_set->{$subitem->id} = $self->render_item_as_activemodel_hash($subitem); # XXX typename
         }
         else {
             die "panic: don't know how to handle $row $relname value $subitem";
         }
 
+        # TODO: This should use the relationship name, not the type_name
         $activemodel_obj->{$rel_typename} = $link_keys;
+
+        # TODO: determine the correct way to use the 'links' key
+        $activemodel_obj->{'links'}->{$rel_typename} = "'$link_url_templated'";
     }
 }
 
@@ -87,7 +91,7 @@ sub render_activemodel_response { # return top-level document hashref
     my $set = $self->set;
 
     my $top_links = {};
-    my $compound_links = {};
+    my $rel_sets = {};
     my $item_edit_rel_hooks = {};
 
     for my $prefetch (@{$self->prefetch||[]}) {
@@ -96,7 +100,7 @@ sub render_activemodel_response { # return top-level document hashref
 
         while (my ($relname, $sub_rel) = each %{$prefetch}){
             #warn "prefetch $prefetch - $relname, $sub_rel";
-            $self->render_activemodel_prefetch_rel($set, $relname, $sub_rel, $top_links, $compound_links, $item_edit_rel_hooks);
+            $self->render_activemodel_prefetch_rel($set, $relname, $sub_rel, $top_links, $rel_sets, $item_edit_rel_hooks);
         }
     }
 
@@ -112,14 +116,14 @@ sub render_activemodel_response { # return top-level document hashref
     };
 
     if (keys %$top_links) {
-#        $top_doc->{links} = $top_links
+        # $top_doc = { %{$top_links}, %{$top_doc} };
+        # TODO: figure out what to do with the top_links
     }
 
-    if (keys %$compound_links) {
-        #Dwarn $compound_links;
-        while ( my ($k, $v) = each %$compound_links) {
+    if (keys %$rel_sets) {
+        while ( my ($k, $v) = each %$rel_sets) {
             # sort just for test stability,
-#            $top_doc->{linked}{$k} = [ @{$v}{ sort keys %$v } ];
+            $top_doc->{$k} = [ @{$v}{ sort keys %$v } ];
         }
     }
 
