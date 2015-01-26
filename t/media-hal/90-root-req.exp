@@ -19,6 +19,11 @@ Content-type: application/hal+json
          "href" : "/artist",
          "title" : "TestSchema Artist"
       },
+      "artistinvoke{/method}" : {
+         "href" : "/artistinvoke{/method}",
+         "templated" : true,
+         "title" : "TestSchema Artist"
+      },
       "artist{/1}" : {
          "href" : "/artist{/1}",
          "templated" : true,

@@ -136,6 +136,10 @@ sub make_routes_for_set {
         },
     );
 
+    # XXX temporary hack just for testing
+    push @$methods, 'count'
+        if $set->result_class eq 'TestSchema::Result::Artist';
+
     push @routes, WebAPI::DBIC::Route->new( # method call on set
         path => "$path/invoke/:method",
         validations => { method => _qr_names(@$methods) },

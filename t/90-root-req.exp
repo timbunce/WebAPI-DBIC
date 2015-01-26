@@ -18,6 +18,7 @@ Content-type: application/json
       "/artist" : "TestSchema Artist",
       "/artist/:1" : "TestSchema Artist",
       "/artist/:1/invoke/:method" : "TestSchema Artist",
+      "/artist/invoke/:method" : "TestSchema Artist",
       "/cd" : "TestSchema CD",
       "/cd/:1" : "TestSchema CD",
       "/cd_to_producer" : "TestSchema CD_to_Producer",

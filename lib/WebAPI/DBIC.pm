@@ -174,6 +174,10 @@ L<WebAPI::DBIC::Resource::Role::ItemInvoke> is responsible for accepting POST
 requests for single item resources representing the invocation of a specific
 method on an item (e.g. POST /widget/42/invoke/my_method_name?args=...).
 
+L<WebAPI::DBIC::Resource::Role::SetInvoke> is responsible for accepting POST
+requests for set resources representing the invocation of a specific
+method on a result set (e.g. POST /widget/invoke/my_method_name?args=...).
+
 L<WebAPI::DBIC::Resource::Role::DBICAuth> is responsible for checking
 authorization to access a resource. It currently supports Basic Authentication,
 using the DBI DSN as the realm name and the return username and password as the
