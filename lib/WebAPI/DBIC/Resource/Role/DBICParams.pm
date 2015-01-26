@@ -85,7 +85,8 @@ sub handle_request_params {
 
         my $method = "_handle_${param}_param";
         unless ($self->can($method)) {
-            die "The $param parameter is not supported by the $self resource\n";
+            warn "The $param parameter is not supported by the $self resource\n";
+            next;
         }
         $self->$method($value, $param);
     }
