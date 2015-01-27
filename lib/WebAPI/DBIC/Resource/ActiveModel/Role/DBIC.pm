@@ -31,6 +31,7 @@ sub activemodel_type {
 sub traverse_prefetch {
     my $self = shift;
     my $set = shift;
+    my $parent_rel = shift;
     my $prefetch = shift;
     my $rel_fcn = shift;
     my @rel_fcn_args = @_;
@@ -38,18 +39,18 @@ sub traverse_prefetch {
     return unless($prefetch);
 
     if($prefetch && !ref($prefetch)) {
-        $self->$rel_fcn($set, $prefetch, @rel_fcn_args);
+        $self->$rel_fcn($set, $parent_rel, $prefetch, @rel_fcn_args);
     }
     elsif(ref($prefetch) eq 'HASH') {
         while(my ($prefetch_key, $prefetch_value) = each(%{$prefetch})) {
-            $self->traverse_prefetch($set, $prefetch_key, $rel_fcn, @rel_fcn_args);
+            $self->traverse_prefetch($set, $parent_rel, $prefetch_key, $rel_fcn, @rel_fcn_args);
             my $result_subclass = $set->result_class->relationship_info($prefetch_key)->{class};
-            $self->traverse_prefetch($result_subclass, $prefetch_value, $rel_fcn, @rel_fcn_args);
+            $self->traverse_prefetch($result_subclass, $prefetch_key, $prefetch_value, $rel_fcn, @rel_fcn_args);
         }
     }
     elsif(ref($prefetch) eq 'ARRAY') {
         for my $sub_prefetch(@{$prefetch}) {
-            $self->traverse_prefetch($set, $sub_prefetch, $rel_fcn, @rel_fcn_args);
+            $self->traverse_prefetch($set, $parent_rel, $sub_prefetch, $rel_fcn, @rel_fcn_args);
         }
     }
     else {
@@ -59,7 +60,7 @@ sub traverse_prefetch {
 
 
 sub render_activemodel_prefetch_rel {
-    my ($self, $set, $relname, $top_links, $rel_sets, $item_edit_rel_hooks) = @_;
+    my ($self, $set, $parent_relname, $relname, $top_links, $rel_sets, $item_edit_rel_hooks) = @_;
 
     my $parent_class = $set->result_class;
     my $child_class = $parent_class->relationship_info($relname)->{class} || die "panic";
@@ -73,9 +74,9 @@ sub render_activemodel_prefetch_rel {
 
     my $rel_typename = $self->type_namer->type_name_for_result_class($child_class);
 
-    return if $item_edit_rel_hooks->{$parent_class}->{$relname};
+    return if $item_edit_rel_hooks->{$parent_relname}->{$relname};
 
-    $item_edit_rel_hooks->{$parent_class}->{$relname} = sub {
+    $item_edit_rel_hooks->{$parent_relname}->{$relname} = sub {
         my ($activemodel_obj, $row) = @_;
 
         my $subitem = $row->$relname();
@@ -93,7 +94,7 @@ sub render_activemodel_prefetch_rel {
                 push @$rel_ids, $id;
                 my $rel_object = $self->render_row_as_activemodel_resource_object($subrow, undef, sub {
                     my ($activemodel_obj, $row) = @_;
-                    $_->($activemodel_obj, $row) for values %{$item_edit_rel_hooks->{$child_class}};
+                    $_->($activemodel_obj, $row) for values %{$item_edit_rel_hooks->{$relname}};
                 });
                 # In case this object has been pulled in before, do what we can
                 # to preserve the existing keys and add to them as appropriate.
@@ -105,7 +106,7 @@ sub render_activemodel_prefetch_rel {
             # $rel_ids = $subitem->id;
             my $rel_object = $self->render_row_as_activemodel_resource_object($subitem, undef, sub {
                 my ($activemodel_obj, $row) = @_;
-                $_->($activemodel_obj, $row) for values %{$item_edit_rel_hooks->{$child_class}};
+                $_->($activemodel_obj, $row) for values %{$item_edit_rel_hooks->{$relname}};
             });
                 # In case this object has been pulled in before, do what we can
                 # to preserve the existing keys and add to them as appropriate.
@@ -116,7 +117,9 @@ sub render_activemodel_prefetch_rel {
             die "panic: don't know how to handle $row $relname value $subitem";
         }
 
-        # XXX This should use the relationship name, singular, suffixed with '_ids'
+        # XXX We should either create a 'relationship_namer' similar to the 'type_namer',
+        # or create and utilize adapter/serializer classes.
+        # This should use the relationship name, singular, suffixed with '_ids'
         # This only applies to hasMany relationships since belongsTo relationships
         # will have the FK ID included in the row data itself.
         use Lingua::EN::Inflect::Number qw(to_S to_PL);
@@ -137,7 +140,7 @@ sub render_activemodel_response { # return top-level document hashref
     my $item_edit_rel_hooks = {};
 
     if (scalar(@{$prefetch})) {
-        $self->traverse_prefetch($set, $prefetch, \&render_activemodel_prefetch_rel, $top_links, $rel_sets, $item_edit_rel_hooks)
+        $self->traverse_prefetch($set, 'top', $prefetch, \&render_activemodel_prefetch_rel, $top_links, $rel_sets, $item_edit_rel_hooks)
     }
     else {
         # warn "no prefetch";
@@ -147,7 +150,7 @@ sub render_activemodel_response { # return top-level document hashref
     my $result_class = $set->result_class;
     my $set_data = $self->render_set_as_array_of_activemodel_resource_objects($set, undef, sub {
         my ($activemodel_obj, $row) = @_;
-        $_->($activemodel_obj, $row) for values %{$item_edit_rel_hooks->{$result_class}};
+        $_->($activemodel_obj, $row) for values %{$item_edit_rel_hooks->{'top'}};
     });
 
     # construct top document to return
