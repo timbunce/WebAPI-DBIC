@@ -17,7 +17,9 @@ Content-type: application/json
    "cd" : [
       {
          "artist" : 1,
+         "artist_id" : 1,
          "cdid" : 1,
+         "genre_id" : 1,
          "genreid" : 1,
          "single_track" : null,
          "title" : "Spoonful of bees",
@@ -51,7 +53,9 @@ Content-type: application/json
    "cd" : [
       {
          "artist" : 1,
+         "artist_id" : 1,
          "cdid" : 1,
+         "genre_id" : 1,
          "genreid" : 1,
          "single_track" : null,
          "title" : "Spoonful of bees",
@@ -59,7 +63,9 @@ Content-type: application/json
       },
       {
          "artist" : 1,
+         "artist_id" : 1,
          "cdid" : 2,
+         "genre_id" : 2,
          "genreid" : 2,
          "single_track" : null,
          "title" : "Forkful of bees",
@@ -97,6 +103,7 @@ Content-type: application/json
    "cd" : [
       {
          "artist" : 2,
+         "artist_id" : 2,
          "cdid" : 4,
          "genreid" : 3,
          "single_track" : null,
@@ -126,6 +133,7 @@ Content-type: application/json
    "cd" : [
       {
          "artist" : 2,
+         "artist_id" : 2,
          "cdid" : 4,
          "genreid" : 3,
          "single_track" : null,
@@ -343,6 +351,7 @@ Content-type: application/json
    "cd" : [
       {
          "artist" : 1,
+         "artist_id" : 1,
          "cdid" : 1,
          "genreid" : 1,
          "single_track" : null,
@@ -351,6 +360,7 @@ Content-type: application/json
       },
       {
          "artist" : 1,
+         "artist_id" : 1,
          "cdid" : 2,
          "genreid" : 2,
          "single_track" : null,
@@ -359,6 +369,7 @@ Content-type: application/json
       },
       {
          "artist" : 1,
+         "artist_id" : 1,
          "cdid" : 3,
          "genreid" : 2,
          "single_track" : null,
@@ -410,12 +421,16 @@ Content-type: application/json
    "cd" : [
       {
          "artist" : 1,
+         "artist_id" : 1,
          "cdid" : 1,
+         "genre_id" : 1,
          "genreid" : 1
       },
       {
          "artist" : 1,
+         "artist_id" : 1,
          "cdid" : 2,
+         "genre_id" : 2,
          "genreid" : 2
       }
    ],
@@ -445,7 +460,9 @@ Content-type: application/json
    "cd" : [
       {
          "artist" : 1,
+         "artist_id" : 1,
          "cdid" : 1,
+         "genre_id" : 1,
          "genreid" : 1
       }
    ],

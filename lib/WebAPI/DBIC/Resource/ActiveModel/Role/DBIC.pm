@@ -103,7 +103,7 @@ sub render_activemodel_prefetch_rel {
             }
         }
         elsif ($subitem->isa('DBIx::Class::Row')) { # one-to-one rel
-            # $rel_ids = $subitem->id;
+            $rel_ids = $subitem->id;
             my $rel_object = $self->render_row_as_activemodel_resource_object($subitem, undef, sub {
                 my ($activemodel_obj, $row) = @_;
                 $_->($activemodel_obj, $row) for values %{$item_edit_rel_hooks->{$relname}};
@@ -117,14 +117,16 @@ sub render_activemodel_prefetch_rel {
             die "panic: don't know how to handle $row $relname value $subitem";
         }
 
-        # XXX We should either create a 'relationship_namer' similar to the 'type_namer',
-        # or create and utilize adapter/serializer classes.
-        # This should use the relationship name, singular, suffixed with '_ids'
-        # This only applies to hasMany relationships since belongsTo relationships
-        # will have the FK ID included in the row data itself.
-        use Lingua::EN::Inflect::Number qw(to_S to_PL);
-        my $relname_id = to_S($relname).'_ids';
-        $activemodel_obj->{$relname_id} = $rel_ids if($rel_ids);
+        # XXX We could either create a 'relationship_namer' similar to the 'type_namer',
+        # or create a mechanism to facilitate adapter/serializer classes.
+        # Per http://emberjs.com/api/data/classes/DS.ActiveModelAdapter.html:
+        # This should use the relationship name, singularized, and suffixed with
+        # '_id' for belongsTo relationships or '_ids' for hasMany relationships.
+        if($rel_ids) {
+            my $suffix = ref($rel_ids) ? '_ids' : '_id';
+            my $relname_id = Lingua::EN::Inflect::Number::to_S($relname).$suffix;
+            $activemodel_obj->{$relname_id} = $rel_ids;
+        }
     }
 }
 
