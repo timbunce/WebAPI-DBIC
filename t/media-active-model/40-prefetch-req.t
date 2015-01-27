@@ -84,3 +84,6 @@ GET /cd/1?prefetch=artist,genre&fields=cdid,artist,genreid,artist.artistid,genre
 
 Name: prefetch on item with id primary key #28
 GET /country/1?prefetch=cities
+
+Name: prefetch a complex set with second-tier relationships
+GET /artist/1 PARAMS: prefetch~json=>{"cds"=>"tracks"}

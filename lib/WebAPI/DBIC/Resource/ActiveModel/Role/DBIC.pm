@@ -36,13 +36,11 @@ sub traverse_prefetch {
     my @rel_fcn_args = @_;
 
     return unless($prefetch);
-    # warn "Traversing ", Dumper($prefetch), ref($set), ': ', join(', ', @rel_fcn_args), "\n\n";
 
     if($prefetch && !ref($prefetch)) {
         $self->$rel_fcn($set, $prefetch, @rel_fcn_args);
     }
     elsif(ref($prefetch) eq 'HASH') {
-        # warn "ref(set): ", ref($set), "\n";
         while(my ($prefetch_key, $prefetch_value) = each(%{$prefetch})) {
             $self->traverse_prefetch($set, $prefetch_key, $rel_fcn, @rel_fcn_args);
             my $result_subclass = $set->result_class->relationship_info($prefetch_key)->{class};
@@ -65,7 +63,6 @@ sub render_activemodel_prefetch_rel {
 
     my $parent_class = $set->result_class;
     my $child_class = $parent_class->relationship_info($relname)->{class} || die "panic";
-    # warn "relname: $relname, Child result class: $child_class, set class: " . (ref($set) || $set);
 
     my @idcolumns = $child_class->unique_constraint_columns('primary'); # XXX wrong
     if (@idcolumns > 1) { # eg many-to-many that doesn't have a separate id
@@ -98,8 +95,8 @@ sub render_activemodel_prefetch_rel {
                     my ($activemodel_obj, $row) = @_;
                     $_->($activemodel_obj, $row) for values %{$item_edit_rel_hooks->{$child_class}};
                 });
-                # in case this object has been pulled in before, do what we can
-                # to preserve the existing keys and add to them as appropriate
+                # In case this object has been pulled in before, do what we can
+                # to preserve the existing keys and add to them as appropriate.
                 $rel_set->{$id} //= {};
                 $rel_set->{$id} = { %{$rel_object}, %{$rel_set->{$id}} };
             }
@@ -109,9 +106,9 @@ sub render_activemodel_prefetch_rel {
             my $rel_object = $self->render_row_as_activemodel_resource_object($subitem, undef, sub {
                 my ($activemodel_obj, $row) = @_;
                 $_->($activemodel_obj, $row) for values %{$item_edit_rel_hooks->{$child_class}};
-            }); # XXX typename
-            # in case this object has been pulled in before, do what we can
-            # to preserve the existing keys and add to them as appropriate
+            });
+                # In case this object has been pulled in before, do what we can
+                # to preserve the existing keys and add to them as appropriate.
             $rel_set->{$subitem->id} //= {};
             $rel_set->{$subitem->id} = { %{$rel_object}, %{$rel_set->{$subitem->id}} };
         }
@@ -121,7 +118,7 @@ sub render_activemodel_prefetch_rel {
 
         # XXX This should use the relationship name, singular, suffixed with '_ids'
         # This only applies to hasMany relationships since belongsTo relationships
-        # will have the ID included in the row data itself.
+        # will have the FK ID included in the row data itself.
         use Lingua::EN::Inflect::Number qw(to_S to_PL);
         my $relname_id = to_S($relname).'_ids';
         $activemodel_obj->{$relname_id} = $rel_ids if($rel_ids);
