@@ -79,6 +79,11 @@ has routes => (
     default => sub { [ sort shift->schema->sources ] },
 );
 
+has extra_routes => (
+    is => 'ro',
+    default => sub { [] },
+);
+
 has route_maker => (
     is => 'ro',
     lazy => 1,
@@ -99,7 +104,12 @@ sub _build_route_maker {
 sub to_psgi_app {
     my ($self) = @_;
 
-    my $router = WebAPI::DBIC::Router->new; # XXX
+    # ensure our extra routes at least have a copy of the schema object
+    my $extra_routes = [ map {
+        my $path = shift @$_; 
+        [$path, (defaults => { schema => $self->schema }, @$_)]
+    } @{ $self->extra_routes } ];
+    my $router = WebAPI::DBIC::Router->new(extra_routes => $extra_routes);
 
     # set the route_maker schema here so users don't have
     # to set schema in both WebApp and RouteMaker
