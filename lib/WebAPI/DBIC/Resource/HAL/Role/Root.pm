@@ -52,7 +52,12 @@ sub render_api_as_hal {
         }
         next unless @parts;
 
-        my $title = join(" ", (split /::/, $route->defaults->{result_class})[-3,-1]);
+        my $title;
+        if (exists $route->defaults->{result_class}) {
+            $title = join(" ", (split /::/, $route->defaults->{result_class})[-3,-1]);
+        } else {
+            ($title) = split( /\?/, $route->path);
+        }
 
         my $url = $path . join("", @parts);
         $links{join("", @parts)} = {
