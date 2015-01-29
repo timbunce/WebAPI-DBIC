@@ -27,6 +27,7 @@ has resource_class_for_item_invoke => (is => 'ro', default => 'WebAPI::DBIC::Res
 has resource_class_for_set         => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericSet');
 has resource_class_for_set_invoke  => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericSetInvoke');
 has resource_default_args          => (is => 'ro', default => sub { {} });
+has resource_extra_roles           => (is => 'ro', default => sub { [] });
 
 has type_namer => (
     is => 'ro',
@@ -88,11 +89,16 @@ sub make_routes_for_item {
     # and .../:1/:2/:3 etc for a resource with  multiple key fields
     my $item_path_spec = join "/", map { ":$_" } 1 .. @$key_fields;
 
+    my $resource_class_for_item = 
+        $self->adapt_resource_class($self->resource_class_for_item);
+    my $resource_class_for_item_invoke = 
+        $self->adapt_resource_class($self->resource_class_for_item_invoke);
+
     my @routes;
 
     push @routes, WebAPI::DBIC::Route->new( # item
         path => "$path/$item_path_spec",
-        resource_class => $self->resource_class_for_item,
+        resource_class => $resource_class_for_item,
         resource_args  => {
             %{ $self->resource_default_args },
             set => $set,
@@ -107,7 +113,7 @@ sub make_routes_for_item {
     push @routes, WebAPI::DBIC::Route->new( # method call on item
         path => "$path/$item_path_spec/invoke/:method",
         validations => { method => _qr_names(@$methods), },
-        resource_class => $self->resource_class_for_item_invoke,
+        resource_class => $resource_class_for_item_invoke,
         resource_args  => {
             %{ $self->resource_default_args },
             set => $set,
@@ -124,11 +130,16 @@ sub make_routes_for_set {
     $opts ||= {};
     my $methods = $opts->{invokable_methods};
 
+    my $resource_class_for_set = 
+        $self->adapt_resource_class($self->resource_class_for_set);
+    my $resource_class_for_set_invoke = 
+        $self->adapt_resource_class($self->resource_class_for_set_invoke);
+
     my @routes;
    
     push @routes, WebAPI::DBIC::Route->new(
         path => $path,
-        resource_class => $self->resource_class_for_set,
+        resource_class => $resource_class_for_set,
         resource_args  => {
             %{ $self->resource_default_args },
             set => $set,
@@ -139,7 +150,7 @@ sub make_routes_for_set {
     push @routes, WebAPI::DBIC::Route->new( # method call on set
         path => "$path/invoke/:method",
         validations => { method => _qr_names(@$methods) },
-        resource_class => $self->resource_class_for_set_invoke,
+        resource_class => $resource_class_for_set_invoke,
         resource_args  => {
             %{ $self->resource_default_args },
             set => $set,
@@ -150,6 +161,21 @@ sub make_routes_for_set {
     return @routes;
 }
 
+sub adapt_resource_class {
+    my ($self, $resource_class) = @_;
+
+    if(@{ $self->resource_extra_roles }) {
+        $resource_class = Role::Tiny->create_class_with_roles(
+            $resource_class, 
+            @{ $self->resource_extra_roles }
+        );
+        ## Workaround Role::Tiny not setting %INC, which confuses use_module later.
+        $INC{Module::Runtime::module_notional_filename($resource_class)} = __FILE__;
+
+    }
+
+    return $resource_class;
+}
 
 sub make_root_route {
     my $self = shift;

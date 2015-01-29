@@ -29,6 +29,11 @@ has router => (
     handles => [ qw(match) ],
 );
 
+has extra_routes => (
+    is => 'ro',
+    default => sub { [] },
+);
+
 
 sub add_route {
     my ($self, %args) = @_;
@@ -49,6 +54,11 @@ sub add_route {
 
 sub to_psgi_app {
     my $self = shift;
+
+    foreach my $route (@{ $self->extra_routes }) {
+        $self->router->add_route( @$route );
+    }
+
     return Plack::App::Path::Router->new( router => $self->router )->to_app; # return Plack app
 }
 
