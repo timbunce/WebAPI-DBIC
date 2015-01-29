@@ -24,12 +24,14 @@ which is the same as:
     $app = WebAPI::DBIC::WebApp->new({
         schema => $schema,
         routes => [ $schema->sources ],
+        extra_routes => [ ],
         route_maker => WebAPI::DBIC::RouteMaker->new(
             resource_class_for_item        => 'WebAPI::DBIC::Resource::GenericItem',
             resource_class_for_item_invoke => 'WebAPI::DBIC::Resource::GenericItemInvoke',
             resource_class_for_set         => 'WebAPI::DBIC::Resource::GenericSet',
             resource_class_for_set_invoke  => 'WebAPI::DBIC::Resource::GenericSetInvoke',
             resource_default_args          => { },
+            resource_extra_roles           => [ ],
             type_namer => WebAPI::DBIC::TypeNamer->new( # EXPERIMENTAL
                 type_name_inflect => 'singular',    # XXX will change to plural soon
                 type_name_style   => 'under_score', # or 'camelCase' etc
@@ -40,6 +42,10 @@ which is the same as:
 The elements in C<routes> are passed to the specified C<route_maker>.
 The elements can include any mix of result source names, as in the example above,
 resultset objects, and L<WebAPI::DBIC::Route> objects.
+
+The extra_routes arrayref is passed on to L<WebAPI::DBIC::Router>
+which will add them to the L<Path::Router> instance as standalone
+routes alongside the DBIx::Class based routes.
 
 Result source names are converted to resultset objects.
 
@@ -79,6 +85,11 @@ has routes => (
     default => sub { [ sort shift->schema->sources ] },
 );
 
+has extra_routes => (
+    is => 'ro',
+    default => sub { [] },
+);
+
 has route_maker => (
     is => 'ro',
     lazy => 1,
@@ -99,7 +110,7 @@ sub _build_route_maker {
 sub to_psgi_app {
     my ($self) = @_;
 
-    my $router = WebAPI::DBIC::Router->new; # XXX
+    my $router = WebAPI::DBIC::Router->new(extra_routes => $self->extra_routes);
 
     # set the route_maker schema here so users don't have
     # to set schema in both WebApp and RouteMaker
