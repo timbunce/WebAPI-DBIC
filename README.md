@@ -2,8 +2,8 @@
 
 A composable RESTful JSON+HAL API to DBIx::Class schemas using roles, Web::Machine and Path::Router
 
-[![Build Status](https://secure.travis-ci.org/timbunce/WebAPI-DBIC.png)](http://travis-ci.org/timbunce/WebAPI-DBIC)
-[![Coverage Status](https://coveralls.io/repos/timbunce/WebAPI-DBIC/badge.png)](https://coveralls.io/r/timbunce/WebAPI-DBIC)
+[![Build Status](https://secure.travis-ci.org/timbunce/WebAPI-DBIC.svg)](http://travis-ci.org/timbunce/WebAPI-DBIC)
+[![Coverage Status](https://coveralls.io/repos/timbunce/WebAPI-DBIC/badge.svg)](https://coveralls.io/r/timbunce/WebAPI-DBIC)
 
 # DESCRIPTION
 
