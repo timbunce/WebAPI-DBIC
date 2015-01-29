@@ -32,7 +32,7 @@ around 'allowed_methods' => sub {
 sub process_post {
     my $self = shift;
 
-    # Here's we're calling a method on the item as a simple generic behaviour.
+    # Here's we're calling a method on the set as a simple generic behaviour.
     # This is very limited because, for example, the method has no knowledge
     # that it's being called inside a web service, thus no way to do redirects
     # or provide HTTP specific rich-exceptions.
@@ -59,7 +59,7 @@ sub process_post {
 
     my $method_name = $self->method;
     # the method is expected to throw an exception on error.
-    my $result_raw = $self->item->$method_name(@method_args);
+    my $result_raw = $self->set->$method_name(@method_args);
 
     my $result_rendered;
     # return a DBIC resultset as array of hashes of ALL records (no paging)
