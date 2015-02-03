@@ -75,6 +75,14 @@ sub render_jsonapi_prefetch_rel {
     $item_edit_rel_hooks->{$relname} = sub {
         my ($jsonapi_obj, $row) = @_;
 
+        # Prevent joins calling the DB for no cached
+        # relations in the join statement
+        if ($self->param('join')){
+            return unless
+                defined $row->{related_resultsets}{$relname} &&
+                defined $row->{related_resultsets}{$relname}->get_cache;
+        }
+
         my $subitem = $row->$relname();
 
         my $compound_links_for_rel = $compound_links->{$rel_typename} ||= {};
@@ -118,7 +126,6 @@ sub render_jsonapi_response { # return top-level document hashref
         next if $self->param('distinct');
 
         while (my ($relname, $sub_rel) = each %{$prefetch}){
-            #warn "prefetch $prefetch - $relname, $sub_rel";
             $self->render_jsonapi_prefetch_rel($set, $relname, $sub_rel, $top_links, $compound_links, $item_edit_rel_hooks);
         }
     }
@@ -180,6 +187,13 @@ sub _render_prefetch_jsonapi {
     while (my ($rel, $sub_rel) = each %{$prefetch}){
         next if $rel eq 'self';
 
+        # Prevent joins calling the DB for no cached
+        # relations in the join statement
+        if ($self->param('join')){
+            next unless
+                defined $item->{related_resultsets}{$rel} &&
+                defined $item->{related_resultsets}{$rel}->get_cache;
+        }
         my $subitem = $item->$rel();
 
         if (not defined $subitem) {

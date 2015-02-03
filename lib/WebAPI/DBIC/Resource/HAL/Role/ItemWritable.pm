@@ -11,12 +11,8 @@ use Devel::Dwarn;
 
 use Moo::Role;
 
-
 requires 'decode_json';
 requires 'request';
-
-requires '_pre_update_resource_method';
-
 
 around '_build_content_types_accepted' => sub {
     my $orig = shift;
@@ -29,14 +25,12 @@ around '_build_content_types_accepted' => sub {
 
 sub from_hal_json {
     my $self = shift;
-    $self->_pre_update_resource_method( "_do_update_embedded_resources_hal" );
     my $data = $self->decode_json( $self->request->content );
     $self->update_resource($data, is_put_replace => 0);
     return;
 }
 
-
-sub _do_update_embedded_resources_hal {
+before '_do_update_resource' => sub {
     my ($self, $item, $hal, $result_class) = @_;
 
     my $links    = delete $hal->{_links};
@@ -83,7 +77,6 @@ sub _do_update_embedded_resources_hal {
     }
 
     return;
-}
-
+};
 
 1;
