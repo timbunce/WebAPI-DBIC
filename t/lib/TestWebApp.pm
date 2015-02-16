@@ -3,6 +3,8 @@ package TestWebApp;
 use Moo;
 extends 'WebAPI::DBIC::WebApp';
 
+require WebAPI::DBIC::RouteMaker;
+
 
 sub BUILDARGS {
     my ( $class, @args ) = @_;

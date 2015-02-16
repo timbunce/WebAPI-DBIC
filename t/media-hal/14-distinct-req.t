@@ -10,7 +10,7 @@ subtest "===== GET distinct =====" => sub {
     my ($self) = @_;
 
     my $app = TestWebApp->new({
-        schema => Schema,
+        routes => [ map( Schema->source($_), 'CD') ]
     })->to_psgi_app;
 
 

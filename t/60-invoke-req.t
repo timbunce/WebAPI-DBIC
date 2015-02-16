@@ -6,14 +6,18 @@ use TestKit;
 
 fixtures_ok [qw/basic/];
 
+my $app = TestWebApp->new({
+    routes => [
+        {
+            set => Schema->source('Artist'),
+            invokeable_methods_on_item => [qw(get_column)],
+            invokeable_methods_on_set  => [qw(count)],
+        },
+    ]
+})->to_psgi_app;
+
 subtest "===== Invoke on Item =====" => sub {
     my ($self) = @_;
-
-    my $app = TestWebApp->new({
-        schema => Schema,
-    })->to_psgi_app;
-
-    my $item;
 
     test_psgi $app, sub {
         my $res = shift->(dsreq( POST => "/artist/1/invoke/get_column", [], {
@@ -57,12 +61,6 @@ subtest "===== Invoke on Item =====" => sub {
 
 subtest "===== Invoke on Set =====" => sub {
     my ($self) = @_;
-
-    my $app = TestWebApp->new({
-        schema => Schema,
-    })->to_psgi_app;
-
-    my $item;
 
     test_psgi $app, sub {
         my $res = shift->(dsreq( POST => "/artist/invoke/count", [], {

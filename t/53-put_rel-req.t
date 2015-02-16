@@ -10,7 +10,7 @@ subtest "===== Update a resource and related resources via PUT =====" => sub {
     my ($self) = @_;
 
     my $app = TestWebApp->new({
-        schema => Schema,
+        routes => [ map( Schema->source($_), 'Track') ]
     })->to_psgi_app;
 
     run_request_spec_tests($app, \*DATA);

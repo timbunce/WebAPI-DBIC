@@ -6,15 +6,13 @@
 use lib "t/lib";
 use TestKit;
 
-note $INC{"Cpanel/JSON/XS.pm"}; # temp XXX
-
 fixtures_ok [qw/basic/];
 
 subtest "===== Prefetch =====" => sub {
     my ($self) = @_;
 
     my $app = TestWebApp->new({
-        schema => Schema,
+        routes => [ map( Schema->source($_), 'CD', 'Artist', 'Track', 'Genre', 'CD_to_Producer', 'Producer', 'Country', 'City') ]
     })->to_psgi_app;
 
     run_request_spec_tests($app, \*DATA);

@@ -12,7 +12,7 @@ subtest "===== Ordering =====" => sub {
     my ($self) = @_;
 
     my $app = TestWebApp->new({
-        schema => Schema,
+        routes => [ map( Schema->source($_), 'CD') ]
     })->to_psgi_app;
 
     run_request_spec_tests($app, \*DATA);

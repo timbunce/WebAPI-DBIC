@@ -11,7 +11,7 @@ use Moo;
 use Module::Runtime qw(use_module);
 use Sub::Util qw(subname);
 use Scalar::Util qw(blessed);
-use Carp qw(croak confess);
+use Carp qw(carp croak confess);
 use Devel::Dwarn;
 
 use namespace::clean -except => [qw(meta)];
@@ -19,8 +19,6 @@ use MooX::StrictConstructor;
 
 use WebAPI::DBIC::Route;
 
-
-has schema => (is => 'rw');
 
 has resource_class_for_item        => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericItem');
 has resource_class_for_item_invoke => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericItemInvoke');
@@ -174,10 +172,14 @@ sub make_routes_for {
     my ($self, $route_spec) = @_;
 
     # route_spec:
-    #   'People'
-    #   { set => 'People', path => undef }
-    #   { set => $self->set->resultset('People'), path => undef }
-    #   WebAPI::DBIC::Route->new(...) - gets used directly
+    #   $schema->source('People')
+    #   { set => $schema->source('People'), path => undef }
+    #   { set => $schema->resultset('People')->search({ tall=>1 }), path => 'tall_people' }
+    #   WebAPI::DBIC::Route->new(...) # gets used directly
+
+    return $route_spec # is already a route
+        if blessed $route_spec
+        && $route_spec->isa('WebAPI::DBIC::Resource::Role::Route');
 
     my %opts;
 
@@ -188,16 +190,15 @@ sub make_routes_for {
         $route_spec = delete $opts{set};
     }
 
-    if (not ref $route_spec) {
-        my $schema = $self->schema
-            or croak "Can't convert '$route_spec' to a resultset because schema isn't set in $self";
-        $route_spec = $schema->resultset($route_spec);
+    if ($route_spec->isa('DBIx::Class::ResultSource')) {
+        $route_spec = $route_spec->resultset;
+        # $opts{is_canonical_source} = 1;
     }
-    elsif ($route_spec->does('WebAPI::DBIC::Resource::Role::Route')) {
-        return $route_spec; # is already a route
+    elsif ($route_spec->isa('DBIx::Class::ResultSet')) {
+        # $route_spec is already a resultset, but is a non-canonical source
+        # $opts{is_canonical_source} //= 0;
     }
-
-    unless (blessed $route_spec and $route_spec->isa('DBIx::Class::ResultSet')) {
+    else {
         croak "Don't know how to convert '$route_spec' into to a DBIx::Class::ResultSet or WebAPI::DBIC::Resource::Role::Route";
     }
 

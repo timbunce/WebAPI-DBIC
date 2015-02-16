@@ -10,7 +10,7 @@ subtest "===== Create item, with embedded items, by POST to set =====" => sub {
     my ($self) = @_;
 
     my $app = TestWebApp->new({
-        schema => Schema,
+        routes => [ map( Schema->source($_), 'Track', 'CD') ]
     })->to_psgi_app;
 
     my $track_with_embedded_cd = {

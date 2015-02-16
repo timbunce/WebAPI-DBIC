@@ -84,9 +84,12 @@ sub as_add_route_args {
         @{ $prr->components }
     ];
 
-    # this logic ought to move into the resource_class
     my $resource_args_from_route = sub {
         # XXX we could try to generate more efficient code here
+        # Something like this:
+        #   $args->{id} = [ @_[@indices_of_id_params] ];
+        #   @{$args}{@names_of_non_id_params} = @_[@indices_of_non_id_params]
+        # where the @arrays are pre-computed and closed-over
         my $req = shift;
         my $args = shift;
         for (@$path_var_names) { #in path param name order

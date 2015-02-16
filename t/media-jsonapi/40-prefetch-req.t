@@ -12,7 +12,7 @@ subtest "===== Prefetch =====" => sub {
     my ($self) = @_;
 
     my $app = TestWebApp->new({
-        schema => Schema,
+        routes => [ map( Schema->source($_), 'CD', 'Artist', 'Genre', 'Country', 'City') ]
     })->to_psgi_app;
 
     run_request_spec_tests($app, \*DATA);

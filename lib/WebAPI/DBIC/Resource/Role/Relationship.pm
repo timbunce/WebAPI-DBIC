@@ -221,7 +221,7 @@ sub get_url_for_item_relationship {
 
     my $linkurl = $self->uri_for( @uri_for_args );
 
-    if (not $linkurl) {
+    if (not $linkurl) { # XXX this comment is HAL-specific
         warn "Result source $dst_class has no resource uri in this app so relations (like $result_class $relname) won't have _links for it.\n"
             unless our $warn_once->{"$result_class $relname $dst_class"}++;
         return undef;

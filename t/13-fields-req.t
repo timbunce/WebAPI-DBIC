@@ -10,7 +10,7 @@ subtest "===== Get with fields param =====" => sub {
     my ($self) = @_;
 
     my $app = TestWebApp->new({
-        schema => Schema,
+        routes => [ map( Schema->source($_), 'Artist') ]
     })->to_psgi_app;
 
 

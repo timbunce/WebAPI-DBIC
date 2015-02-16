@@ -6,24 +6,30 @@ WebAPI::DBIC::WebApp - Build a Plack app using WebAPI::DBIC
 
 =head1 SYNOPSIS
 
-This most simple example:
+This minimal example creates routes for all data sources in the schema:
 
     $app = WebAPI::DBIC::WebApp->new({
-        schema => $schema,
+        routes => [ map( $schema->source($_), $schema->sources) ]
     })->to_psgi_app;
 
 is the same as:
 
     $app = WebAPI::DBIC::WebApp->new({
-        schema => $schema,
-        routes => [ $schema->sources ],
+        routes => [
+            { set => $schema->source('Artist') },
+            { set => $schema->source('CD') },
+            { set => $schema->source('Genre') },
+            { set => $schema->source('Track') },
+            ...
+        ]
     })->to_psgi_app;
 
 which is the same as:
 
     $app = WebAPI::DBIC::WebApp->new({
-        schema => $schema,
-        routes => [ $schema->sources ],
+        routes => [
+            ... # as above
+        ],
         route_maker => WebAPI::DBIC::RouteMaker->new(
             resource_class_for_item        => 'WebAPI::DBIC::Resource::GenericItem',
             resource_class_for_item_invoke => 'WebAPI::DBIC::Resource::GenericItemInvoke',
@@ -38,19 +44,55 @@ which is the same as:
     })->to_psgi_app;
 
 The elements in C<routes> are passed to the specified C<route_maker>.
-The elements can include any mix of result source names, as in the example above,
-resultset objects, and L<WebAPI::DBIC::Route> objects.
+The elements can include any mix of result source objects, as in the example
+above, resultset objects, and L<WebAPI::DBIC::Route> objects.
 
-Result source names are converted to resultset objects.
+WebAPI::DBIC::WebApp uses the L<WebAPI::DBIC::RouteMaker> object to convert and
+expands the given C<routes> into a corresponding set of WebAPI::DBIC::Routes.
+For example, if we gloss over some details along the way, a C<routes>
+specification like this:
 
-The L<WebAPI::DBIC::RouteMaker> object converts the resultset objects
-into a set of WebAPI::DBIC::Routes, e.g, C<foo/> for the resultset and
-C<foo/:id> for an item of the set.
+    routes => [
+        $schema->source('CD'),
+    ]
 
-The path prefix, i.e., C<foo> is determined from the resultset using the
-C<type_name_inflect> and C<type_name_style> to define the route path, and the
-C<resource_class_for_*> to define the resource classes that the routes should
-refer to.
+is a short-hand way of writing this:
+
+    routes => [
+        { set => $schema->source('CD'), path => undef, ... }
+    ]
+
+is a short-hand way of writing this:
+
+    routes => [
+        $route_maker->make_routes_for( { set => $schema->source('CD'), ... } )
+    ]
+
+which is a short-hand way of writing this:
+
+    $cd_resultset = $schema->source('CD')->resultset;
+    $cd_path = $type_namer->type_name_for_resultset($cd_resultset);
+    routes => [
+        $route_maker->make_routes_for_resultset($cd_path, $cd_resultset, ...)
+    ]
+
+which is a short-hand way of writing this:
+
+    $cd_resultset = $schema->source('CD')->resultset;
+    $cd_path = $type_namer->type_name_for_resultset($cd_resultset);
+    routes => [
+        $route_maker->make_routes_for_set($cd_path, $cd_resultset),  # /cd
+        $route_maker->make_routes_for_item($cd_path, $cd_resultset), # /cd/:id
+    ]
+
+which is a short-hand way of writing something much longer with explict calls
+to create the fully specified L<WebAPI::DBIC::Route> objects.
+
+The I<default> URL path prefix is determined by the C<type_namer> from the
+resultset source name using the C<type_name_inflect> and C<type_name_style> settings.
+For example, a result source name of C<ClassicAlbum> would have a URL path
+prefix of C</classic_albums> by default, i.e. plural, and lowercased with
+underscores between words.
 
 =cut
 
@@ -71,12 +113,9 @@ use WebAPI::DBIC::Router;
 use WebAPI::DBIC::Route;
 
 
-has schema => (is => 'ro', required => 1);
-
 has routes => (
     is => 'ro',
-    lazy => 1,
-    default => sub { [ sort shift->schema->sources ] },
+    required => 1,
 );
 
 has route_maker => (
@@ -100,10 +139,6 @@ sub to_psgi_app {
     my ($self) = @_;
 
     my $router = WebAPI::DBIC::Router->new; # XXX
-
-    # set the route_maker schema here so users don't have
-    # to set schema in both WebApp and RouteMaker
-    $self->route_maker->schema($self->schema);
 
     for my $route_spec (@{ $self->routes }) {
 
