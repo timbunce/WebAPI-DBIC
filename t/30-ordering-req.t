@@ -23,6 +23,7 @@ done_testing();
 
 __DATA__
 Config:
+Accept: application/vnd.wapid+json
 
 Name: order by PK asc
 GET /cd?order=me.cdid

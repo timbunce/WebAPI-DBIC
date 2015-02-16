@@ -10,7 +10,7 @@ subtest '===== basics - specs =====' => sub {
     my ($self) = @_;
 
     my $app = TestWebApp->new({
-        routes => [ map( Schema->source($_), 'Artist', 'CD', 'Gig', 'ClassicAlbums') ]
+        routes => [ map( Schema->source($_), 'Artist', 'Gig', 'ClassicAlbums') ]
     })->to_psgi_app;
 
     run_request_spec_tests($app, \*DATA);
@@ -21,7 +21,7 @@ done_testing();
 
 __DATA__
 Config:
-Accept: application/hal+json
+Accept: application/json
 
 Name: get single item
 GET /artist/1

@@ -24,7 +24,7 @@ has content_types_provided => (
 
 sub _build_content_types_provided {
     return [
-        { 'application/json' => 'to_plain_json' },
+        { 'application/vnd.wapid+json' => 'to_plain_json' },
         { 'text/html' => 'to_html' }, # provide redirect to HAL browser
     ]
 }

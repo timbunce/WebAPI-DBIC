@@ -22,7 +22,7 @@ done_testing();
 
 __DATA__
 Config:
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 
 Name: order by PK asc
 GET /cd?order=me.cdid

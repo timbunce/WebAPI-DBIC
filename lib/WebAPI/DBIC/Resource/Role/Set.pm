@@ -25,7 +25,7 @@ has content_types_provided => (
 );
 
 sub _build_content_types_provided {
-    return [ { 'application/json' => 'to_plain_json'} ]
+    return [ { 'application/vnd.wapid+json' => 'to_plain_json'} ]
 }
 
 sub to_plain_json { return $_[0]->encode_json($_[0]->render_set_as_plain($_[0]->set)) }

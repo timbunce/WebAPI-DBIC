@@ -38,7 +38,7 @@ has content_types_accepted => (
 );
 
 sub _build_content_types_accepted {
-    return [ {'application/json' => 'from_plain_json'} ]
+    return [ {'application/vnd.wapid+json' => 'from_plain_json'} ]
 }
 
 around 'allowed_methods' => sub {

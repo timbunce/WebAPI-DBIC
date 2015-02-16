@@ -7,7 +7,7 @@ requires 'SQL::Translator', '0.11018';
 
 requires 'Web::Machine', '0.15';
 
-requires 'Path::Router', '0.13';
+requires 'Path::Router', '0.14';
 
 requires 'DBD::SQLite', '1.46';
 requires 'HTTP::Throwable';

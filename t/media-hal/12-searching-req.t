@@ -21,7 +21,7 @@ done_testing();
 
 __DATA__
 Config:
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 
 Name: get 1 row from set by qualifying the key
 GET /artist?me.artistid=2

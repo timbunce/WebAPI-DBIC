@@ -1,9 +1,10 @@
 === get single item
 Request:
 GET /artist/1
+Accept: application/vnd.wapid+json
 Response:
 200 OK
-Content-type: application/json
+Content-type: application/vnd.wapid+json
 {
    "artistid" : 1,
    "charfield" : null,
@@ -14,9 +15,10 @@ Content-type: application/json
 === get different single item
 Request:
 GET /artist/2
+Accept: application/vnd.wapid+json
 Response:
 200 OK
-Content-type: application/json
+Content-type: application/vnd.wapid+json
 {
    "artistid" : 2,
    "charfield" : null,
@@ -27,9 +29,10 @@ Content-type: application/json
 === get set of items
 Request:
 GET /artist
+Accept: application/vnd.wapid+json
 Response:
 200 OK
-Content-type: application/json
+Content-type: application/vnd.wapid+json
 [
    {
       "artistid" : 1,
@@ -72,9 +75,10 @@ Content-type: application/json
 === get item with multi-field key
 Request:
 GET /gig/1/2014-01-01T01:01:01Z
+Accept: application/vnd.wapid+json
 Response:
 200 OK
-Content-type: application/json
+Content-type: application/vnd.wapid+json
 {
    "artistid" : 1,
    "gig_datetime" : "2014-01-01T01:01:01Z"
@@ -83,9 +87,10 @@ Content-type: application/json
 === get different item with multi-field key
 Request:
 GET /gig/2/2014-06-30T19:00:00Z
+Accept: application/vnd.wapid+json
 Response:
 200 OK
-Content-type: application/json
+Content-type: application/vnd.wapid+json
 {
    "artistid" : 2,
    "gig_datetime" : "2014-06-30T19:00:00Z"
@@ -94,9 +99,10 @@ Content-type: application/json
 === get view data
 Request:
 GET /classic_albums
+Accept: application/vnd.wapid+json
 Response:
 200 OK
-Content-type: application/json
+Content-type: application/vnd.wapid+json
 [
    {
       "artist" : "Caterwauler McCrae",

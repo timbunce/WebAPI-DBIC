@@ -22,6 +22,7 @@ done_testing();
 
 __DATA__
 Config:
+Accept: application/vnd.wapid+json
 
 Name: get single item
 GET /artist/1

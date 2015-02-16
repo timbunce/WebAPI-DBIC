@@ -1,10 +1,11 @@
 === POST to the set to create a Track to edit (on an existing CD)
 Request:
 POST /track?prefetch=self
+Accept: application/vnd.wapid+json
 { "title":"Just One More", "position":4200, "cd":2 }
 Response:
 201 Created
-Content-type: application/json
+Content-type: application/vnd.wapid+json
 Location: /track/19
 {
    "cd" : 2,
@@ -18,10 +19,11 @@ Location: /track/19
 === update the title (19 hardwired for now) and prefetch self and disc (ignored)
 Request:
 PUT /track/19?prefetch=self,disc
+Accept: application/vnd.wapid+json
 { "title":"Just One More (remix)" }
 Response:
 200 OK
-Content-type: application/json
+Content-type: application/vnd.wapid+json
 {
    "cd" : 2,
    "last_updated_at" : null,
@@ -34,10 +36,11 @@ Content-type: application/json
 === update the track id (primary key)
 Request:
 PUT /track/19?prefetch=self
+Accept: application/vnd.wapid+json
 { "trackid":1900 }
 Response:
 200 OK
-Content-type: application/json
+Content-type: application/vnd.wapid+json
 {
    "cd" : 2,
    "last_updated_at" : null,
@@ -50,6 +53,7 @@ Content-type: application/json
 === delete the track we just added
 Request:
 DELETE /track/1900
+Accept: application/vnd.wapid+json
 Response:
 204 No Content
-Content-type: application/json
+Content-type: application/vnd.wapid+json

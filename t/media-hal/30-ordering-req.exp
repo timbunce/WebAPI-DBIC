@@ -1,7 +1,7 @@
 === order by PK asc
 Request:
 GET /cd?order=me.cdid
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -146,7 +146,7 @@ Content-type: application/hal+json
 === order by PK desc
 Request:
 GET /cd?order=me.cdid%20desc
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -291,7 +291,7 @@ Content-type: application/hal+json
 === order by year desc and title desc
 Request:
 GET /cd?sort=me.year%20desc,title%20desc
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -436,7 +436,7 @@ Content-type: application/hal+json
 === order by field in a relation (and the primary set for test stability)
 Request:
 GET /cd?prefetch=artist&sort=artist.name,cdid
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -621,7 +621,7 @@ Content-type: application/hal+json
 === order by field in two relations
 Request:
 GET /cd?prefetch=artist,genre&order=-genre.name,artist.name
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json

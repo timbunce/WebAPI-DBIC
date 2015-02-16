@@ -26,7 +26,7 @@ Name: get root url as html
 GET /
 
 Config:
-Accept: application/json
+Accept: application/vnd.wapid+json
 
 Name: get root url as plain json
 GET /

@@ -20,7 +20,7 @@ done_testing();
 
 __DATA__
 Config:
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 
 Name: get 1 row
 GET /artist?rows=1

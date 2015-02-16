@@ -1,0 +1,640 @@
+=== prefetch on an item using two belongs_to relationships
+Request:
+GET /cd/1?prefetch=artist,genre
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "artist" : [
+      {
+         "artistid" : 1,
+         "charfield" : null,
+         "name" : "Caterwauler McCrae",
+         "rank" : 13
+      }
+   ],
+   "cd" : [
+      {
+         "artist" : 1,
+         "artist_id" : 1,
+         "cdid" : 1,
+         "genre_id" : 1,
+         "genreid" : 1,
+         "single_track" : null,
+         "title" : "Spoonful of bees",
+         "year" : "1999"
+      }
+   ],
+   "genre" : [
+      {
+         "genreid" : 1,
+         "name" : "emo"
+      }
+   ]
+}
+
+=== prefetch on a set using two belongs_to relationships
+Request:
+GET /cd?rows=2&page=1&prefetch=artist,genre
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "artist" : [
+      {
+         "artistid" : 1,
+         "charfield" : null,
+         "name" : "Caterwauler McCrae",
+         "rank" : 13
+      }
+   ],
+   "cd" : [
+      {
+         "artist" : 1,
+         "artist_id" : 1,
+         "cdid" : 1,
+         "genre_id" : 1,
+         "genreid" : 1,
+         "single_track" : null,
+         "title" : "Spoonful of bees",
+         "year" : "1999"
+      },
+      {
+         "artist" : 1,
+         "artist_id" : 1,
+         "cdid" : 2,
+         "genre_id" : 2,
+         "genreid" : 2,
+         "single_track" : null,
+         "title" : "Forkful of bees",
+         "year" : "2001"
+      }
+   ],
+   "genre" : [
+      {
+         "genreid" : 1,
+         "name" : "emo"
+      },
+      {
+         "genreid" : 2,
+         "name" : "country"
+      }
+   ]
+}
+
+=== filter on prefetched relation field
+Request:
+GET /cd?prefetch=artist&artist.name=Random+Boy+Band
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "artist" : [
+      {
+         "artistid" : 2,
+         "charfield" : null,
+         "name" : "Random Boy Band",
+         "rank" : 13
+      }
+   ],
+   "cd" : [
+      {
+         "artist" : 2,
+         "artist_id" : 2,
+         "cdid" : 4,
+         "genreid" : 3,
+         "single_track" : null,
+         "title" : "Generic Manufactured Singles",
+         "year" : "2001"
+      }
+   ]
+}
+
+=== filter on prefetch with JSON
+Request:
+GET /cd?prefetch=artist PARAMS: artist.name~json=>{"like"=>"%Band"}
+GET /cd?prefetch=artist&artist.name~json=%7B%22like%22%3A%22%25Band%22%7D
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "artist" : [
+      {
+         "artistid" : 2,
+         "charfield" : null,
+         "name" : "Random Boy Band",
+         "rank" : 13
+      }
+   ],
+   "cd" : [
+      {
+         "artist" : 2,
+         "artist_id" : 2,
+         "cdid" : 4,
+         "genreid" : 3,
+         "single_track" : null,
+         "title" : "Generic Manufactured Singles",
+         "year" : "2001"
+      }
+   ]
+}
+
+=== multi type relation (has_many) in prefetch on item
+Request:
+GET /artist/1?prefetch=cds&order=cds.cdid
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "artist" : [
+      {
+         "artistid" : 1,
+         "cd_ids" : [
+            1,
+            2,
+            3
+         ],
+         "charfield" : null,
+         "name" : "Caterwauler McCrae",
+         "rank" : 13
+      }
+   ],
+   "cd" : [
+      {
+         "artist" : 1,
+         "cdid" : 1,
+         "genreid" : 1,
+         "single_track" : null,
+         "title" : "Spoonful of bees",
+         "year" : "1999"
+      },
+      {
+         "artist" : 1,
+         "cdid" : 2,
+         "genreid" : 2,
+         "single_track" : null,
+         "title" : "Forkful of bees",
+         "year" : "2001"
+      },
+      {
+         "artist" : 1,
+         "cdid" : 3,
+         "genreid" : 2,
+         "single_track" : null,
+         "title" : "Caterwaulin' Blues",
+         "year" : "1997"
+      }
+   ]
+}
+
+=== multi type relation (has_many) in prefetch on set
+Request:
+GET /artist?prefetch=cds&order=me.artistid,cds.cdid&rows=2
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "artist" : [
+      {
+         "artistid" : 1,
+         "cd_ids" : [
+            1,
+            2,
+            3
+         ],
+         "charfield" : null,
+         "name" : "Caterwauler McCrae",
+         "rank" : 13
+      },
+      {
+         "artistid" : 2,
+         "cd_ids" : [
+            4
+         ],
+         "charfield" : null,
+         "name" : "Random Boy Band",
+         "rank" : 13
+      }
+   ],
+   "cd" : [
+      {
+         "artist" : 1,
+         "cdid" : 1,
+         "genreid" : 1,
+         "single_track" : null,
+         "title" : "Spoonful of bees",
+         "year" : "1999"
+      },
+      {
+         "artist" : 1,
+         "cdid" : 2,
+         "genreid" : 2,
+         "single_track" : null,
+         "title" : "Forkful of bees",
+         "year" : "2001"
+      },
+      {
+         "artist" : 1,
+         "cdid" : 3,
+         "genreid" : 2,
+         "single_track" : null,
+         "title" : "Caterwaulin' Blues",
+         "year" : "1997"
+      },
+      {
+         "artist" : 2,
+         "cdid" : 4,
+         "genreid" : 3,
+         "single_track" : null,
+         "title" : "Generic Manufactured Singles",
+         "year" : "2001"
+      }
+   ]
+}
+
+=== multi type relation in prefetch on item (many_to_many via JSON) ArrayRef Syntax
+Request:
+GET /cd/1 PARAMS: prefetch~json=>[{"cd_to_producer"=>"producer"}]
+GET /cd/1?prefetch~json=%5B%7B%22cd_to_producer%22%3A%22producer%22%7D%5D
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "cd" : [
+      {
+         "artist" : 1,
+         "cdid" : 1,
+         "genreid" : 1,
+         "single_track" : null,
+         "title" : "Spoonful of bees",
+         "year" : "1999"
+      }
+   ]
+}
+
+=== multi type relation in prefetch on item (many_to_many via JSON) HashRef Syntax
+Request:
+GET /cd/1 PARAMS: prefetch~json=>{"cd_to_producer"=>"producer"}
+GET /cd/1?prefetch~json=%7B%22cd_to_producer%22%3A%22producer%22%7D
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "cd" : [
+      {
+         "artist" : 1,
+         "cdid" : 1,
+         "genreid" : 1,
+         "single_track" : null,
+         "title" : "Spoonful of bees",
+         "year" : "1999"
+      }
+   ]
+}
+
+=== filter on nested prefetch
+Request:
+GET /artist?rows=2&producer.name=Matt+S+Trout PARAMS: prefetch~json=>{"cds"=>{"cd_to_producer"=>"producer"}} cds.year~json=>{">","0996"}
+GET /artist?rows=2&producer.name=Matt+S+Trout&prefetch~json=%7B%22cds%22%3A%7B%22cd_to_producer%22%3A%22producer%22%7D%7D&cds.year~json=%7B%22%3E%22%3A%220996%22%7D
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "artist" : [
+      {
+         "artistid" : 1,
+         "cd_ids" : [
+            1
+         ],
+         "charfield" : null,
+         "name" : "Caterwauler McCrae",
+         "rank" : 13
+      }
+   ],
+   "cd" : [
+      {
+         "artist" : 1,
+         "cdid" : 1,
+         "genreid" : 1,
+         "single_track" : null,
+         "title" : "Spoonful of bees",
+         "year" : "1999"
+      }
+   ]
+}
+
+=== prefetch with query on ambiguous field
+Request:
+GET /cd/?me.artist=1&prefetch=artist
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "artist" : [
+      {
+         "artistid" : 1,
+         "charfield" : null,
+         "name" : "Caterwauler McCrae",
+         "rank" : 13
+      }
+   ],
+   "cd" : [
+      {
+         "artist" : 1,
+         "artist_id" : 1,
+         "cdid" : 1,
+         "genreid" : 1,
+         "single_track" : null,
+         "title" : "Spoonful of bees",
+         "year" : "1999"
+      },
+      {
+         "artist" : 1,
+         "artist_id" : 1,
+         "cdid" : 2,
+         "genreid" : 2,
+         "single_track" : null,
+         "title" : "Forkful of bees",
+         "year" : "2001"
+      },
+      {
+         "artist" : 1,
+         "artist_id" : 1,
+         "cdid" : 3,
+         "genreid" : 2,
+         "single_track" : null,
+         "title" : "Caterwaulin' Blues",
+         "year" : "1997"
+      }
+   ]
+}
+
+=== prefetch on invalid name
+Request:
+GET /cd/1?prefetch=nonesuch
+Accept: application/json
+Response:
+400 Bad Request
+Content-type: application/json
+{
+   "errors" : [
+      {
+         "_meta" : {
+            "relationship" : null,
+            "relationships" : [
+               "artist",
+               "cd_to_producer",
+               "existing_single_track",
+               "genre",
+               "single_track",
+               "tracks"
+            ]
+         },
+         "nonesuch" : "no relationship with that name\n"
+      }
+   ]
+}
+
+=== prefetch on set with partial response of prefetched items
+Request:
+GET /cd?rows=2&page=1&prefetch=artist,genre&fields=cdid,artist,genreid,genre.genreid,artist.artistid
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "artist" : [
+      {
+         "artistid" : 1
+      }
+   ],
+   "cd" : [
+      {
+         "artist" : 1,
+         "artist_id" : 1,
+         "cdid" : 1,
+         "genre_id" : 1,
+         "genreid" : 1
+      },
+      {
+         "artist" : 1,
+         "artist_id" : 1,
+         "cdid" : 2,
+         "genre_id" : 2,
+         "genreid" : 2
+      }
+   ],
+   "genre" : [
+      {
+         "genreid" : 1
+      },
+      {
+         "genreid" : 2
+      }
+   ]
+}
+
+=== prefetch on item with partial response of prefetched item
+Request:
+GET /cd/1?prefetch=artist,genre&fields=cdid,artist,genreid,artist.artistid,genre.genreid
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "artist" : [
+      {
+         "artistid" : 1
+      }
+   ],
+   "cd" : [
+      {
+         "artist" : 1,
+         "artist_id" : 1,
+         "cdid" : 1,
+         "genre_id" : 1,
+         "genreid" : 1
+      }
+   ],
+   "genre" : [
+      {
+         "genreid" : 1
+      }
+   ]
+}
+
+=== prefetch on item with id primary key #28
+Request:
+GET /country/1?prefetch=cities
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "city" : [
+      {
+         "country_id" : 1,
+         "id" : 1,
+         "name" : "London"
+      }
+   ],
+   "country" : [
+      {
+         "city_ids" : [
+            1
+         ],
+         "id" : 1,
+         "name" : "England"
+      }
+   ]
+}
+
+=== prefetch a complex set with second-tier relationships
+Request:
+GET /artist/1 PARAMS: prefetch~json=>{"cds"=>"tracks"}
+GET /artist/1?prefetch~json=%7B%22cds%22%3A%22tracks%22%7D
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "artist" : [
+      {
+         "artistid" : 1,
+         "cd_ids" : [
+            1,
+            2,
+            3
+         ],
+         "charfield" : null,
+         "name" : "Caterwauler McCrae",
+         "rank" : 13
+      }
+   ],
+   "cd" : [
+      {
+         "artist" : 1,
+         "cdid" : 1,
+         "genreid" : 1,
+         "single_track" : null,
+         "title" : "Spoonful of bees",
+         "track_ids" : [
+            16,
+            17,
+            18
+         ],
+         "year" : "1999"
+      },
+      {
+         "artist" : 1,
+         "cdid" : 2,
+         "genreid" : 2,
+         "single_track" : null,
+         "title" : "Forkful of bees",
+         "track_ids" : [
+            4,
+            5,
+            6
+         ],
+         "year" : "2001"
+      },
+      {
+         "artist" : 1,
+         "cdid" : 3,
+         "genreid" : 2,
+         "single_track" : null,
+         "title" : "Caterwaulin' Blues",
+         "track_ids" : [
+            7,
+            8,
+            9
+         ],
+         "year" : "1997"
+      }
+   ],
+   "track" : [
+      {
+         "cd" : 1,
+         "last_updated_at" : null,
+         "last_updated_on" : null,
+         "position" : 1,
+         "title" : "The Bees Knees",
+         "trackid" : 16
+      },
+      {
+         "cd" : 1,
+         "last_updated_at" : null,
+         "last_updated_on" : null,
+         "position" : 2,
+         "title" : "Apiary",
+         "trackid" : 17
+      },
+      {
+         "cd" : 1,
+         "last_updated_at" : null,
+         "last_updated_on" : null,
+         "position" : 3,
+         "title" : "Beehind You",
+         "trackid" : 18
+      },
+      {
+         "cd" : 2,
+         "last_updated_at" : null,
+         "last_updated_on" : null,
+         "position" : 1,
+         "title" : "Stung with Success",
+         "trackid" : 4
+      },
+      {
+         "cd" : 2,
+         "last_updated_at" : null,
+         "last_updated_on" : null,
+         "position" : 2,
+         "title" : "Stripy",
+         "trackid" : 5
+      },
+      {
+         "cd" : 2,
+         "last_updated_at" : null,
+         "last_updated_on" : null,
+         "position" : 3,
+         "title" : "Sticky Honey",
+         "trackid" : 6
+      },
+      {
+         "cd" : 3,
+         "last_updated_at" : null,
+         "last_updated_on" : null,
+         "position" : 1,
+         "title" : "Yowlin",
+         "trackid" : 7
+      },
+      {
+         "cd" : 3,
+         "last_updated_at" : null,
+         "last_updated_on" : null,
+         "position" : 2,
+         "title" : "Howlin",
+         "trackid" : 8
+      },
+      {
+         "cd" : 3,
+         "last_updated_at" : null,
+         "last_updated_on" : null,
+         "position" : 3,
+         "title" : "Fowlin",
+         "trackid" : 9
+      }
+   ]
+}
+

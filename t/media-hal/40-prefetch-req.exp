@@ -1,7 +1,7 @@
 === prefetch on an item using two belongs_to relationships
 Request:
 GET /cd/1?prefetch=artist,genre
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -46,7 +46,7 @@ Content-type: application/hal+json
 === prefetch on a set using two belongs_to relationships
 Request:
 GET /cd?rows=2&page=1&prefetch=artist,genre
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -143,7 +143,7 @@ Content-type: application/hal+json
 === filter on prefetched relation field
 Request:
 GET /cd?prefetch=artist&artist.name=Random+Boy+Band
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -197,7 +197,7 @@ Content-type: application/hal+json
 Request:
 GET /cd?prefetch=artist PARAMS: artist.name~json=>{"like"=>"%Band"}
 GET /cd?prefetch=artist&artist.name~json=%7B%22like%22%3A%22%25Band%22%7D
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -250,7 +250,7 @@ Content-type: application/hal+json
 === multi type relation (has_many) in prefetch on item
 Request:
 GET /artist/1?prefetch=cds&order=cds.cdid
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -354,7 +354,7 @@ Content-type: application/hal+json
 === multi type relation (has_many) in prefetch on set
 Request:
 GET /artist?prefetch=cds&order=me.artistid,cds.cdid&rows=2
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -520,7 +520,7 @@ Content-type: application/hal+json
 Request:
 GET /cd/1?sort=cd_to_producer.producer PARAMS: prefetch~json=>[{"cd_to_producer"=>"producer"}]
 GET /cd/1?sort=cd_to_producer.producer&prefetch~json=%5B%7B%22cd_to_producer%22%3A%22producer%22%7D%5D
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -624,7 +624,7 @@ Content-type: application/hal+json
 Request:
 GET /cd/1?sort=cd_to_producer.producer PARAMS: prefetch~json=>{"cd_to_producer"=>"producer"}
 GET /cd/1?sort=cd_to_producer.producer&prefetch~json=%7B%22cd_to_producer%22%3A%22producer%22%7D
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -728,7 +728,7 @@ Content-type: application/hal+json
 Request:
 GET /artist?rows=2&producer.name=Matt+S+Trout PARAMS: prefetch~json=>{"cds"=>{"cd_to_producer"=>"producer"}} cds.year~json=>{">","0996"}
 GET /artist?rows=2&producer.name=Matt+S+Trout&prefetch~json=%7B%22cds%22%3A%7B%22cd_to_producer%22%3A%22producer%22%7D%7D&cds.year~json=%7B%22%3E%22%3A%220996%22%7D
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -820,7 +820,7 @@ Content-type: application/hal+json
 === prefetch with query on ambiguous field
 Request:
 GET /cd/?me.artist=1&prefetch=artist
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -939,7 +939,7 @@ Content-type: application/hal+json
 === prefetch on invalid name
 Request:
 GET /cd/1?prefetch=nonesuch
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 400 Bad Request
 Content-type: application/json
@@ -965,7 +965,7 @@ Content-type: application/json
 === prefetch on set with partial response of prefetched items
 Request:
 GET /cd?rows=2&page=1&prefetch=artist,genre&fields=cdid,artist,genreid,genre.genreid,artist.artistid
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -1048,7 +1048,7 @@ Content-type: application/hal+json
 === prefetch on item with partial response of prefetched item
 Request:
 GET /cd/1?prefetch=artist,genre&fields=cdid,artist,genreid,artist.artistid,genre.genreid
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -1086,7 +1086,7 @@ Content-type: application/hal+json
 === prefetch on item with id primary key #28
 Request:
 GET /country/1?prefetch=cities
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json

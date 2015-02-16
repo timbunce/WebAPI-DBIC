@@ -1,7 +1,7 @@
 === get single item
 Request:
 GET /artist/1
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -26,7 +26,7 @@ Content-type: application/hal+json
 === get different single item
 Request:
 GET /artist/2
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -51,7 +51,7 @@ Content-type: application/hal+json
 === get set of items
 Request:
 GET /artist
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -173,7 +173,7 @@ Content-type: application/hal+json
 === get item with multi-field key
 Request:
 GET /gig/1/2014-01-01T01:01:01Z
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -193,7 +193,7 @@ Content-type: application/hal+json
 === get different item with multi-field key
 Request:
 GET /gig/2/2014-06-30T19:00:00Z
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json
@@ -213,7 +213,7 @@ Content-type: application/hal+json
 === get view data
 Request:
 GET /classic_albums
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 Response:
 200 OK
 Content-type: application/hal+json

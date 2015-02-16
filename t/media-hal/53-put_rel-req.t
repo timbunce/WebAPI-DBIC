@@ -59,7 +59,7 @@ done_testing();
 
 __DATA__
 Config:
-Accept: application/hal+json,application/json
+Accept: application/hal+json
 
 Name: POST to the set to create a Track to edit (on an existing CD)
 POST /track?prefetch=self

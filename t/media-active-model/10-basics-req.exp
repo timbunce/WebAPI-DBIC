@@ -1,0 +1,149 @@
+=== get single item
+Request:
+GET /artist/1
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "artist" : [
+      {
+         "artistid" : 1,
+         "charfield" : null,
+         "name" : "Caterwauler McCrae",
+         "rank" : 13
+      }
+   ]
+}
+
+=== get different single item
+Request:
+GET /artist/2
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "artist" : [
+      {
+         "artistid" : 2,
+         "charfield" : null,
+         "name" : "Random Boy Band",
+         "rank" : 13
+      }
+   ]
+}
+
+=== get set of items
+Request:
+GET /artist
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "artist" : [
+      {
+         "artistid" : 1,
+         "charfield" : null,
+         "name" : "Caterwauler McCrae",
+         "rank" : 13
+      },
+      {
+         "artistid" : 2,
+         "charfield" : null,
+         "name" : "Random Boy Band",
+         "rank" : 13
+      },
+      {
+         "artistid" : 3,
+         "charfield" : null,
+         "name" : "We Are Goth",
+         "rank" : 13
+      },
+      {
+         "artistid" : 4,
+         "charfield" : null,
+         "name" : "KielbaSka",
+         "rank" : 13
+      },
+      {
+         "artistid" : 5,
+         "charfield" : null,
+         "name" : "Gruntfiddle",
+         "rank" : 13
+      },
+      {
+         "artistid" : 6,
+         "charfield" : null,
+         "name" : "A-ha Na Na",
+         "rank" : 13
+      }
+   ]
+}
+
+=== get item with multi-field key
+Request:
+GET /gig/1/2014-01-01T01:01:01Z
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "gig" : [
+      {
+         "artistid" : 1,
+         "gig_datetime" : "2014-01-01T01:01:01Z"
+      }
+   ]
+}
+
+=== get different item with multi-field key
+Request:
+GET /gig/2/2014-06-30T19:00:00Z
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "gig" : [
+      {
+         "artistid" : 2,
+         "gig_datetime" : "2014-06-30T19:00:00Z"
+      }
+   ]
+}
+
+=== get view data
+Request:
+GET /classic_albums
+Accept: application/json
+Response:
+200 OK
+Content-type: application/json
+{
+   "classic_albums" : [
+      {
+         "artist" : "Caterwauler McCrae",
+         "cdid" : 1,
+         "genre" : "emo",
+         "release_year" : "1999",
+         "title" : "Spoonful of bees"
+      },
+      {
+         "artist" : "Caterwauler McCrae",
+         "cdid" : 3,
+         "genre" : "country",
+         "release_year" : "1997",
+         "title" : "Caterwaulin' Blues"
+      },
+      {
+         "artist" : "We Are Goth",
+         "cdid" : 5,
+         "genre" : "goth",
+         "release_year" : "1998",
+         "title" : "Come Be Depressed With Us"
+      }
+   ]
+}
+

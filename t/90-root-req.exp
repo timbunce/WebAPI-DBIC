@@ -9,10 +9,10 @@ Location: browser/browser.html#/
 === get root url as plain json
 Request:
 GET /
-Accept: application/json
+Accept: application/vnd.wapid+json
 Response:
 200 OK
-Content-type: application/json
+Content-type: application/vnd.wapid+json
 {
    "routes" : {
       "/artist" : "TestSchema Artist",
