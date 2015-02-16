@@ -23,8 +23,10 @@ my $hal_app = Plack::App::File->new(
 
 use Devel::Dwarn;
 
+my $schema = DummyLoadedSchema->connect;
+
 my $app = WebAPI::DBIC::WebApp->new({
-    schema => DummyLoadedSchema->connect,
+    routes => [ map( $schema->source($_), $schema->sources) ]
 })->to_psgi_app;
 
 my $app_prefix = "/clients/v1";

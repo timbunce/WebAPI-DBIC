@@ -39,7 +39,7 @@ eval "require $schema_class" or die "Error loading $schema_class: $@";
 my $schema = $schema_class->connect(); # uses DBI_DSN, DBI_USER, DBI_PASS env vars
 
 my $app = WebAPI::DBIC::WebApp->new({
-    schema   => $schema,
+    routes => [ map( $schema->source($_), $schema->sources) ]
 })->to_psgi_app;
 
 my $app_prefix = "/webapi-dbic";
