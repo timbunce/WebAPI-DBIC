@@ -28,36 +28,6 @@ sub activemodel_type {
 }
 
 
-sub traverse_prefetch {
-    my $self = shift;
-    my $set = shift;
-    my $parent_rel = shift;
-    my $prefetch = shift;
-    my $callback = shift;
-
-    return unless $prefetch;
-
-    if ($prefetch && !ref($prefetch)) {
-        $callback->($self, $set, $parent_rel, $prefetch);
-    }
-    elsif (ref($prefetch) eq 'HASH') {
-        while (my ($prefetch_key, $prefetch_value) = each(%$prefetch)) {
-            $self->traverse_prefetch($set,             $parent_rel,   $prefetch_key, $callback);
-            my $result_subclass = $set->result_class->relationship_info($prefetch_key)->{class};
-            $self->traverse_prefetch($result_subclass, $prefetch_key, $prefetch_value, $callback);
-        }
-    }
-    elsif (ref($prefetch) eq 'ARRAY') {
-        for my $sub_prefetch (@$prefetch) {
-            $self->traverse_prefetch($set, $parent_rel, $sub_prefetch, $callback);
-        }
-    }
-    else {
-        confess "Unsupported ref(prefetch): " . ref($prefetch);
-    }
-
-    return;
-}
 
 
 sub render_activemodel_prefetch_rel {
@@ -142,9 +112,10 @@ sub render_activemodel_response { # return top-level document hashref
     my $rel_sets = {};
     my $item_edit_rel_hooks = {};
 
-    $self->traverse_prefetch($set, 'top', $prefetch, sub {
+    $self->traverse_prefetch($set, [ 'top' ], $prefetch, sub {
         my ($self, $set, $parent_rel, $prefetch) = @_;
-        $self->render_activemodel_prefetch_rel($set, $parent_rel, $prefetch, $top_links, $rel_sets, $item_edit_rel_hooks)
+        #warn "$self: $set, $parent_rel, $prefetch\n";
+        $self->render_activemodel_prefetch_rel($set, $parent_rel->[-1], $prefetch, $top_links, $rel_sets, $item_edit_rel_hooks)
     });
 
     my $result_class = $set->result_class;
