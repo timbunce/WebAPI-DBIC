@@ -33,29 +33,30 @@ sub traverse_prefetch {
     my $set = shift;
     my $parent_rel = shift;
     my $prefetch = shift;
-    my $rel_fcn = shift;
-    my @rel_fcn_args = @_;
+    my $callback = shift;
 
-    return unless($prefetch);
+    return unless $prefetch;
 
-    if($prefetch && !ref($prefetch)) {
-        $self->$rel_fcn($set, $parent_rel, $prefetch, @rel_fcn_args);
+    if ($prefetch && !ref($prefetch)) {
+        $callback->($self, $set, $parent_rel, $prefetch);
     }
-    elsif(ref($prefetch) eq 'HASH') {
-        while(my ($prefetch_key, $prefetch_value) = each(%{$prefetch})) {
-            $self->traverse_prefetch($set, $parent_rel, $prefetch_key, $rel_fcn, @rel_fcn_args);
+    elsif (ref($prefetch) eq 'HASH') {
+        while (my ($prefetch_key, $prefetch_value) = each(%$prefetch)) {
+            $self->traverse_prefetch($set,             $parent_rel,   $prefetch_key, $callback);
             my $result_subclass = $set->result_class->relationship_info($prefetch_key)->{class};
-            $self->traverse_prefetch($result_subclass, $prefetch_key, $prefetch_value, $rel_fcn, @rel_fcn_args);
+            $self->traverse_prefetch($result_subclass, $prefetch_key, $prefetch_value, $callback);
         }
     }
-    elsif(ref($prefetch) eq 'ARRAY') {
-        for my $sub_prefetch(@{$prefetch}) {
-            $self->traverse_prefetch($set, $parent_rel, $sub_prefetch, $rel_fcn, @rel_fcn_args);
+    elsif (ref($prefetch) eq 'ARRAY') {
+        for my $sub_prefetch (@$prefetch) {
+            $self->traverse_prefetch($set, $parent_rel, $sub_prefetch, $callback);
         }
     }
     else {
-        warn "Unsupported ref(prefetch): " . ref($prefetch);
+        confess "Unsupported ref(prefetch): " . ref($prefetch);
     }
+
+    return;
 }
 
 
@@ -122,7 +123,7 @@ sub render_activemodel_prefetch_rel {
         # Per http://emberjs.com/api/data/classes/DS.ActiveModelAdapter.html:
         # This should use the relationship name, singularized, and suffixed with
         # '_id' for belongsTo relationships or '_ids' for hasMany relationships.
-        if($rel_ids) {
+        if ($rel_ids) {
             my $suffix = ref($rel_ids) ? '_ids' : '_id';
             my $relname_id = Lingua::EN::Inflect::Number::to_S($relname).$suffix;
             $activemodel_obj->{$relname_id} = $rel_ids;
@@ -141,13 +142,10 @@ sub render_activemodel_response { # return top-level document hashref
     my $rel_sets = {};
     my $item_edit_rel_hooks = {};
 
-    if (scalar(@{$prefetch})) {
-        $self->traverse_prefetch($set, 'top', $prefetch, \&render_activemodel_prefetch_rel, $top_links, $rel_sets, $item_edit_rel_hooks)
-    }
-    else {
-        # warn "no prefetch";
-    }
-
+    $self->traverse_prefetch($set, 'top', $prefetch, sub {
+        my ($self, $set, $parent_rel, $prefetch) = @_;
+        $self->render_activemodel_prefetch_rel($set, $parent_rel, $prefetch, $top_links, $rel_sets, $item_edit_rel_hooks)
+    });
 
     my $result_class = $set->result_class;
     my $set_data = $self->render_set_as_array_of_activemodel_resource_objects($set, undef, sub {
