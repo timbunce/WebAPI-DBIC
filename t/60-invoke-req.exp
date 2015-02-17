@@ -1,0 +1,122 @@
+=== Invoke get_column('name') on Item
+Request:
+POST /artist/1/invoke/get_column
+{ "args" : ["name"] }
+Response:
+200 OK
+Content-type: application/vnd.wapid+json
+{
+   "result" : "Caterwauler McCrae"
+}
+
+=== Invoke get_column({}) on Item - Invalid arg type
+Request:
+POST /artist/1/invoke/get_column
+{ "args" : {} }
+Response:
+400 Bad Request
+Content-type: application/json
+{
+   "errors" : "The args must be an array"
+}
+
+=== Invoke get_column() on Item - Unknown attribute
+Request:
+POST /artist/1/invoke/get_column
+{ "nonesuch" : 1 }
+Response:
+400 Bad Request
+Content-type: application/json
+{
+   "errors" : "Unknown attributes: nonesuch"
+}
+
+=== Invoke get_column() on Item - Invalid Body
+Request:
+POST /artist/1/invoke/get_column
+[]
+Response:
+400 Bad Request
+Content-type: application/json
+{
+   "errors" : "Request content not a JSON hash"
+}
+
+=== Invoke get_colum('nonesuch') on Item - Invalid column
+Request:
+POST /artist/1/invoke/get_column
+{ "args" : ["nonesuch"] }
+Response:
+500 Internal Server Error
+Content-type: application/vnd.wapid+json
+=== Invoke get_column('name') on Set
+Request:
+POST /artist/invoke/get_column
+{ "args" : ["name"] }
+Response:
+404 Not Found
+Content-type: text/html
+Not Found
+=== Invoke count on Set
+Request:
+POST /artist/invoke/count
+{ }
+Response:
+200 OK
+Content-type: application/vnd.wapid+json
+{
+   "result" : 6
+}
+
+=== Invoke count on Set - Invalid arg type
+Request:
+POST /artist/invoke/count
+{ "args" : {} }
+Response:
+400 Bad Request
+Content-type: application/json
+{
+   "errors" : "The args must be an array"
+}
+
+=== Invoke count on Set - Unknown attribute
+Request:
+POST /artist/invoke/count
+{ "nonesuch" : 1 }
+Response:
+400 Bad Request
+Content-type: application/json
+{
+   "errors" : "Unknown attributes: nonesuch"
+}
+
+=== Invoke count on Set - Invalid Body
+Request:
+POST /artist/invoke/count
+[ ]
+Response:
+400 Bad Request
+Content-type: application/json
+{
+   "errors" : "Request content not a JSON hash"
+}
+
+=== Invoke count({name => "Caterwauler McCrae"}) on Set
+Request:
+POST /artist/invoke/count
+{ "args" : [ { "name" : "Caterwauler McCrae" } ] }
+Response:
+200 OK
+Content-type: application/vnd.wapid+json
+{
+   "result" : 1
+}
+
+=== Invoke count on Item
+Request:
+POST /artist/1/invoke/count
+{ }
+Response:
+404 Not Found
+Content-type: text/html
+Not Found
