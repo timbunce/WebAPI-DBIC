@@ -52,3 +52,5 @@ pure-javascript interactive API browser L<Alien::Web::HalBrowser>.
 WebAPI::DBIC doesn't yet offer direct support for documentation resources.
 
 =cut
+
+1;

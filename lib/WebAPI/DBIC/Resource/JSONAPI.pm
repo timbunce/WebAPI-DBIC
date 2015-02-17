@@ -46,3 +46,5 @@ You can use the generic L<WebAPI::DBIC::Resource::Role::ItemInvoke> or
 L<WebAPI::DBIC::Resource::Role::SetInvoke> role.
 
 =cut
+
+1;
