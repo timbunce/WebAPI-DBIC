@@ -11,14 +11,14 @@ use Moo;
 use Module::Runtime qw(use_module);
 use Sub::Util qw(subname);
 use Scalar::Util qw(blessed);
-use Carp qw(carp croak confess);
+use Carp qw(croak confess);
+use Safe::Isa;
 use Devel::Dwarn;
 
 use namespace::clean -except => [qw(meta)];
 use MooX::StrictConstructor;
 
 use WebAPI::DBIC::Route;
-
 
 has resource_class_for_item        => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericItem');
 has resource_class_for_item_invoke => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericItemInvoke');
@@ -34,12 +34,10 @@ has type_namer => (
     },
 );
 
-
 sub _qr_names {
     my $names_r = join "|", map { quotemeta $_ } @_ or confess "panic";
     return qr/^(?:$names_r)$/x;
 }
-
 
 sub make_routes_for_resultset {
     my ($self, $path, $set, %opts) = @_;
@@ -64,7 +62,6 @@ sub make_routes_for_resultset {
 
     return @routes;
 }
-
 
 sub make_routes_for_item {
     my ($self, $path, $set, $opts) = @_;
@@ -116,14 +113,13 @@ sub make_routes_for_item {
     return @routes;
 }
 
-
 sub make_routes_for_set {
     my ($self, $path, $set, $opts) = @_;
     $opts ||= {};
     my $methods = $opts->{invokable_methods};
 
     my @routes;
-   
+
     push @routes, WebAPI::DBIC::Route->new(
         path => $path,
         resource_class => $self->resource_class_for_set,
@@ -152,7 +148,6 @@ sub make_routes_for_set {
     return @routes;
 }
 
-
 sub make_root_route {
     my $self = shift;
     my $root_route = WebAPI::DBIC::Route->new(
@@ -166,8 +161,6 @@ sub make_root_route {
     return $root_route;
 }
 
-
-
 sub make_routes_for {
     my ($self, $route_spec) = @_;
 
@@ -177,9 +170,7 @@ sub make_routes_for {
     #   { set => $schema->resultset('People')->search({ tall=>1 }), path => 'tall_people' }
     #   WebAPI::DBIC::Route->new(...) # gets used directly
 
-    return $route_spec # is already a route
-        if blessed $route_spec
-        && $route_spec->isa('WebAPI::DBIC::Resource::Role::Route');
+    return $route_spec if $route_spec->$_isa('WebAPI::DBIC::Route');
 
     my %opts;
 
@@ -190,15 +181,13 @@ sub make_routes_for {
         $route_spec = delete $opts{set};
     }
 
-    if ($route_spec->isa('DBIx::Class::ResultSource')) {
+    if ($route_spec->$_isa('DBIx::Class::ResultSource')) {
         $route_spec = $route_spec->resultset;
         # $opts{is_canonical_source} = 1;
-    }
-    elsif ($route_spec->isa('DBIx::Class::ResultSet')) {
+    } elsif ($route_spec->$_isa('DBIx::Class::ResultSet')) {
         # $route_spec is already a resultset, but is a non-canonical source
         # $opts{is_canonical_source} //= 0;
-    }
-    else {
+    } else {
         croak "Don't know how to convert '$route_spec' into to a DBIx::Class::ResultSet or WebAPI::DBIC::Resource::Role::Route";
     }
 
@@ -206,6 +195,5 @@ sub make_routes_for {
 
     return $self->make_routes_for_resultset($path, $route_spec, %opts);
 }
-
 
 1;
