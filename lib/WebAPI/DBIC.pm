@@ -18,13 +18,10 @@ Interested? Please get involved! See L</HOW TO GET HELP> below.
 
 =head1 DESCRIPTION
 
-WebAPI::DBIC provides the parts you need to build a feature-rich RESTful JSON web
-service API backed by DBIx::Class schemas.
+WebAPI::DBIC (or "WAPID" for short) provides the parts you need to build a
+feature-rich RESTful JSON web service API backed by DBIx::Class schemas.
 
 WebAPI::DBIC features include:
-
-* Built on the strong foundations of L<Plack> and L<Web::Machine>, plus
-L<Path::Router> as the router. (Other routers could be supported.)
 
 * Built as fine-grained roles for maximum reusability and extensibility.
 
@@ -32,9 +29,12 @@ L<Path::Router> as the router. (Other routers could be supported.)
 
 * The resource roles can be added to your existing application.
 
+* Built on the strong foundations of L<Plack> and L<Web::Machine>, plus
+L<Path::Router> as the router. (Other routers could be supported.)
+
 * Rich support for multiple hypermedia types, including ActiveModel / Ember-Data
-(application/json), JSON API (application/vnd.api+json)
-and HAL (application/hal+json).
+(C<application/json>), JSON API (C<application/vnd.api+json>)
+and HAL (C<application/hal+json>).
 The Collection+JSON and JSON-LD hypermedia types could be added in future.
 
 * Automatic detection and exposure of result set relationships.
@@ -44,55 +44,54 @@ The Collection+JSON and JSON-LD hypermedia types could be added in future.
 * An example .psgi file that gives you an instant web service for any
 DBIx::Class schema.
 
-* Includes a generic HAL API browser application so you can be browsing your
-new API in minutes.
+* A generic pure-javascript HAL API browser application is integrated with
+WebAPI::DBIC so you can be browsing your new API in seconds.
 
-=head2 ActiveModel - For Ember and similar front-end frameworks
+=head2 Media Types Supported
 
-Designed to match the output of the active_model_serializers Ruby gem
-and thus be directly usable as a backend for frameworks compatible withit,
-including Ember.
+The HTTP C<Content-Type> and C<Accept> headers are used to specify
+the 'media type' of a request, and the desired response. In the case of JSON
+types, the media type defines not only that the content is a JSON data structure,
+but the semantics (meaning) of the the scructure.
 
-This uses the C<application/json> media type.
+A single application can support requests and responses in multiple media
+types, using the headers to negotiate the right behaviour for ech request.
 
-Support for ActiveModel is new and likely to be unstable at the fringes. 
+=head3 ActiveModel
 
-See L<http://emberjs.com/api/data/classes/DS.ActiveModelAdapter.html>
-for more information.
+Designed to match the behaviour of the active_model_serializers Ruby gem
+and thus be directly usable as a backend for frameworks compatible with it,
+including Ember.  This uses the C<application/json> media type. (This is a very
+common 'default' media type for web data services.)
 
-=head2 HAL - Hypertext Application Language
+See L<WebAPI::DBIC::Resource::ActiveModel> for more information.
+
+=head3 HAL
 
 The Hypertext Application Language hypermedia type (or HAL for short)
 is a simple JSON format that gives a consistent and easy way to hyperlink
-between resources in your API.
+between resources in your API. It uses the C<application/hal+json> media type.
 
-Adopting HAL makes the API explorable, and its documentation easily
-discoverable from within the API itself.  In short, it will make your API
-easier to work with and therefore more attractive to client developers.
+A pure-JavaScript "HAL Browser" application is integrated with the WebAPI::DBIC
+distribution via the L<Alien::Web::HalBrowser> module. It's a great way to
+explore your API.
 
-A JavaScript "HAL Browser" is included in the WebAPI::DBIC distribution.
-(WebAPI::DBIC doesn't yet offer direct support for documentation resources.)
+See L<http://stateless.co/hal_specification.html> for more details of the specification.
+See L<WebAPI::DBIC::Resource::HAL> for more details of WebAPI::DBIC support.
 
-APIs that adopt HAL can be easily served and consumed using open source
-libraries available for most major programming languages. It's also simple
-enough that you can just deal with it as you would any other JSON.
-
-See L<http://stateless.co/hal_specification.html> for more details.
-
-=head2 JSON API
+=head3 JSON API
 
 The JSON API media type is designed to minimize both the number of requests and
 the amount of data transmitted between clients and servers. This efficiency is
 achieved without compromising readability, flexibility, and discoverability.
+It's an (as yet immature) evolution of the ActiveModel media type.
 
-See L<http://jsonapi.org/> for more details.
+See L<WebAPI::DBIC::Resource::JSONAPI> for more details.
 
-Development of JSON API support for WebAPI::DBIC has stalled due to instability
-of the specification as it moves towards an official 1.0 release.  See, for example,
-L<https://github.com/json-api/json-api/issues/159#issuecomment-70675184>
+=head3 WAPID
 
-For Ember, L<https://github.com/kurko/ember-json-api> can be used as an adaptor
-but has it's own set of issues. I'd recommend using ActiveModel, described above, instead.
+The WebAPI::DBIC core and tests use the C<application/vnd.wapid+json> media
+type. It's subject to change without notice.
 
 =head2 Web::Machine
 
@@ -201,37 +200,17 @@ parameters related to DBIx::Class such as C<page>, C<rows>, C<sort>, C<me>,
 C<prefetch>, C<fields> etc.
 
 
+=head2 ActiveModel Roles
+
+For support of the C<application/json> media type, see L<WebAPI::DBIC::Resource::ActiveModel>.
+
 =head2 JSON+HAL Roles
 
-These roles are used to handle requests using the C<application/hal+json> media type
-and follow the naming convention used above.
-
-L<WebAPI::DBIC::Resource::HAL::Role::DBIC>
-
-L<WebAPI::DBIC::Resource::HAL::Role::Set>
-
-L<WebAPI::DBIC::Resource::HAL::Role::SetWritable>
-
-L<WebAPI::DBIC::Resource::HAL::Role::Item>
-
-L<WebAPI::DBIC::Resource::HAL::Role::ItemWritable>
-
+See L<WebAPI::DBIC::Resource::HAL>
 
 =head2 JSON API Roles
 
-These roles are used to handle requests using the C<application/vnd.api+json> media type
-and follow the naming convention used above.
-
-L<WebAPI::DBIC::Resource::JSONAPI::Role::DBIC>
-
-L<WebAPI::DBIC::Resource::JSONAPI::Role::Set>
-
-L<WebAPI::DBIC::Resource::JSONAPI::Role::SetWritable>
-
-L<WebAPI::DBIC::Resource::JSONAPI::Role::Item>
-
-L<WebAPI::DBIC::Resource::JSONAPI::Role::ItemWritable>
-
+See L<WebAPI::DBIC::Resource::JSONAPI>
 
 =head2 Utility Roles
 
@@ -243,17 +222,21 @@ have their values JSON decoded, so they can be arbitrary data structures.
 
 =head2 Resource Classes
 
-To make building typical applications easier, WebAPI::DBIC provides four
+To make building typical applications easier, WebAPI::DBIC provides several
 pre-defined resource classes:
 
 L<WebAPI::DBIC::Resource::GenericCore> is a base class that consumes all the
 general-purpose resource roles.
 
+L<WebAPI::DBIC::Resource::GenericSet> subclasses GenericCore and consumes extra
+roles for resources represented by a DBIx::Class result set.
+
 L<WebAPI::DBIC::Resource::GenericItem> subclasses GenericCore and consumes
 extra roles for resources represented by an individual DBIx::Class row.
 
-L<WebAPI::DBIC::Resource::GenericSet> subclasses GenericCore and consumes extra
-roles for resources represented by a DBIx::Class result set.
+L<WebAPI::DBIC::Resource::GenericSetInvoke> subclasses GenericCore and
+consumes extra roles for resources that represent a specific method call on a
+set resource.
 
 L<WebAPI::DBIC::Resource::GenericItemInvoke> subclasses GenericCore and
 consumes extra roles for resources that represent a specific method call on an
