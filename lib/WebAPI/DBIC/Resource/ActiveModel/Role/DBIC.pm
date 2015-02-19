@@ -31,7 +31,7 @@ sub activemodel_type {
 
 
 sub render_activemodel_prefetch_rel {
-    my ($self, $set, $parent_relname, $relname, $top_links, $rel_sets, $item_edit_rel_hooks) = @_;
+    my ($self, $set, $parent_relname, $relname, $rel_sets, $item_edit_rel_hooks) = @_;
 
     my $parent_class = $set->result_class;
     my $child_class = $parent_class->relationship_info($relname)->{class} || die "panic";
@@ -108,14 +108,13 @@ sub render_activemodel_response { # return top-level document hashref
     my $set = $self->set;
     my $prefetch = $self->prefetch;
 
-    my $top_links = {};
     my $rel_sets = {};
     my $item_edit_rel_hooks = {};
 
     $self->traverse_prefetch($set, [ 'top' ], $prefetch, sub {
         my ($self, $set, $parent_rel, $prefetch) = @_;
         #warn "$self: $set, $parent_rel, $prefetch\n";
-        $self->render_activemodel_prefetch_rel($set, $parent_rel->[-1], $prefetch, $top_links, $rel_sets, $item_edit_rel_hooks)
+        $self->render_activemodel_prefetch_rel($set, $parent_rel->[-1], $prefetch, $rel_sets, $item_edit_rel_hooks)
     });
 
     my $result_class = $set->result_class;
@@ -129,11 +128,6 @@ sub render_activemodel_response { # return top-level document hashref
     my $top_doc = { # http://jsonapi.org/format/#document-structure-top-level
         $top_set_key => $set_data,
     };
-
-    if (keys %$top_links) {
-        # TODO: figure out what to do with the top_links
-        # $top_doc = { %{$top_links}, %{$top_doc} };
-    }
 
     if (keys %$rel_sets) {
         while ( my ($k, $v) = each %$rel_sets) {
@@ -158,42 +152,9 @@ sub render_item_as_activemodel_hash {
 
     my $data = $self->render_item_as_plain_hash($item);
 
-#    $data->{id} //= $item->id;
-#    $data->{type} = $self->type_namer->type_name_for_result_class($item->result_source->result_class);
-#    $data->{href} = $self->path_for_item($item);
-
-    #$self->_render_prefetch_activemodel($item, $data, $_) for @{$self->prefetch||[]};
-
-    # add links for relationships
-
     return $data;
 }
 
-
-sub _render_prefetch_activemodel {
-    my ($self, $item, $data, $prefetch) = @_;
-
-    while (my ($rel, $sub_rel) = each %{$prefetch}){
-        next if $rel eq 'self';
-
-        my $subitem = $item->$rel();
-
-        if (not defined $subitem) {
-            $data->{_embedded}{$rel} = undef; # show an explicit null from a prefetch
-        }
-        elsif ($subitem->isa('DBIx::Class::ResultSet')) { # one-to-many rel
-            my $rel_set_resource = $self->web_machine_resource(
-                set         => $subitem,
-                item        => undef,
-                prefetch    => ref $sub_rel eq 'ARRAY' ? $sub_rel : [$sub_rel],
-            );
-            $data->{_embedded}{$rel} = $rel_set_resource->render_set_as_array_of_activemodel_resource_objects($subitem, undef);
-        }
-        else {
-            $data->{_embedded}{$rel} = $self->render_item_as_plain_hash($subitem);
-        }
-    }
-}
 
 sub render_set_as_array_of_activemodel_resource_objects {
     my ($self, $set, $render_method, $edit_hook) = @_;
