@@ -11,13 +11,13 @@ has prefetch => (
     lazy    => 1
 );
 
-#has router   => (
-#    is  => 'ro',
-#    isa => sub {
-#        die unless $_[1]->$_can('get_uri_for')
-#    },
-#    required => 1
-#);
+has router   => (
+    is  => 'ro',
+    isa => sub {
+        die unless $_[0]->$_can('uri_for',)
+    },
+    required => 1
+);
 
 around 'encode_json' => sub {
     my ($orig, $self,) = @_;
@@ -50,7 +50,7 @@ sub item_to_hal {
 
     my $hal_hash = $self->get_column_data($item);
 
-    $hal_hash->{_links} = $self->get_link_data($item) unless $is_embedded;
+    $hal_hash->{_links} = $self->get_link_data($item);# unless $is_embedded;
 
     # FIXME: accessing the {related_resultsets} key on an Row object is very hacky
     # we should traverse the prefetch param until the Row api improves.
@@ -71,13 +71,33 @@ sub name_for_source {
 sub get_link_data {
     my ($self, $item) = @_;
     # FIXME: Get link data from Router.
-    return {self => {href => '/'.$item->result_source->source_name.'/1'}}
+    return {
+        self => {
+            href => $self->get_uri_for_item($item)
+        }
+    };
 }
 
 sub get_column_data {
     my ($self, $item) = @_;
 
     return { $item->get_columns };
+}
+
+sub get_uri_for_item {
+    my ($self, $item) = @_;
+
+    my $idn = 0;
+    my @primary_keys = $item->result_source->unique_constraint_columns('primary');
+
+    my $url = $self->router->uri_for(
+        (map {
+            ++$idn => $item->get_column($_)
+        } @primary_keys),
+        result_class => $item->result_source->result_class,
+    ) or return '';
+
+    return "/$url";
 }
 
 1;

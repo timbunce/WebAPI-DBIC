@@ -4,11 +4,36 @@ use DDP;
 
 fixtures_ok [qw/basic/];
 
+use Path::Router;
+
+my $router = Path::Router->new();
+$router->add_route(
+    '/cd/:1' => (
+        defaults => {
+            result_class => Schema->resultset('CD')->result_source->result_class,
+        },
+    ),
+);
+$router->add_route(
+    '/artist/:1' => (
+        defaults => {
+            result_class => Schema->resultset('Artist')->result_source->result_class,
+        }
+    ),
+);
+$router->add_route(
+    '/genre/:1' => (
+        defaults =>{
+            result_class => Schema->resultset('Genre')->result_source->result_class,
+        }
+    )
+);
+
 use WebAPI::DBIC::Serializer::HAL;
+my $serializer = WebAPI::DBIC::Serializer::HAL->new(router => $router);
+
 
 subtest "====== HAL Serialize Item ========" => sub {
-    my $serializer = WebAPI::DBIC::Serializer::HAL->new();
-
     my $hal_hash = $serializer->to_hal(
         Schema->resultset('CD')->find(
             {cdid => 1}
@@ -45,7 +70,7 @@ subtest "====== HAL Serialize Item ========" => sub {
 };
 
 subtest '========== HAL Serialize Item - Prefetch Artist, Genre ==========' => sub {
-    my $hal_hash = WebAPI::DBIC::Serializer::HAL->to_hal(
+    my $hal_hash = $serializer->to_hal(
         Schema->resultset('CD')->find(
             {cdid => 1},
             {
@@ -112,7 +137,7 @@ subtest '========== HAL Serialize Item - Prefetch Artist, Genre ==========' => s
 };
 
 subtest '========== HAL Serialize Set ============' => sub {
-    my $hal_hash = WebAPI::DBIC::Serializer::HAL->to_hal(
+    my $hal_hash = $serializer->to_hal(
         Schema->resultset('Artist')->search_rs({}, {prefetch => 'cds'}),
     );
 
@@ -209,8 +234,8 @@ subtest '========== HAL Serialize Set ============' => sub {
 };
 
 subtest '========= HAL Serialize Set - Prefetch CDs ==========' => sub {
-    my $hal_hash = WebAPI::DBIC::Serialize::HAL->to_hal(
-        Schema->resultset('Artist')->search_rs({}, {prefetch => 'cds'});
+    my $hal_hash = $serializer->to_hal(
+        Schema->resultset('Artist')->search_rs({}, {prefetch => 'cds'}),
     );
 
     my $expected = {_embedded => {
