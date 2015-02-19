@@ -1,3 +1,5 @@
+package WebAPI::DBIC::Resource::ActiveModel;
+
 =head1 NAME
 
 WebAPI::DBIC::Resource::ActiveModel - ActiveModel support for WebAPI::DBIC

@@ -1,3 +1,5 @@
+package WebAPI::DBIC::Resource::JSONAPI;
+
 =head1 NAME
 
 WebAPI::DBIC::Resource::JSONAPI - JSON API support for WebAPI::DBIC

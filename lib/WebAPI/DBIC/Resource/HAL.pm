@@ -1,3 +1,5 @@
+package WebAPI::DBIC::Resource::HAL;
+
 =head1 NAME
 
 WebAPI::DBIC::Resource::HAL - HAL support for WebAPI::DBIC
