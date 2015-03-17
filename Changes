@@ -5,9 +5,10 @@ Changes file for WebAPI::DBIC
  - NOTE: This release has some backwards-incompatible changes.
  - WebApp and RouteMaker no longer have a schema attribute (Tim Bunce)
  - Now supports ActiveModel style results, using the 'application/json' media
-   type, and thereby client-side frameworks like Ember.js (JD Lewis)
+   type, and thereby better supports client-side frameworks like Ember.js (JD Lewis)
  - Supports invoking methods on set resources (Jess Robinson)
  - Improved handling of complex prefetch parameters (Mike Francis)
+ - Added WebAPI::DBIC::Resource::$TYPE docs as a home for each media type.
  - Assorted other fixes and improvements (Mike Francis, Guillaume Aubert, Tim Bunce)
 
 0.003002  2015-01-09 18:00:43+00:00 Europe/Dublin

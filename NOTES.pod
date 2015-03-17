@@ -6,6 +6,11 @@ double/tripple query execution on items! and with/without me. (SQL differs by pr
 
 Things to do, or at least consider, before we stop being alpha:
 
+    Explore using serializer and adaptor objects.
+
+    Add some docs re choosing ActiveModel vs JSONAPI vs HAL even if just links
+    Eg see http://discuss.emberjs.com/t/should-we-keep-using-ember-data/7405/10
+
     Add tests and docs for RouteMaker make_routes_for args and options
 
     TODOs for JSON API:
