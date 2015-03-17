@@ -21,7 +21,7 @@ requires 'namespace::clean', '0.25';
 requires 'parent';
 requires 'Plack', '1.0033';
 requires 'Plack::App::File';
-requires 'Plack::App::Path::Router', '0.06';
+requires 'Plack::App::Path::Router', '0.08';
 requires 'Safe::Isa';
 requires 'Scalar::Util';
 requires 'String::CamelCase';
