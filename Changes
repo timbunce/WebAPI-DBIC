@@ -2,6 +2,8 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+0.004001  2015-03-17 14:49:59+00:00 Europe/London
+
  - NOTE: This release has some backwards-incompatible changes.
  - WebApp and RouteMaker no longer have a schema attribute (Tim Bunce)
  - Now supports ActiveModel style results, using the 'application/json' media
