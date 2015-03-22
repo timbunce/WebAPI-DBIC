@@ -2,6 +2,10 @@ Changes file for WebAPI::DBIC
 
 {{$NEXT}}
 
+0.004002  2015-03-22 22:54:59+00:00 Europe/London
+
+ - Require List::MoreUtils >=0.408', only used indirectly, avoid buggy 0.407.
+
 0.004001  2015-03-17 14:49:59+00:00 Europe/London
 
  - NOTE: This release has some backwards-incompatible changes.
