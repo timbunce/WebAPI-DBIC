@@ -34,6 +34,8 @@ requires 'Lingua::EN::Inflect::Number', '1.11';
 requires 'Lingua::EN::Inflect', '1.894'; # recent for predictable behaviour
 requires 'Data::Dumper::Concise'; # for Dwarn
 
+requires 'List::MoreUtils', '0.408'; # only used indirectly, avoid buggy 0.407
+
 requires 'Alien::Web::HalBrowser';
 
 on test => sub {
