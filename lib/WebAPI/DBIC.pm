@@ -52,10 +52,10 @@ WebAPI::DBIC so you can be browsing your new API in seconds.
 The HTTP C<Content-Type> and C<Accept> headers are used to specify
 the 'media type' of a request, and the desired response. In the case of JSON
 types, the media type defines not only that the content is a JSON data structure,
-but the semantics (meaning) of the the scructure.
+but the semantics (meaning) of the the structure.
 
 A single application can support requests and responses in multiple media
-types, using the headers to negotiate the right behaviour for ech request.
+types, using the headers to negotiate the right behaviour for each request.
 
 =head3 ActiveModel
 
