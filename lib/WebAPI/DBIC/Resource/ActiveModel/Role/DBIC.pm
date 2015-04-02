@@ -19,6 +19,7 @@ requires 'path_for_item';
 requires 'add_params_to_url';
 requires 'prefetch';
 requires 'type_namer';
+requires 'result_key';
 
 
 
@@ -150,7 +151,9 @@ sub render_activemodel_response { # return top-level document hashref
 sub render_item_as_activemodel_hash {
     my ($self, $item) = @_;
 
-    my $data = $self->render_item_as_plain_hash($item);
+    my $data = {
+        $self->result_key => $self->render_item_as_plain_hash($item),
+    };
 
     return $data;
 }
@@ -169,7 +172,7 @@ sub render_set_as_array_of_activemodel_resource_objects {
 
 sub render_row_as_activemodel_resource_object {
     my ($self, $row, $render_method, $edit_hook) = @_;
-    $render_method ||= 'render_item_as_activemodel_hash';
+    $render_method ||= 'render_item_as_plain_hash';
 
     my $obj = $self->$render_method($row);
     $edit_hook->($obj, $row) if $edit_hook;

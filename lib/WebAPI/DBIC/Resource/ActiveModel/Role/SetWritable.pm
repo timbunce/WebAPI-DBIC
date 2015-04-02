@@ -45,21 +45,29 @@ sub create_resources_from_activemodel { # XXX unify with create_resource in SetW
     my $item;
 
     my $schema = $self->set->result_source->schema;
+
+    # There can only be one.
+    # If ever Ember supports creating multiple related objects in a single call,
+    # (or multiple rows/instances of the same object in a single call)
+    # this will have to change.
+    my ($result_key, $new_item) = each(%{ $activemodel });
+
     # XXX perhaps the transaction wrapper belongs higher in the stack
     # but it has to be below the auth layer which switches schemas
     $schema->txn_do(sub {
 
-        $item = $self->_create_embedded_resources_from_activemodel($activemodel, $self->set->result_class);
+        $item = $self->_create_embedded_resources_from_activemodel($new_item, $self->set->result_class);
 
         # resync with what's (now) in the db to pick up defaulted fields etc
         $item->discard_changes();
 
         # called here because create_path() is too late for Web::Machine
         # and we need it to happen inside the transaction for rollback=1 to work
-        $self->render_item_into_body(item => $item, prefetch => $self->prefetch)
+        $self->render_item_into_body(item => $item, result_key => $result_key, prefetch => $self->prefetch)
             if grep {defined $_->{self}} @{$self->prefetch||[]};
 
         $schema->txn_rollback if $self->param('rollback'); # XXX
+
     });
 
     return $item;
