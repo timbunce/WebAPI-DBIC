@@ -19,13 +19,17 @@ requires 'path_for_item';
 requires 'add_params_to_url';
 requires 'prefetch';
 requires 'type_namer';
-requires 'result_key';
 
 
 
 sub activemodel_type {
     my ($self) = @_;
     return $self->type_namer->type_name_for_resultset($self->set);
+}
+
+sub activemodel_type_for_class {
+    my ($self, $class) = @_;
+    return $self->type_namer->type_name_for_result_class($class);
 }
 
 
@@ -44,7 +48,7 @@ sub render_activemodel_prefetch_rel {
         return;
     }
 
-    my $rel_typename = $self->type_namer->type_name_for_result_class($child_class);
+    my $rel_typename = $self->activemodel_type_for_class($child_class);
 
     return if $item_edit_rel_hooks->{$parent_relname}->{$relname};
 
@@ -152,6 +156,9 @@ sub render_item_as_activemodel_hash {
     my ($self, $item) = @_;
 
     my $data = {
+        # I would rather use $self->activemodel_type_for_class($item->result_class),
+        # but type_namer isn't defined when we get here via:
+        # SetWritable->create_resources_from_active_model
         $self->result_key => $self->render_item_as_plain_hash($item),
     };
 
