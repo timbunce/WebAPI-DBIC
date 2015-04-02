@@ -12,7 +12,7 @@ rows into a database table.
 =cut
 
 use Devel::Dwarn;
-use Carp qw(confess);
+use Carp qw(croak);
 
 use Moo::Role;
 
@@ -50,6 +50,8 @@ sub create_resources_from_activemodel { # XXX unify with create_resource in SetW
     # If ever Ember supports creating multiple related objects in a single call,
     # (or multiple rows/instances of the same object in a single call)
     # this will have to change.
+    croak "The ActiveModel Resource does not support creating multiple rows in a single call."
+        if(scalar(keys(%{ $activemodel })) > 1);
     my ($result_key, $new_item) = each(%{ $activemodel });
 
     # XXX perhaps the transaction wrapper belongs higher in the stack
@@ -61,10 +63,12 @@ sub create_resources_from_activemodel { # XXX unify with create_resource in SetW
         # resync with what's (now) in the db to pick up defaulted fields etc
         $item->discard_changes();
 
+        # The other resources do this conditionally based on whether $self->prefetch contains self,
+        # but this required significant acrobatics to get working in Ember, and always returning new
+        # object data is not harmful, so do this by default.
         # called here because create_path() is too late for Web::Machine
         # and we need it to happen inside the transaction for rollback=1 to work
-        $self->render_item_into_body(item => $item, result_key => $result_key, prefetch => $self->prefetch)
-            if grep {defined $_->{self}} @{$self->prefetch||[]};
+        $self->render_item_into_body(item => $item, result_key => $result_key, prefetch => $self->prefetch);
 
         $schema->txn_rollback if $self->param('rollback'); # XXX
 
