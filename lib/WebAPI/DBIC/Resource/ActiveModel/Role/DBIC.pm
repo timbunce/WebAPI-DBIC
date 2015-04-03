@@ -38,6 +38,8 @@ sub activemodel_type_for_class {
 sub render_activemodel_prefetch_rel {
     my ($self, $set, $parent_relname, $relname, $rel_sets, $item_edit_rel_hooks) = @_;
 
+    # XXX debugging to confirm that the ActiveModel path is being utilized.
+    warn "WebAPI::DBIC::Resource::ActiveModel::Role::DBIC->render_activemodel_prefetch_rel";
     my $parent_class = $set->result_class;
     my $child_class = $parent_class->relationship_info($relname)->{class} || die "panic";
 
@@ -156,10 +158,8 @@ sub render_item_as_activemodel_hash {
     my ($self, $item) = @_;
 
     my $data = {
-        # I would rather use $self->activemodel_type_for_class($item->result_class),
-        # but type_namer isn't defined when we get here via:
-        # SetWritable->create_resources_from_active_model
-        $self->result_key => $self->render_item_as_plain_hash($item),
+        $self->activemodel_type_for_class($item->result_class)
+            => $self->render_item_as_plain_hash($item),
     };
 
     return $data;

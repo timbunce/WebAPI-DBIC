@@ -68,7 +68,13 @@ sub create_resources_from_activemodel { # XXX unify with create_resource in SetW
         # object data is not harmful, so do this by default.
         # called here because create_path() is too late for Web::Machine
         # and we need it to happen inside the transaction for rollback=1 to work
-        $self->render_item_into_body(item => $item, result_key => $result_key, prefetch => $self->prefetch);
+        $self->render_item_into_body(
+            set => $self->set,
+            item => $item,
+            result_key => $result_key,
+            prefetch => $self->prefetch,
+            type_namer => $self->type_namer
+        );
 
         $schema->txn_rollback if $self->param('rollback'); # XXX
 
