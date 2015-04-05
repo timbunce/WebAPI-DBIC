@@ -20,8 +20,6 @@ use Carp qw(confess);
 requires '_build_content_types_provided';
 requires 'encode_json';
 requires 'set';
-requires 'render_jsonapi_response';
-requires 'jsonapi_type';
 
 
 around '_build_content_types_provided' => sub {
@@ -35,7 +33,11 @@ around '_build_content_types_provided' => sub {
 
 sub to_json_as_jsonapi {
     my $self = shift;
-    return $self->encode_json( $self->render_jsonapi_response() );
+
+    use WebAPI::DBIC::Serializer::JSONAPI;
+    $self->serializer(WebAPI::DBIC::Serializer::JSONAPI->new(resource => $self));
+
+    return $self->encode_json( $self->serializer->render_jsonapi_response() );
 }
 
 

@@ -21,7 +21,6 @@ with    'WebAPI::DBIC::Resource::Role::Set',
         'WebAPI::DBIC::Resource::HAL::Role::Set',
         'WebAPI::DBIC::Resource::HAL::Role::SetWritable',
         # Enable JSON API support:
-        'WebAPI::DBIC::Resource::JSONAPI::Role::DBIC', # XXX move out?
         'WebAPI::DBIC::Resource::JSONAPI::Role::Set',
         'WebAPI::DBIC::Resource::JSONAPI::Role::SetWritable',
         ;

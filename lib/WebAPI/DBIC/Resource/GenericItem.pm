@@ -21,7 +21,6 @@ with    'WebAPI::DBIC::Resource::Role::Item',
         'WebAPI::DBIC::Resource::HAL::Role::Item',
         'WebAPI::DBIC::Resource::HAL::Role::ItemWritable',
         # Enable JSON API support:
-        'WebAPI::DBIC::Resource::JSONAPI::Role::DBIC',
         'WebAPI::DBIC::Resource::JSONAPI::Role::Item',
         'WebAPI::DBIC::Resource::JSONAPI::Role::ItemWritable',
         ;

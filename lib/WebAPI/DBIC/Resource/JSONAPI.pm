@@ -25,9 +25,6 @@ but has it's own set of issues. I'd recommend using L<WebAPI::DBIC::Resource::Ac
 
 =head2 Roles
 
-The L<WebAPI::DBIC::Resource::JSONAPI::Role::DBIC> role provides core methods
-required to support the other roles listed below.
-
 The L<WebAPI::DBIC::Resource::JSONAPI::Role::Set>
 and L<WebAPI::DBIC::Resource::JSONAPI::Role::Item> roles handle GET and HEAD requests
 for set (resultset) and item (row) resources.

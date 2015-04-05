@@ -1,25 +1,18 @@
-package WebAPI::DBIC::Resource::JSONAPI::Role::DBIC;
+package WebAPI::DBIC::Serializer::JSONAPI;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::JSONAPI::Role::DBIC - a role with core JSON API methods for DBIx::Class resources
+WebAPI::DBIC::Serializer::JSONAPI - what will I become?
 
 =cut
+
+use Moo;
+
+extends 'WebAPI::DBIC::Serializer::Base';
 
 use Carp qw(croak confess);
 use Devel::Dwarn;
 use JSON::MaybeXS qw(JSON);
-
-use Moo::Role;
-
-
-requires 'get_url_for_item_relationship';
-requires 'render_item_as_plain_hash';
-requires 'path_for_item';
-requires 'add_params_to_url';
-requires 'prefetch';
-requires 'type_namer';
-
 
 
 sub jsonapi_type {

@@ -16,7 +16,6 @@ use Moo::Role;
 
 
 requires '_build_content_types_provided';
-requires 'render_item_as_jsonapi_hash';
 requires 'encode_json';
 requires 'item';
 
@@ -29,7 +28,6 @@ around '_build_content_types_provided' => sub {
     return $types;
 };
 
-#sub to_json_as_jsonapi { return $_[0]->encode_json($_[0]->render_item_as_jsonapi_hash($_[0]->item)) }
 sub to_json_as_jsonapi {
     my $self = shift;
 
@@ -44,7 +42,10 @@ sub to_json_as_jsonapi {
     # set has been narrowed to the item, so we can render the item as if a set
     # (which is what we need to do for JSON API, which doesn't really have an 'item')
 
-    return $self->encode_json( $self->render_jsonapi_response() );
+    use WebAPI::DBIC::Serializer::JSONAPI;
+    $self->serializer(WebAPI::DBIC::Serializer::JSONAPI->new(resource => $self));
+
+    return $self->encode_json( $self->serializer->render_jsonapi_response() );
 }
 
 1;

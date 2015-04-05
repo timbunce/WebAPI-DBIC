@@ -46,4 +46,8 @@ has type_namer => (
    is => 'ro',
 );
 
+has serializer => (
+   is => 'rw',
+);
+
 1;
