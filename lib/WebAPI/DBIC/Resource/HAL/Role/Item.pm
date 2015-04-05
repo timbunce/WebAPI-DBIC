@@ -14,11 +14,12 @@ e.g. a single row of a database table.
 
 use Moo::Role;
 
+use WebAPI::DBIC::Serializer::HAL;
 
 requires '_build_content_types_provided';
-requires 'render_item_as_hal_hash';
 requires 'encode_json';
 requires 'item';
+requires 'serializer';
 
 
 around '_build_content_types_provided' => sub {
@@ -29,6 +30,13 @@ around '_build_content_types_provided' => sub {
     return $types;
 };
 
-sub to_json_as_hal { return $_[0]->encode_json($_[0]->render_item_as_hal_hash($_[0]->item)) }
+
+sub to_json_as_hal {
+    my $self = shift;
+
+    $self->serializer(WebAPI::DBIC::Serializer::HAL->new(resource => $self));
+
+    return $self->encode_json($self->serializer->render_item_as_hal_hash($self->item))
+}
 
 1;

@@ -81,6 +81,11 @@ sub web_machine_resource {
         %resource_args
     );
 
+    if ($self->serializer) {
+        my $serializer = $self->serializer->new(resource => $resource); # XXX clone then set resource?
+        $resource->serializer($serializer);
+    }
+
     return $resource;
 }
 

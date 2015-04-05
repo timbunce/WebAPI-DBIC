@@ -69,10 +69,13 @@ sub delete_resource { return $_[0]->item->delete }
 sub _do_update_resource {
     my ($self, $item, $hal, $result_class) = @_;
 
-    # provide a hook for richer behaviour, eg HAL
-    my $_pre_update_resource_method = $self->_pre_update_resource_method;
-    $self->$_pre_update_resource_method($item, $hal, $result_class)
-        if $_pre_update_resource_method;
+    # hook for richer behaviour, eg HAL
+    if (my $serializer = $self->serializer) {
+        $serializer->pre_update_resource_method($item, $hal, $result_class); # XXX wip
+    }
+    elsif (my $_pre_update_resource_method = $self->_pre_update_resource_method) {
+        $self->$_pre_update_resource_method($item, $hal, $result_class);
+    }
 
     # By default the DBIx::Class::Row update() call below will only update the
     # columns where %$hal contains different values to the ones in $item

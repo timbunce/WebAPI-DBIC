@@ -17,10 +17,12 @@ use Moo::Role;
 
 use Carp qw(confess);
 
+use WebAPI::DBIC::Serializer::HAL;
+
 requires '_build_content_types_provided';
 requires 'encode_json';
-requires 'render_set_as_hal';
 requires 'set';
+requires 'serializer';
 
 
 around '_build_content_types_provided' => sub {
@@ -32,7 +34,13 @@ around '_build_content_types_provided' => sub {
 };
 
 
-sub to_json_as_hal   { return $_[0]->encode_json($_[0]->render_set_as_hal(  $_[0]->set)) }
+sub to_json_as_hal   {
+    my $self = shift;
+
+    $self->serializer(WebAPI::DBIC::Serializer::HAL->new(resource => $self));
+
+    return $self->encode_json($self->serializer->render_set_as_hal($self->set));
+}
 
 
 1;

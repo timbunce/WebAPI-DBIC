@@ -20,6 +20,7 @@ use Carp qw(confess);
 requires '_build_content_types_provided';
 requires 'encode_json';
 requires 'set';
+requires 'serializer';
 
 
 around '_build_content_types_provided' => sub {

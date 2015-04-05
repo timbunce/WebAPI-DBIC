@@ -12,6 +12,8 @@ use Moo::Role;
 
 use JSON::MaybeXS qw(JSON);
 
+use WebAPI::DBIC::Serializer::HAL;
+
 requires '_build_content_types_provided';
 requires 'encode_json';
 
@@ -25,7 +27,13 @@ around '_build_content_types_provided' => sub {
 };
 
 
-sub to_json_as_hal { return $_[0]->encode_json($_[0]->render_api_as_hal()) }
+sub to_json_as_hal {
+    my $self = shift;
+
+    $self->serializer(WebAPI::DBIC::Serializer::HAL->new(resource => $self));
+
+    return $self->encode_json($self->render_api_as_hal())
+}
 
 
 sub render_api_as_hal {

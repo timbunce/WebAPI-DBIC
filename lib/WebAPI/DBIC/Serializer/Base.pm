@@ -16,10 +16,13 @@ has resource => (
     handles => [qw(
         type_namer
         get_url_template_for_set_relationship
+        get_url_for_item_relationship
+        uri_for
         set
         prefetch
         param
         render_item_as_plain_hash
+        add_params_to_url
         path_for_item
         web_machine_resource
     )],

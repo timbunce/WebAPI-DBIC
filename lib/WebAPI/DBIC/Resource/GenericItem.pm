@@ -17,7 +17,6 @@ with    'WebAPI::DBIC::Resource::Role::Item',
         'WebAPI::DBIC::Resource::ActiveModel::Role::Item',
         'WebAPI::DBIC::Resource::ActiveModel::Role::ItemWritable',
         # Enable HAL support:
-        'WebAPI::DBIC::Resource::HAL::Role::DBIC',
         'WebAPI::DBIC::Resource::HAL::Role::Item',
         'WebAPI::DBIC::Resource::HAL::Role::ItemWritable',
         # Enable JSON API support:
