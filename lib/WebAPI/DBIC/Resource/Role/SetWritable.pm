@@ -19,8 +19,7 @@ use Carp qw(confess);
 use Moo::Role;
 
 
-requires 'render_set_as_plain';
-requires 'render_item_into_body';
+requires 'serializer';
 requires 'decode_json';
 requires 'set';
 requires 'prefetch';

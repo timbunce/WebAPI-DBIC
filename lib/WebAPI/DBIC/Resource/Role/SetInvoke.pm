@@ -13,7 +13,7 @@ use Moo::Role;
 
 requires 'decode_json';
 requires 'encode_json';
-requires 'render_item_as_plain_hash';
+requires 'serializer';
 requires 'throwable';
 requires 'set';
 
@@ -64,11 +64,11 @@ sub process_post {
     my $result_rendered;
     # return a DBIC resultset as array of hashes of ALL records (no paging)
     if (blessed($result_raw) && $result_raw->isa('DBIx::Class::ResultSet')) {
-        $result_rendered = [ map { $self->render_item_as_plain_hash($_) } $result_raw->all ];
+        $result_rendered = $self->serializer->render_set_as_plain($result_raw);
     }
     # return a DBIC result row as a hash
     elsif (blessed($result_raw) && $result_raw->isa('DBIx::Class::Row')) {
-        $result_rendered = $self->render_item_as_plain_hash($result_raw);
+        $result_rendered = $self->serializer->render_item_as_plain_hash($result_raw);
     }
     # return anything else as raw JSON wrapped in a hash
     else {

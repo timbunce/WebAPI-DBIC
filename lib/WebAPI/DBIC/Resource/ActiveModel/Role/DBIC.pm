@@ -14,11 +14,11 @@ use Moo::Role;
 
 
 requires 'get_url_for_item_relationship';
-requires 'render_item_as_plain_hash';
 requires 'path_for_item';
 requires 'add_params_to_url';
 requires 'prefetch';
 requires 'type_namer';
+requires 'serializer';
 
 
 
@@ -157,7 +157,7 @@ sub render_item_as_activemodel_hash {
 
     my $data = {
         $self->activemodel_type_for_class($item->result_class)
-            => $self->render_item_as_plain_hash($item),
+            => $self->serializer->render_item_as_plain_hash($item),
     };
 
     return $data;

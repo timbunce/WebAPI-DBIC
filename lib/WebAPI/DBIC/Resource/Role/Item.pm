@@ -14,7 +14,7 @@ e.g. a single row of a database table.
 use Moo::Role;
 
 
-requires 'render_item_as_plain_hash';
+requires 'serializer';
 requires 'id_unique_constraint_name';
 requires 'encode_json';
 requires 'set';
@@ -59,7 +59,7 @@ sub _build_content_types_provided {
     return [ { 'application/vnd.wapid+json' => 'to_json_as_plain' } ]
 }
 
-sub to_json_as_plain { return $_[0]->encode_json($_[0]->render_item_as_plain_hash($_[0]->item)) }
+sub to_json_as_plain { return $_[0]->encode_json($_[0]->serializer->render_item_as_plain_hash($_[0]->item)) }
 
 sub resource_exists { return !! $_[0]->item }
 

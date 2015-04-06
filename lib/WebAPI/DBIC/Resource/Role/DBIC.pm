@@ -33,17 +33,6 @@ has prefetch => (
 );
 
 
-# XXX perhaps shouldn't be a role, just functions, or perhaps a separate rendering object
-# default render for DBIx::Class item
-# https://metacpan.org/module/DBIx::Class::Manual::ResultClass
-# https://metacpan.org/module/DBIx::Class::InflateColumn
-sub render_item_as_plain_hash {
-    my ($self, $item) = @_;
-    my $data = { $item->get_columns }; # XXX ?
-    # DateTimes
-    return $data;
-}
-
 
 sub path_for_item {
     my ($self, $item) = @_;

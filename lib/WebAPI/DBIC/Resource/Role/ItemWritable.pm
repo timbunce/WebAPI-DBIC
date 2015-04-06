@@ -70,11 +70,12 @@ sub _do_update_resource {
     my ($self, $item, $hal, $result_class) = @_;
 
     # hook for richer behaviour, eg HAL
-    if (my $serializer = $self->serializer) {
-        $serializer->pre_update_resource_method($item, $hal, $result_class); # XXX wip
-    }
-    elsif (my $_pre_update_resource_method = $self->_pre_update_resource_method) {
+    if (my $_pre_update_resource_method = $self->_pre_update_resource_method) {
         $self->$_pre_update_resource_method($item, $hal, $result_class);
+    }
+    elsif (my $serializer = $self->serializer) {
+        $serializer->pre_update_resource_method($item, $hal, $result_class) # XXX wip
+            if $serializer->can('pre_update_resource_method');
     }
 
     # By default the DBIx::Class::Row update() call below will only update the
