@@ -59,6 +59,7 @@ done_testing();
 
 __DATA__
 Config:
+Content-Type: application/hal+json
 Accept: application/hal+json
 
 Name: POST to the set to create a Track to edit (on an existing CD)
@@ -67,7 +68,9 @@ POST /track?prefetch=self
 
 Name: update the title (19 hardwired for now) and prefetch self and disc
 PUT /track/19?prefetch=self,disc
-{ "title":"Just One More (remix)" }
+{   "title":"Just One More (remix)",
+    "_embedded": { "disc": { "title": "The New New (new)" } }
+}
 
 Name: update the track id (primary key)
 # TODO this ought to return a Location header

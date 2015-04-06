@@ -19,7 +19,7 @@ sub dsreq_hal {
     my ($method, $uri, $headers, $data) = @_;
     my @headers = (
         'Content-Type' => 'application/hal+json',
-        'Accept' => 'application/hal+json,application/json',
+        'Accept'       => 'application/hal+json',
         @{$headers || []}
     );
     return dsreq($method, $uri, \@headers, $data);

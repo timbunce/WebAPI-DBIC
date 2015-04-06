@@ -2,6 +2,7 @@
 Request:
 POST /track?prefetch=self
 Accept: application/hal+json
+Content-Type: application/hal+json
 { "title":"Just One More", "position":4200, "cd":2 }
 Response:
 201 Created
@@ -37,7 +38,8 @@ Location: /track/19
 Request:
 PUT /track/19?prefetch=self,disc
 Accept: application/hal+json
-{ "title":"Just One More (remix)" }
+Content-Type: application/hal+json
+{   "title":"Just One More (remix)",    "_embedded": { "disc": { "title": "The New New (new)" } }}
 Response:
 200 OK
 Content-type: application/hal+json
@@ -48,7 +50,7 @@ Content-type: application/hal+json
          "cdid" : 2,
          "genreid" : 2,
          "single_track" : null,
-         "title" : "Forkful of bees",
+         "title" : "The New New (new)",
          "year" : "2001"
       }
    },
@@ -81,6 +83,7 @@ Content-type: application/hal+json
 Request:
 PUT /track/19?prefetch=self
 Accept: application/hal+json
+Content-Type: application/hal+json
 { "trackid":1900 }
 Response:
 200 OK
@@ -115,6 +118,7 @@ Content-type: application/hal+json
 Request:
 DELETE /track/1900
 Accept: application/hal+json
+Content-Type: application/hal+json
 Response:
 204 No Content
 Content-type: application/hal+json
