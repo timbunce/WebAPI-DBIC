@@ -3,6 +3,7 @@
 
 use lib "t/lib";
 use TestKit;
+use TestDS_ActiveModel;
 
 fixtures_ok [qw/basic/];
 
@@ -20,7 +21,7 @@ subtest "===== Create a resource via POST =====" => sub {
 
     # POST to the set to create a Track to edit (on an existing CD)
     test_psgi $app, sub {
-        my $res = shift->(dsreq( POST => "/track?prefetch=self", [], {
+        my $res = shift->(dsreq_activemodel( POST => "/track?prefetch=self", [], {
             title => "Just One More",
             position => 42,
             cd => 2,
@@ -30,14 +31,14 @@ subtest "===== Create a resource via POST =====" => sub {
 
     note "recheck data as a separate request";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq( GET => "/track/$orig_item->{trackid}?prefetch=self,disc")));
+        my $data = dsresp_ok(shift->(dsreq_activemodel( GET => "/track/$orig_item->{trackid}?prefetch=self,disc")));
         ok $data->{trackid}, 'has trackid assigned';
         is $data->{title}, "Just One More (remix)";
         is $data->{position}, $orig_item->{position}, 'has same position assigned';
     };
 
     test_psgi $app, sub {
-        dsresp_ok(shift->(dsreq( DELETE => "/track/$orig_item->{trackid}")), 204);
+        dsresp_ok(shift->(dsreq_activemodel( DELETE => "/track/$orig_item->{trackid}")), 204);
     };
 
 };
@@ -47,10 +48,11 @@ done_testing();
 __DATA__
 Config:
 Accept: application/json
+Content-Type: application/json
 
 Name: POST to the set to create a Track (on an existing CD)
 POST /track?prefetch=self
 { "track": { "title":"Just One More", "position":4200, "cd":2 } }
 
 Name: delete the track we just added
-DELETE /tracks/1900
+DELETE /track/19

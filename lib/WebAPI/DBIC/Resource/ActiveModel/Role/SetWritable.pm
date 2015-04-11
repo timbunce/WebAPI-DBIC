@@ -50,7 +50,7 @@ sub create_resources_from_activemodel { # XXX unify with create_resource in SetW
     # If ever Ember supports creating multiple related objects in a single call,
     # (or multiple rows/instances of the same object in a single call)
     # this will have to change.
-    croak "The ActiveModel Resource does not support creating multiple rows in a single call."
+    croak "The ActiveModel media-type does not support creating multiple rows in a single call (@{[ %$activemodel ]})"
         if(scalar(keys(%{ $activemodel })) > 1);
     my ($result_key, $new_item) = each(%{ $activemodel });
 
@@ -72,8 +72,8 @@ sub create_resources_from_activemodel { # XXX unify with create_resource in SetW
             set => $self->set,
             item => $item,
             result_key => $result_key,
-            prefetch => $self->prefetch,
-            type_namer => $self->type_namer
+            type_namer => $self->type_namer,
+            prefetch => undef,
         );
 
         $schema->txn_rollback if $self->param('rollback'); # XXX
