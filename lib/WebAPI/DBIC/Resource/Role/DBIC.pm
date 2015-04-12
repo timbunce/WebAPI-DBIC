@@ -101,6 +101,9 @@ sub render_item_into_body {
     if ($self->request->headers->header('Accept') =~ /hal\+json/) {
         $body = $item_resource->to_json_as_hal;
     }
+    elsif ($self->request->headers->header('Accept') =~ m{application/json}) {
+        $body = $item_resource->to_json_as_activemodel;
+    }
     else {
         $body = $item_resource->to_json_as_plain;
     }

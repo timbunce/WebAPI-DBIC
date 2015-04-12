@@ -27,6 +27,11 @@ sub activemodel_type {
     return $self->type_namer->type_name_for_resultset($self->set);
 }
 
+sub activemodel_type_for_class {
+    my ($self, $class) = @_;
+    return $self->type_namer->type_name_for_result_class($class);
+}
+
 
 
 
@@ -43,7 +48,7 @@ sub render_activemodel_prefetch_rel {
         return;
     }
 
-    my $rel_typename = $self->type_namer->type_name_for_result_class($child_class);
+    my $rel_typename = $self->activemodel_type_for_class($child_class);
 
     return if $item_edit_rel_hooks->{$parent_relname}->{$relname};
 
@@ -150,7 +155,10 @@ sub render_activemodel_response { # return top-level document hashref
 sub render_item_as_activemodel_hash {
     my ($self, $item) = @_;
 
-    my $data = $self->render_item_as_plain_hash($item);
+    my $data = {
+        $self->activemodel_type_for_class($item->result_class)
+            => $self->render_item_as_plain_hash($item),
+    };
 
     return $data;
 }
@@ -169,7 +177,7 @@ sub render_set_as_array_of_activemodel_resource_objects {
 
 sub render_row_as_activemodel_resource_object {
     my ($self, $row, $render_method, $edit_hook) = @_;
-    $render_method ||= 'render_item_as_activemodel_hash';
+    $render_method ||= 'render_item_as_plain_hash';
 
     my $obj = $self->$render_method($row);
     $edit_hook->($obj, $row) if $edit_hook;

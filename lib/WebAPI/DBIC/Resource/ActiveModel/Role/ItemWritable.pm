@@ -34,7 +34,11 @@ sub from_activemodel_json {
 
     my $data = $self->decode_json( $self->request->content );
 
-    $self->update_resource($data, is_put_replace => 0);
+    croak "The ActiveModel Resource does not support updating multiple rows in a single call."
+        if(scalar(keys(%{ $data })) > 1);
+    my ($result_key, $updated_item) = each(%{ $data });
+
+    $self->update_resource($updated_item, is_put_replace => 0);
 
     return;
 }

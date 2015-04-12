@@ -24,6 +24,11 @@ requires 'encode_json';
 requires 'item';
 
 
+has result_key => (
+    is => 'rw',
+);
+
+
 around '_build_content_types_provided' => sub {
     my $orig = shift;
     my $self = shift;
@@ -32,7 +37,6 @@ around '_build_content_types_provided' => sub {
     return $types;
 };
 
-#sub to_json_as_activemodel { return $_[0]->encode_json($_[0]->render_item_as_activemodel_hash($_[0]->item)) }
 sub to_json_as_activemodel {
     my $self = shift;
 

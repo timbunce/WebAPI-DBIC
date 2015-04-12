@@ -52,6 +52,7 @@ sub run_request_spec_tests {
         note "--- $name";
 
         if ($name =~ s/^Config:\s*//) {
+            note "    $_" for @spec_lines;
             # merge new setting, overriding any existing setting with the same name
             %test_config = (%test_config, map { split /:\s+/, $_, 2 } @spec_lines);
         }

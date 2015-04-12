@@ -1,0 +1,31 @@
+=== POST to the set to create a Track (on an existing CD)
+Request:
+POST /track?prefetch=self
+Accept: application/json
+Content-Type: application/json
+{ "track": { "title":"Just One More", "position":4200, "cd":2 } }
+Response:
+201 Created
+Content-type: application/json
+Location: /track/19
+{
+   "track" : [
+      {
+         "cd" : 2,
+         "last_updated_at" : null,
+         "last_updated_on" : null,
+         "position" : 4200,
+         "title" : "Just One More",
+         "trackid" : 19
+      }
+   ]
+}
+
+=== delete the track we just added
+Request:
+DELETE /track/19
+Accept: application/json
+Content-Type: application/json
+Response:
+204 No Content
+Content-type: application/json
