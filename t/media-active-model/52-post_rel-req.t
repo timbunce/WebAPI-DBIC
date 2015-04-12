@@ -22,23 +22,25 @@ subtest "===== Create a resource via POST =====" => sub {
     # POST to the set to create a Track to edit (on an existing CD)
     test_psgi $app, sub {
         my $res = shift->(dsreq_activemodel( POST => "/track?prefetch=self", [], {
-            title => "Just One More",
-            position => 42,
-            cd => 2,
+            track => {
+                title => "Just One More (remix)",
+                position => 42,
+                cd => 2,
+            },
         }));
         ($orig_location, $orig_item) = dsresp_created_ok($res);
     };
 
     note "recheck data as a separate request";
     test_psgi $app, sub {
-        my $data = dsresp_ok(shift->(dsreq_activemodel( GET => "/track/$orig_item->{trackid}?prefetch=self,disc")));
+        my $data = dsresp_ok(shift->(dsreq_activemodel( GET => "/track/$orig_item->{track}->[0]->{trackid}?prefetch=disc")))->{track}->[0];
         ok $data->{trackid}, 'has trackid assigned';
         is $data->{title}, "Just One More (remix)";
-        is $data->{position}, $orig_item->{position}, 'has same position assigned';
+        is $data->{position}, $orig_item->{track}->[0]->{position}, 'has same position assigned';
     };
 
     test_psgi $app, sub {
-        dsresp_ok(shift->(dsreq_activemodel( DELETE => "/track/$orig_item->{trackid}")), 204);
+        dsresp_ok(shift->(dsreq_activemodel( DELETE => "/track/$orig_item->{track}->[0]->{trackid}")), 204);
     };
 
 };

@@ -38,8 +38,6 @@ sub activemodel_type_for_class {
 sub render_activemodel_prefetch_rel {
     my ($self, $set, $parent_relname, $relname, $rel_sets, $item_edit_rel_hooks) = @_;
 
-    # XXX debugging to confirm that the ActiveModel path is being utilized.
-    warn "WebAPI::DBIC::Resource::ActiveModel::Role::DBIC->render_activemodel_prefetch_rel";
     my $parent_class = $set->result_class;
     my $child_class = $parent_class->relationship_info($relname)->{class} || die "panic";
 
