@@ -179,7 +179,7 @@ sub render_row_as_activemodel_resource_object {
     my ($self, $row, $render_method, $edit_hook) = @_;
     $render_method ||= 'render_item_as_plain_hash';
 
-    my $obj = $self->$render_method($row);
+    my $obj = $self->serializer->$render_method($row);
     $edit_hook->($obj, $row) if $edit_hook;
 
     return $obj;
