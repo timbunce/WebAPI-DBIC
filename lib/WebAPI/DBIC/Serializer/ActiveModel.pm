@@ -1,8 +1,8 @@
-package WebAPI::DBIC::Resource::ActiveModel::Role::DBIC;
+package WebAPI::DBIC::Serializer::ActiveModel;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::ActiveModel::Role::DBIC - a role with core methods for DBIx::Class resources
+WebAPI::DBIC::Serializer::ActiveModel
 
 =cut
 
@@ -10,16 +10,9 @@ use Carp qw(croak confess);
 use Devel::Dwarn;
 use JSON::MaybeXS qw(JSON);
 
-use Moo::Role;
+use Moo;
 
-
-requires 'get_url_for_item_relationship';
-requires 'path_for_item';
-requires 'add_params_to_url';
-requires 'prefetch';
-requires 'type_namer';
-requires 'serializer';
-
+extends 'WebAPI::DBIC::Serializer::Base';
 
 
 sub activemodel_type {
@@ -157,7 +150,7 @@ sub render_item_as_activemodel_hash {
 
     my $data = {
         $self->activemodel_type_for_class($item->result_class)
-            => $self->serializer->render_item_as_plain_hash($item),
+            => $self->render_item_as_plain_hash($item),
     };
 
     return $data;
@@ -179,7 +172,7 @@ sub render_row_as_activemodel_resource_object {
     my ($self, $row, $render_method, $edit_hook) = @_;
     $render_method ||= 'render_item_as_plain_hash';
 
-    my $obj = $self->serializer->$render_method($row);
+    my $obj = $self->$render_method($row);
     $edit_hook->($obj, $row) if $edit_hook;
 
     return $obj;
@@ -187,6 +180,55 @@ sub render_row_as_activemodel_resource_object {
 
 
 
+sub create_resources_from_activemodel { # XXX unify with create_resource in SetWritable, like ItemWritable?
+    my ($self, $activemodel) = @_;
+    my $item;
+
+    my $schema = $self->set->result_source->schema;
+
+    # There can only be one.
+    # If ever Ember supports creating multiple related objects in a single call,
+    # (or multiple rows/instances of the same object in a single call)
+    # this will have to change.
+    croak "The ActiveModel media-type does not support creating multiple rows in a single call (@{[ %$activemodel ]})"
+        if(scalar(keys(%{ $activemodel })) > 1);
+    my ($result_key, $new_item) = each(%{ $activemodel });
+
+    # XXX perhaps the transaction wrapper belongs higher in the stack
+    # but it has to be below the auth layer which switches schemas
+    $schema->txn_do(sub {
+
+        $item = $self->_create_embedded_resources_from_activemodel($new_item, $self->set->result_class);
+
+        # resync with what's (now) in the db to pick up defaulted fields etc
+        $item->discard_changes();
+
+        # The other resources do this conditionally based on whether $self->prefetch contains self,
+        # but this required significant acrobatics to get working in Ember, and always returning new
+        # object data is not harmful, so do this by default.
+        # called here because create_path() is too late for Web::Machine
+        # and we need it to happen inside the transaction for rollback=1 to work
+        $self->resource->render_item_into_body(
+            set => $self->set,
+            item => $item,
+            result_key => $result_key,
+            type_namer => $self->type_namer,
+            prefetch => undef,
+        );
+
+        $schema->txn_rollback if $self->param('rollback'); # XXX
+
+    });
+
+    return $item;
+}
+
+
+sub _create_embedded_resources_from_activemodel {
+    my ($self, $activemodel, $result_class) = @_;
+
+    return $self->set->result_source->schema->resultset($result_class)->create($activemodel);
+}
 
 
 1;

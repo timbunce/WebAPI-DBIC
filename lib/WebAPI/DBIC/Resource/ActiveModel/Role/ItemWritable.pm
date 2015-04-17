@@ -11,6 +11,8 @@ use Devel::Dwarn;
 
 use Moo::Role;
 
+use WebAPI::DBIC::Serializer::ActiveModel;
+
 
 requires 'decode_json';
 requires 'request';
@@ -30,7 +32,7 @@ around '_build_content_types_accepted' => sub {
 sub from_activemodel_json {
     my $self = shift;
 
-    $self->_pre_update_resource_method( "_do_update_embedded_resources_activemodel" );
+    $self->serializer(WebAPI::DBIC::Serializer::ActiveModel->new(resource => $self));
 
     my $data = $self->decode_json( $self->request->content );
 

@@ -15,11 +15,12 @@ use Moo::Role;
 
 use Carp qw(confess);
 
+use WebAPI::DBIC::Serializer::ActiveModel;
+
 requires '_build_content_types_provided';
 requires 'encode_json';
 requires 'set';
-requires 'render_activemodel_response';
-requires 'activemodel_type';
+requires 'serializer';
 
 
 around '_build_content_types_provided' => sub {
@@ -33,7 +34,8 @@ around '_build_content_types_provided' => sub {
 
 sub to_json_as_activemodel {
     my $self = shift;
-    return $self->encode_json( $self->render_activemodel_response() );
+    $self->serializer(WebAPI::DBIC::Serializer::ActiveModel->new(resource => $self));
+    return $self->encode_json( $self->serializer->render_activemodel_response() );
 }
 
 

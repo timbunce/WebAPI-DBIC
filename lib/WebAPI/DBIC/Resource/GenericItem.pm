@@ -13,7 +13,6 @@ extends 'WebAPI::DBIC::Resource::GenericCore';
 with    'WebAPI::DBIC::Resource::Role::Item',
         'WebAPI::DBIC::Resource::Role::ItemWritable',
         # Enable HAL support:
-        'WebAPI::DBIC::Resource::ActiveModel::Role::DBIC',
         'WebAPI::DBIC::Resource::ActiveModel::Role::Item',
         'WebAPI::DBIC::Resource::ActiveModel::Role::ItemWritable',
         # Enable HAL support:
