@@ -17,11 +17,8 @@ use Moo::Role;
 
 use WebAPI::DBIC::Serializer::JSONAPI;
 
-use Carp qw(confess);
 
 requires '_build_content_types_provided';
-requires 'encode_json';
-requires 'set';
 requires 'serializer';
 
 
@@ -33,18 +30,11 @@ around '_build_content_types_provided' => sub {
         'application/vnd.api+json' => sub {
             my $self = shift;
             $self->serializer(WebAPI::DBIC::Serializer::JSONAPI->new(resource => $self));
-            return $self->to_json_as_jsonapi;
+            return $self->serializer->set_to_json;
         }
     };
     return $types;
 };
-
-
-sub to_json_as_jsonapi {
-    my $self = shift;
-
-    return $self->encode_json( $self->serializer->render_jsonapi_response() );
-}
 
 
 1;

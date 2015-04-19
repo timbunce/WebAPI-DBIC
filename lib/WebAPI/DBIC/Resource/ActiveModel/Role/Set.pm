@@ -18,8 +18,6 @@ use Carp qw(confess);
 use WebAPI::DBIC::Serializer::ActiveModel;
 
 requires '_build_content_types_provided';
-requires 'encode_json';
-requires 'set';
 requires 'serializer';
 
 
@@ -31,17 +29,11 @@ around '_build_content_types_provided' => sub {
         'application/json' => sub {
             my $self = shift;
             $self->serializer(WebAPI::DBIC::Serializer::ActiveModel->new(resource => $self));
-            return $self->to_json_as_activemodel;
+            return $self->serializer->set_to_json;
         },
     };
     return $types;
 };
-
-
-sub to_json_as_activemodel {
-    my $self = shift;
-    return $self->encode_json( $self->serializer->render_activemodel_response() );
-}
 
 
 1;

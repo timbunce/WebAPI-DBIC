@@ -28,6 +28,12 @@ sub activemodel_type_for_class {
 }
 
 
+sub set_to_json {
+    my $self = shift;
+    return $self->encode_json( $self->render_activemodel_response() );
+}
+
+
 sub item_to_json {
     my $self = shift;
 

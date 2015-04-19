@@ -18,6 +18,13 @@ use Devel::Dwarn;
 use JSON::MaybeXS qw(JSON);
 
 
+sub set_to_json {
+    my $self = shift;
+
+    return $self->encode_json( $self->render_jsonapi_response() );
+}
+
+
 sub item_to_json {
     my $self = shift;
 
