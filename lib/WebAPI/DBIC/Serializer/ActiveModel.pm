@@ -54,8 +54,7 @@ sub item_to_json {
 
 sub item_from_json {
     my $self = shift;
-
-    my $data = $self->decode_json( $self->resource->request->content );
+    my $data = $self->decode_json( shift );
 
     croak "The ActiveModel Resource does not support updating multiple rows in a single call."
         if(scalar(keys(%{ $data })) > 1);
@@ -69,7 +68,10 @@ sub item_from_json {
 
 sub set_from_json {
     my $self = shift;
-    my $item = $self->create_resources_from_activemodel( $self->decode_json($self->resource->request->content) );
+    my $data = $self->decode_json( shift );
+
+    my $item = $self->create_resources_from_activemodel( $data );
+
     return $self->resource->item($item);
 }
 

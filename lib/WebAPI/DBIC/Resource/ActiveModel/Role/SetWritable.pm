@@ -26,7 +26,7 @@ around '_build_content_types_accepted' => sub {
         'application/json' => sub {
             my $self = shift;
             $self->serializer(WebAPI::DBIC::Serializer::ActiveModel->new(resource => $self));
-            return $self->serializer->set_from_json;
+            return $self->serializer->set_from_json($self->request->content);
         },
     };
     return $types;

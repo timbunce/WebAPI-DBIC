@@ -6,9 +6,6 @@ WebAPI::DBIC::Resource::ActiveModel::Role::ItemWritable - methods handling JSON 
 
 =cut
 
-use Carp qw(croak confess);
-use Devel::Dwarn;
-
 use Moo::Role;
 
 use WebAPI::DBIC::Serializer::ActiveModel;
@@ -25,7 +22,7 @@ around '_build_content_types_accepted' => sub {
         'application/json' => sub {
             my $self = shift;
             $self->serializer(WebAPI::DBIC::Serializer::ActiveModel->new(resource => $self));
-            return $self->serializer->item_from_json;
+            return $self->serializer->item_from_json($self->request->content);
         }
     };
     return $types;

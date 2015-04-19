@@ -35,8 +35,8 @@ sub item_to_json {
 
 sub item_from_json {
     my $self = shift;
+    my $data = $self->decode_json( shift );
 
-    my $data = $self->decode_json( $self->resource->request->content );
     $self->resource->update_resource($data, is_put_replace => 0);
 
     return;
@@ -45,8 +45,9 @@ sub item_from_json {
 
 sub set_from_json {
     my $self = shift;
+    my $data = $self->decode_json( shift );
 
-    my $item = $self->create_resources_from_hal( $self->decode_json($self->resource->request->content) );
+    my $item = $self->create_resources_from_hal( $data );
 
     return $self->resource->item($item);
 }

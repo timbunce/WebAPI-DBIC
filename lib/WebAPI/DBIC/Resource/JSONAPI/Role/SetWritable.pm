@@ -28,7 +28,7 @@ around '_build_content_types_accepted' => sub {
         'application/vnd.api+json' => sub {
             my $self = shift;
             $self->serializer(WebAPI::DBIC::Serializer::JSONAPI->new(resource => $self));
-            return $self->serializer->set_from_json;
+            return $self->serializer->set_from_json($self->request->content);
         },
     };
     return $types;
