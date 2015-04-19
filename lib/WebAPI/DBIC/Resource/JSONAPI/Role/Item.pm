@@ -30,7 +30,13 @@ around '_build_content_types_provided' => sub {
     my $orig = shift;
     my $self = shift;
     my $types = $self->$orig();
-    unshift @$types, { 'application/vnd.api+json' => 'to_json_as_jsonapi' };
+    unshift @$types, {
+        'application/vnd.api+json' => sub {
+            my $self = shift;
+            $self->serializer(WebAPI::DBIC::Serializer::JSONAPI->new(resource => $self));
+            return $self->to_json_as_jsonapi
+        },
+    };
     return $types;
 };
 
@@ -48,8 +54,6 @@ sub to_json_as_jsonapi {
 
     # set has been narrowed to the item, so we can render the item as if a set
     # (which is what we need to do for JSON API, which doesn't really have an 'item')
-
-    $self->serializer(WebAPI::DBIC::Serializer::JSONAPI->new(resource => $self));
 
     return $self->encode_json( $self->serializer->render_jsonapi_response() );
 }

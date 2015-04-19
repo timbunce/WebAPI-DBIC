@@ -48,14 +48,6 @@ has type_namer => (
 
 has serializer => (
    is => 'rw',
-   lazy => 1,
-   builder => '_build_serializer'
 );
-
-sub _build_serializer {
-    my $self = shift;
-    warn "Using WebAPI::DBIC::Serializer::Base";
-    return WebAPI::DBIC::Serializer::Base->new(resource => $self);
-}
 
 1;

@@ -25,7 +25,14 @@ has content_types_provided => (
 );
 
 sub _build_content_types_provided {
-    return [ { 'application/vnd.wapid+json' => 'to_plain_json'} ]
+    return [ {
+        'application/vnd.wapid+json' => sub {
+            my $self = shift;
+            require WebAPI::DBIC::Serializer::WAPID;
+            $self->serializer(WebAPI::DBIC::Serializer::WAPID->new(resource => $self));
+            return $self->to_plain_json;
+        },
+    } ];
 }
 
 sub to_plain_json { return $_[0]->encode_json($_[0]->serializer->render_set_as_plain($_[0]->set)) }

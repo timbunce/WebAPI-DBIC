@@ -32,6 +32,10 @@ has resource => (
     )],
 );
 
+sub BUILD {
+    warn "Using ".ref(shift) if $ENV{WEBAPI_DBIC_DEBUG};
+}
+
 
 # default render for DBIx::Class item
 # https://metacpan.org/module/DBIx::Class::Manual::ResultClass

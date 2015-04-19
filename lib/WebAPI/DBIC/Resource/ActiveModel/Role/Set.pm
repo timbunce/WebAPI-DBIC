@@ -27,14 +27,19 @@ around '_build_content_types_provided' => sub {
     my $orig = shift;
     my $self = shift;
     my $types = $self->$orig();
-    unshift @$types, { 'application/json' => 'to_json_as_activemodel' };
+    unshift @$types, {
+        'application/json' => sub {
+            my $self = shift;
+            $self->serializer(WebAPI::DBIC::Serializer::ActiveModel->new(resource => $self));
+            return $self->to_json_as_activemodel;
+        },
+    };
     return $types;
 };
 
 
 sub to_json_as_activemodel {
     my $self = shift;
-    $self->serializer(WebAPI::DBIC::Serializer::ActiveModel->new(resource => $self));
     return $self->encode_json( $self->serializer->render_activemodel_response() );
 }
 

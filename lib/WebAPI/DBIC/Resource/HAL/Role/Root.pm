@@ -22,15 +22,19 @@ around '_build_content_types_provided' => sub {
     my $orig = shift;
     my $self = shift;
     my $types = $self->$orig();
-    unshift @$types, { 'application/hal+json' => 'to_json_as_hal' };
+    unshift @$types, {
+        'application/hal+json' => sub {
+            my $self = shift;
+            $self->serializer(WebAPI::DBIC::Serializer::HAL->new(resource => $self));
+            return $self->to_json_as_hal;
+        },
+    };
     return $types;
 };
 
 
 sub to_json_as_hal {
     my $self = shift;
-
-    $self->serializer(WebAPI::DBIC::Serializer::HAL->new(resource => $self));
 
     return $self->encode_json($self->render_api_as_hal())
 }

@@ -37,7 +37,14 @@ has content_types_accepted => (
 );
 
 sub _build_content_types_accepted {
-    return [ {'application/vnd.wapid+json' => 'from_plain_json'} ]
+    return [ {
+        'application/vnd.wapid+json' => sub {
+            my $self = shift;
+            require WebAPI::DBIC::Serializer::WAPID;
+            $self->serializer(WebAPI::DBIC::Serializer::WAPID->new(resource => $self));
+            return $self->from_plain_json;
+        },
+    } ];
 }
 
 around 'allowed_methods' => sub {

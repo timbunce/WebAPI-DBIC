@@ -22,15 +22,19 @@ around '_build_content_types_accepted' => sub {
     my $orig = shift;
     my $self = shift;
     my $types = $self->$orig();
-    unshift @$types, { 'application/vnd.api+json' => 'from_jsonapi_json' };
+    unshift @$types, {
+        'application/vnd.api+json' => sub {
+            my $self = shift;
+            $self->serializer(WebAPI::DBIC::Serializer::JSONAPI->new(resource => $self));
+            return $self->from_jsonapi_json
+        },
+    };
     return $types;
 };
 
 
 sub from_jsonapi_json {
     my $self = shift;
-
-    $self->serializer(WebAPI::DBIC::Serializer::JSONAPI->new(resource => $self));
 
     my $data = $self->decode_json( $self->request->content );
     $self->update_resource($data, is_put_replace => 0);
