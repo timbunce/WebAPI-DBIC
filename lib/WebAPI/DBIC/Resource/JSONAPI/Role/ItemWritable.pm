@@ -6,16 +6,11 @@ WebAPI::DBIC::Resource::JSONAPI::Role::ItemWritable - methods handling JSON API 
 
 =cut
 
-use Carp qw(croak confess);
-use Devel::Dwarn;
-
 use Moo::Role;
 
+use WebAPI::DBIC::Serializer::JSONAPI;
 
-requires 'decode_json';
-requires 'request';
-
-requires '_pre_update_resource_method';
+requires 'serializer';
 
 
 around '_build_content_types_accepted' => sub {
@@ -26,21 +21,11 @@ around '_build_content_types_accepted' => sub {
         'application/vnd.api+json' => sub {
             my $self = shift;
             $self->serializer(WebAPI::DBIC::Serializer::JSONAPI->new(resource => $self));
-            return $self->from_jsonapi_json
+            return $self->serializer->item_from_json;
         },
     };
     return $types;
 };
-
-
-sub from_jsonapi_json {
-    my $self = shift;
-
-    my $data = $self->decode_json( $self->request->content );
-    $self->update_resource($data, is_put_replace => 0);
-
-    return;
-}
 
 
 1;

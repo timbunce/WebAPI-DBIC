@@ -6,17 +6,11 @@ WebAPI::DBIC::Resource::HAL::Role::ItemWritable - methods handling HAL requests 
 
 =cut
 
-use Carp qw(croak confess);
-use Devel::Dwarn;
-
 use Moo::Role;
 
+use WebAPI::DBIC::Serializer::HAL;
 
-requires 'decode_json';
-requires 'request';
-requires 'update_resource';
-
-requires '_pre_update_resource_method';
+requires 'serializer';
 
 
 around '_build_content_types_accepted' => sub {
@@ -27,20 +21,11 @@ around '_build_content_types_accepted' => sub {
         'application/hal+json' => sub {
             my $self = shift;
             $self->serializer(WebAPI::DBIC::Serializer::HAL->new(resource => $self));
-            return $self->from_hal_json;
+            return $self->serializer->item_from_json;
         },
     };
     return $types;
 };
 
-
-sub from_hal_json {
-    my $self = shift;
-
-    my $data = $self->decode_json( $self->request->content );
-    $self->update_resource($data, is_put_replace => 0);
-
-    return;
-}
 
 1;

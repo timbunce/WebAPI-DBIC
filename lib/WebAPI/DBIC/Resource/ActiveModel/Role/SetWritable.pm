@@ -11,17 +11,10 @@ rows into a database table.
 
 =cut
 
-use Devel::Dwarn;
-use Carp qw(croak);
-
 use Moo::Role;
 
 use WebAPI::DBIC::Serializer::ActiveModel;
 
-requires '_build_content_types_accepted';
-requires 'decode_json';
-requires 'set';
-requires 'prefetch';
 requires 'serializer';
 
 
@@ -33,18 +26,11 @@ around '_build_content_types_accepted' => sub {
         'application/json' => sub {
             my $self = shift;
             $self->serializer(WebAPI::DBIC::Serializer::ActiveModel->new(resource => $self));
-            return $self->from_activemodel_json;
+            return $self->serializer->set_from_json;
         },
     };
     return $types;
 };
-
-
-sub from_activemodel_json {
-    my $self = shift;
-    my $item = $self->serializer->create_resources_from_activemodel( $self->decode_json($self->request->content) );
-    return $self->item($item);
-}
 
 
 1;

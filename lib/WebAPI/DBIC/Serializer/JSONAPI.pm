@@ -43,6 +43,25 @@ sub item_to_json {
 }
 
 
+sub item_from_json {
+    my $self = shift;
+
+    my $data = $self->decode_json( $self->resource->request->content );
+    $self->update_resource($data, is_put_replace => 0);
+
+    return;
+}
+
+
+sub set_from_json {
+    my $self = shift;
+
+    my $item = $self->create_resource( $self->decode_json($self->resource->request->content) );
+
+    return $self->item($item);
+}
+
+
 sub jsonapi_type {
     my ($self) = @_;
     return $self->type_namer->type_name_for_resultset($self->set);

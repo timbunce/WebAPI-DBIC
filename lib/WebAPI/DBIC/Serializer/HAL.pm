@@ -33,6 +33,25 @@ sub item_to_json {
 }
 
 
+sub item_from_json {
+    my $self = shift;
+
+    my $data = $self->decode_json( $self->resource->request->content );
+    $self->resource->update_resource($data, is_put_replace => 0);
+
+    return;
+}
+
+
+sub set_from_json {
+    my $self = shift;
+
+    my $item = $self->create_resources_from_hal( $self->decode_json($self->resource->request->content) );
+
+    return $self->resource->item($item);
+}
+
+
 sub render_item_as_hal_hash {
     my ($self, $item) = @_;
 

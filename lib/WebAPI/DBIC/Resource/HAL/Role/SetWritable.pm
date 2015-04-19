@@ -13,17 +13,11 @@ Supports the C<application/hal+json> and C<application/json> content types.
 
 =cut
 
-use Devel::Dwarn;
-use Carp qw(confess);
-
 use Moo::Role;
 
+use WebAPI::DBIC::Serializer::HAL;
 
-requires '_build_content_types_accepted';
-requires 'decode_json';
-requires 'item';
 requires 'serializer';
-requires 'request';
 
 
 around '_build_content_types_accepted' => sub {
@@ -34,19 +28,11 @@ around '_build_content_types_accepted' => sub {
         'application/hal+json' => sub {
             my $self = shift;
             $self->serializer(WebAPI::DBIC::Serializer::HAL->new(resource => $self));
-            return $self->from_hal_json;
+            return $self->serializer->set_from_json;
         },
     };
     return $types;
 };
 
-
-sub from_hal_json {
-    my $self = shift;
-
-    my $item = $self->serializer->create_resources_from_hal( $self->decode_json($self->request->content) );
-
-    return $self->item($item);
-}
 
 1;
