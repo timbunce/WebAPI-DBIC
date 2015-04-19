@@ -90,18 +90,7 @@ sub render_item_into_body {
         $item_resource = $self->web_machine_resource( %resource_args );
     }
 
-    # XXX temporary hack
-    my $body;
-    if ($self->request->headers->header('Accept') =~ /hal\+json/) {
-        $body = $item_resource->serializer->item_to_json;
-    }
-    elsif ($self->request->headers->header('Accept') =~ m{application/json}) {
-        $body = $item_resource->serializer->item_to_json;
-    }
-    else {
-        $body = $item_resource->to_json_as_plain;
-    }
-
+    my $body = $item_resource->serializer->item_to_json($item_resource->item);
     $self->response->body($body);
 
     return;

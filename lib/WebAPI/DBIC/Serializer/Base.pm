@@ -37,11 +37,24 @@ sub BUILD {
 }
 
 
+sub set_to_json   {
+    my ($self, $set) = @_;
+    return $self->encode_json($self->render_set_as_plain($set));
+}
+
+
+sub item_to_json {
+    my ($self, $item) = @_;
+    return $self->resource->encode_json($self->render_item_as_plain_hash($item))
+}
+
+
 # default render for DBIx::Class item
 # https://metacpan.org/module/DBIx::Class::Manual::ResultClass
 # https://metacpan.org/module/DBIx::Class::InflateColumn
 sub render_item_as_plain_hash {
     my ($self, $item) = @_;
+    Carp::confess "undef item" unless defined $item;
     my $data = { $item->get_columns }; # XXX ?
     # XXX inflation, DateTimes, etc.
     return $data;

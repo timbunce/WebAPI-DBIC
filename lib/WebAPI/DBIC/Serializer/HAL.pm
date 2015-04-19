@@ -23,7 +23,7 @@ sub set_to_json   {
     my $self = shift;
     my $set = shift;
 
-    return $self->encode_json($self->render_set_as_hal($set));
+    return $self->encode_json($self->render_set_as_data($set));
 }
 
 
@@ -31,7 +31,7 @@ sub item_to_json {
     my $self = shift;
     my $item = shift;
 
-    return $self->resource->encode_json($self->render_item_as_hal_hash($item))
+    return $self->resource->encode_json($self->render_item_as_data($item))
 }
 
 
@@ -55,7 +55,7 @@ sub set_from_json {
 }
 
 
-sub render_item_as_hal_hash {
+sub render_item_as_data {
     my ($self, $item) = @_;
 
     my $data = $self->render_item_as_plain_hash($item);
@@ -97,8 +97,8 @@ sub _render_prefetch {
 
         my $subitem = $item->$rel();
 
-        # XXX perhaps render_item_as_hal_hash but requires cloned WM, eg without prefetch
-        # If we ever do render_item_as_hal_hash then we need to ensure that "a link
+        # XXX perhaps render_item_as_data but requires cloned WM, eg without prefetch
+        # If we ever do render_item_as_data then we need to ensure that "a link
         # inside an embedded resource implicitly relates to that embedded
         # resource and not the parent."
         # See http://blog.stateless.co/post/13296666138/json-linking-with-hal
@@ -121,7 +121,7 @@ sub _render_prefetch {
 
 sub render_set_as_list_of_hal {
     my ($self, $set, $render_method) = @_;
-    $render_method ||= 'render_item_as_hal_hash';
+    $render_method ||= 'render_item_as_data';
 
     my $set_data = [ map { $self->$render_method($_) } $set->all ];
 
@@ -129,14 +129,14 @@ sub render_set_as_list_of_hal {
 }
 
 
-sub render_set_as_hal {
+sub render_set_as_data {
     my ($self, $set) = @_;
 
     # some params, like distinct, mean we're not returning full resource representations(?)
     # so render the contents of the _embedded set as plain JSON
     my $render_method = ($self->param('distinct'))
         ? 'render_item_as_plain_hash'
-        : 'render_item_as_hal_hash';
+        : 'render_item_as_data';
     my $set_data = $self->render_set_as_list_of_hal($set, $render_method);
 
     my $data = {};
