@@ -67,6 +67,46 @@ sub render_set_as_plain {
     return $set_data;
 }
 
+
+sub create_should_prefetch_self {
+    my $self = shift;
+    return scalar grep {defined $_->{self}} @{$self->prefetch||[]};
+}
+
+
+sub create_resources_from_data {
+    my ($self, $data) = @_;
+    my $item;
+
+    my $schema = $self->set->result_source->schema;
+
+    # XXX perhaps the transaction wrapper belongs higher in the stack
+    # but it has to be below the auth layer which switches schemas
+    $schema->txn_do(sub {
+
+        $item = $self->_create_embedded_resources_from_data($data, $self->set->result_class);
+
+        # resync with what's (now) in the db to pick up defaulted fields etc
+        $item->discard_changes();
+
+        # called here because create_path() is too late for Web::Machine
+        # and we need it to happen inside the transaction for rollback=1 to work
+        $self->resource->render_item_into_body(
+                set => $self->set,
+                item => $item,
+                type_namer => $self->type_namer,
+                prefetch => $self->prefetch,
+            )
+            if $self->create_should_prefetch_self;
+
+        $schema->txn_rollback if $self->param('rollback'); # XXX
+
+    });
+
+    return $item;
+}
+
+
 # recurse into a prefetch-like structure invoking a callback
 # XXX still a work in progress, only used by ActiveModule so far
 sub traverse_prefetch {
@@ -85,10 +125,15 @@ sub traverse_prefetch {
 
     if (ref($prefetch) eq 'HASH') {
         while (my ($prefetch_key, $prefetch_value) = each(%$prefetch)) {
-            #warn "traverse_prefetch [@$parent_rel] $prefetch\{$prefetch_key}\n";
-            $self->traverse_prefetch($set,             $parent_rel,   $prefetch_key, $callback);
+            warn "traverse_prefetch [@$parent_rel] $prefetch\{$prefetch_key}\n"
+                if $ENV{WEBAPI_DBIC_DEBUG};
+            next if $prefetch_key eq 'self';
+
+            $self->traverse_prefetch($set, $parent_rel,   $prefetch_key, $callback);
+
             # XXX traverse_prefetch first arg is a set but this passes a class:
             my $result_subclass = $set->result_class->relationship_info($prefetch_key)->{class};
+
             $self->traverse_prefetch($result_subclass, [ @$parent_rel, $prefetch_key ], $prefetch_value, $callback);
         }
     }

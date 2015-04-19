@@ -72,7 +72,7 @@ sub set_from_json {
     my $self = shift;
     my $data = $self->decode_json( shift );
 
-    my $item = $self->create_resources_from_activemodel( $data );
+    my $item = $self->create_resources_from_data( $data );
 
     return $self->resource->item($item);
 }
@@ -82,7 +82,13 @@ sub render_activemodel_prefetch_rel {
     my ($self, $set, $parent_relname, $relname, $rel_sets, $item_edit_rel_hooks) = @_;
 
     my $parent_class = $set->result_class;
-    my $child_class = $parent_class->relationship_info($relname)->{class} || die "panic";
+    my $relinfo = $parent_class->relationship_info($relname);
+    if (not $relinfo) {
+        warn "$parent_class doesn't have a relation called $relname\n"
+            unless our $warn_once->{"$parent_class $relname"}++;
+        return;
+    }
+    my $child_class = $relinfo->{class} || die "panic";
 
     my @idcolumns = $child_class->unique_constraint_columns('primary'); # XXX wrong
     if (@idcolumns > 1) { # eg many-to-many that doesn't have a separate id
@@ -228,12 +234,16 @@ sub render_row_as_activemodel_resource_object {
 }
 
 
+# The other resources do this conditionally based on whether $self->prefetch contains self,
+# but this required significant acrobatics to get working in Ember, and always returning new
+# object data is not harmful, so do this by default.
+sub create_should_prefetch_self {
+    return 1;
+}
 
-sub create_resources_from_activemodel { # XXX unify with create_resource in SetWritable, like ItemWritable?
-    my ($self, $activemodel) = @_;
-    my $item;
 
-    my $schema = $self->set->result_source->schema;
+sub _create_embedded_resources_from_data {
+    my ($self, $activemodel, $result_class) = @_;
 
     # There can only be one.
     # If ever Ember supports creating multiple related objects in a single call,
@@ -243,39 +253,7 @@ sub create_resources_from_activemodel { # XXX unify with create_resource in SetW
         if(scalar(keys(%{ $activemodel })) > 1);
     my ($result_key, $new_item) = each(%{ $activemodel });
 
-    # XXX perhaps the transaction wrapper belongs higher in the stack
-    # but it has to be below the auth layer which switches schemas
-    $schema->txn_do(sub {
-
-        $item = $self->_create_embedded_resources_from_activemodel($new_item, $self->set->result_class);
-
-        # resync with what's (now) in the db to pick up defaulted fields etc
-        $item->discard_changes();
-
-        # The other resources do this conditionally based on whether $self->prefetch contains self,
-        # but this required significant acrobatics to get working in Ember, and always returning new
-        # object data is not harmful, so do this by default.
-        # called here because create_path() is too late for Web::Machine
-        # and we need it to happen inside the transaction for rollback=1 to work
-        $self->resource->render_item_into_body(
-            set => $self->set,
-            item => $item,
-            type_namer => $self->type_namer,
-            prefetch => undef,
-        );
-
-        $schema->txn_rollback if $self->param('rollback'); # XXX
-
-    });
-
-    return $item;
-}
-
-
-sub _create_embedded_resources_from_activemodel {
-    my ($self, $activemodel, $result_class) = @_;
-
-    return $self->set->result_source->schema->resultset($result_class)->create($activemodel);
+    return $self->set->result_source->schema->resultset($result_class)->create($new_item);
 }
 
 

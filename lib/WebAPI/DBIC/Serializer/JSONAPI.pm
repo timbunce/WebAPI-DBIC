@@ -59,7 +59,7 @@ sub set_from_json {
     my $self = shift;
     my $data = $self->decode_json( shift );
 
-    my $item = $self->create_resource( $data );
+    my $item = $self->create_resources_from_data( $data );
 
     return $self->item($item);
 }
@@ -297,36 +297,10 @@ sub _jsonapi_page_links {
 # === Methods for Writable resources
 
 
-sub create_resource { # XXX unify with create_resource in SetWritable, like ItemWritable?
-    my ($self, $jsonapi) = @_;
-    my $item;
-
-    my $schema = $self->set->result_source->schema;
-    # XXX perhaps the transaction wrapper belongs higher in the stack
-    # but it has to be below the auth layer which switches schemas
-    $schema->txn_do(sub {
-
-        $item = $self->_create_embedded_resources_from_jsonapi($jsonapi, $self->set->result_class);
-
-        # resync with what's (now) in the db to pick up defaulted fields etc
-        $item->discard_changes();
-
-        # called here because create_path() is too late for Web::Machine
-        # and we need it to happen inside the transaction for rollback=1 to work
-        $self->render_item_into_body(item => $item, prefetch => $self->prefetch)
-            if grep {defined $_->{self}} @{$self->prefetch||[]};
-
-        $schema->txn_rollback if $self->param('rollback'); # XXX
-    });
-
-    return $item;
-}
-
-
 # recurse to create resources in $jsonapi->{_embedded}
 #   and update coresponding attributes in $jsonapi
 # then create $jsonapi itself
-sub _create_embedded_resources_from_jsonapi {
+sub _create_embedded_resources_from_data {
     my ($self, $jsonapi, $result_class) = @_;
 
     my $links    = delete $jsonapi->{_links};
