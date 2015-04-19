@@ -20,17 +20,19 @@ use JSON::MaybeXS qw(JSON);
 
 sub set_to_json {
     my $self = shift;
+    my $set = shift;
 
-    return $self->encode_json( $self->render_jsonapi_response() );
+    return $self->encode_json( $self->render_jsonapi_response($set) );
 }
 
 
 sub item_to_json {
     my $self = shift;
+    my $item = shift;
 
     # narrow the set to just contain the specified item
     # XXX this narrowing ought to be moved elsewhere
-    # seems like a bad idea to be a side effect of to_json_as_jsonapi
+    # seems like a bad idea to be a side effect of this method
     my @id_cols = $self->set->result_source->unique_constraint_columns( $self->resource->id_unique_constraint_name );
     @id_cols = map { $self->set->current_source_alias.".$_" } @id_cols;
     my %id_search; @id_search{ @id_cols } = @{ $self->resource->id };
@@ -39,7 +41,7 @@ sub item_to_json {
     # set has been narrowed to the item, so we can render the item as if a set
     # (which is what we need to do for JSON API, which doesn't really have an 'item')
 
-    return $self->encode_json( $self->render_jsonapi_response() );
+    return $self->encode_json( $self->render_jsonapi_response($self->set) );
 }
 
 
@@ -146,9 +148,7 @@ sub render_jsonapi_prefetch_rel {
 
 
 sub render_jsonapi_response { # return top-level document hashref
-    my ($self) = @_;
-
-    my $set = $self->set;
+    my ($self, $set) = @_;
 
     my $top_links = {};
     my $compound_links = {};

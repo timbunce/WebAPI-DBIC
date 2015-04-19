@@ -21,15 +21,17 @@ use JSON::MaybeXS qw(JSON);
 
 sub set_to_json   {
     my $self = shift;
+    my $set = shift;
 
-    return $self->encode_json($self->render_set_as_hal($self->resource->set));
+    return $self->encode_json($self->render_set_as_hal($set));
 }
 
 
 sub item_to_json {
     my $self = shift;
+    my $item = shift;
 
-    return $self->resource->encode_json($self->render_item_as_hal_hash($self->resource->item))
+    return $self->resource->encode_json($self->render_item_as_hal_hash($item))
 }
 
 

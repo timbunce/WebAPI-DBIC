@@ -30,12 +30,14 @@ sub activemodel_type_for_class {
 
 sub set_to_json {
     my $self = shift;
-    return $self->encode_json( $self->render_activemodel_response() );
+    my $set = shift;
+    return $self->encode_json( $self->render_activemodel_response($set) );
 }
 
 
 sub item_to_json {
     my $self = shift;
+    my $item = shift;
 
     # narrow the set to just contain the specified item
     # XXX this narrowing ought to be moved elsewhere
@@ -48,7 +50,7 @@ sub item_to_json {
     # set has been narrowed to the item, so we can render the item as if a set
     # (which is what we need to do for JSON API, which doesn't really have an 'item')
 
-    return $self->resource->encode_json( $self->render_activemodel_response() );
+    return $self->resource->encode_json( $self->render_activemodel_response($self->set) );
 }
 
 
@@ -149,9 +151,8 @@ sub render_activemodel_prefetch_rel {
 
 
 sub render_activemodel_response { # return top-level document hashref
-    my ($self) = @_;
+    my ($self, $set) = @_;
 
-    my $set = $self->set;
     my $prefetch = $self->prefetch;
 
     my $rel_sets = {};

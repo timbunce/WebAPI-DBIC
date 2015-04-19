@@ -25,7 +25,7 @@ around '_build_content_types_provided' => sub {
     unshift @$types, {
         'application/hal+json' => sub {
             my $self = shift;
-            $self->serializer(WebAPI::DBIC::Serializer::HAL->new(resource => $self));
+            #$self->serializer(WebAPI::DBIC::Serializer::HAL->new(resource => $self));
             return $self->to_json_as_hal;
         },
     };

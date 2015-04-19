@@ -29,7 +29,7 @@ around '_build_content_types_provided' => sub {
         'application/vnd.api+json' => sub {
             my $self = shift;
             $self->serializer(WebAPI::DBIC::Serializer::JSONAPI->new(resource => $self));
-            return $self->serializer->item_to_json;
+            return $self->serializer->item_to_json($self->item);
         },
     };
     return $types;

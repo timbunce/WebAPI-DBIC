@@ -32,7 +32,7 @@ around '_build_content_types_provided' => sub {
         'application/json' => sub {
             my $self = shift;
             $self->serializer(WebAPI::DBIC::Serializer::ActiveModel->new(resource => $self));
-            return $self->serializer->item_to_json;
+            return $self->serializer->item_to_json($self->item);
         }
     };
     return $types;
