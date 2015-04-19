@@ -10,4 +10,6 @@ use Moo;
 
 extends 'WebAPI::DBIC::Serializer::Base';
 
+with 'WebAPI::DBIC::Role::JsonEncoder';
+
 1;

@@ -10,10 +10,20 @@ use Moo;
 
 extends 'WebAPI::DBIC::Serializer::Base';
 
+with 'WebAPI::DBIC::Role::JsonEncoder';
+
+
 use Carp qw(croak confess);
 use Try::Tiny;
 use Devel::Dwarn;
 use JSON::MaybeXS qw(JSON);
+
+
+sub item_to_json {
+    my $self = shift;
+
+    return $self->resource->encode_json($self->render_item_as_hal_hash($self->resource->item))
+}
 
 
 sub render_item_as_hal_hash {

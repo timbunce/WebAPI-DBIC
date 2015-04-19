@@ -14,6 +14,8 @@ use Moo;
 
 extends 'WebAPI::DBIC::Serializer::Base';
 
+with 'WebAPI::DBIC::Role::JsonEncoder';
+
 
 sub activemodel_type {
     my ($self) = @_;
@@ -23,6 +25,24 @@ sub activemodel_type {
 sub activemodel_type_for_class {
     my ($self, $class) = @_;
     return $self->type_namer->type_name_for_result_class($class);
+}
+
+
+sub item_to_json {
+    my $self = shift;
+
+    # narrow the set to just contain the specified item
+    # XXX this narrowing ought to be moved elsewhere
+    # it's a bad idea to be a side effect of to_json_as_activemodel
+    my @id_cols = $self->set->result_source->unique_constraint_columns( $self->resource->id_unique_constraint_name );
+    @id_cols = map { $self->set->current_source_alias.".$_" } @id_cols;
+    my %id_search; @id_search{ @id_cols } = @{ $self->resource->id };
+    $self->set( $self->set->search_rs(\%id_search) ); # narrow the set
+
+    # set has been narrowed to the item, so we can render the item as if a set
+    # (which is what we need to do for JSON API, which doesn't really have an 'item')
+
+    return $self->resource->encode_json( $self->render_activemodel_response() );
 }
 
 

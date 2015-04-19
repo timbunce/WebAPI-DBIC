@@ -93,10 +93,10 @@ sub render_item_into_body {
     # XXX temporary hack
     my $body;
     if ($self->request->headers->header('Accept') =~ /hal\+json/) {
-        $body = $item_resource->to_json_as_hal;
+        $body = $item_resource->serializer->item_to_json;
     }
     elsif ($self->request->headers->header('Accept') =~ m{application/json}) {
-        $body = $item_resource->to_json_as_activemodel;
+        $body = $item_resource->serializer->item_to_json;
     }
     else {
         $body = $item_resource->to_json_as_plain;
