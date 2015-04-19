@@ -211,7 +211,6 @@ sub create_resources_from_activemodel { # XXX unify with create_resource in SetW
         $self->resource->render_item_into_body(
             set => $self->set,
             item => $item,
-            result_key => $result_key,
             type_namer => $self->type_namer,
             prefetch => undef,
         );

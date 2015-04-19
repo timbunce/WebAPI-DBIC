@@ -26,11 +26,6 @@ requires 'item';
 requires 'serializer';
 
 
-has result_key => (
-    is => 'rw',
-);
-
-
 around '_build_content_types_provided' => sub {
     my $orig = shift;
     my $self = shift;
