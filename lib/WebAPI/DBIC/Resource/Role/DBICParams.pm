@@ -124,6 +124,11 @@ sub _handle_search_criteria_param {
     return;
 }
 
+sub _handle_join_param {
+    my ($self) = shift;
+    $self->_handle_prefetch_param(@_);
+}
+
 sub _handle_prefetch_param {
     my ($self, $value) = @_;
 
@@ -143,10 +148,20 @@ sub _handle_prefetch_param {
     $self->prefetch( $prefetch ); # include self, even if deleted below
     $prefetch = [grep { !defined $_->{self}} @$prefetch];
 
-    my $prefetch_or_join = $self->param('fields') ? 'join' : 'prefetch';
-    Dwarn { $prefetch_or_join => $prefetch } if $ENV{WEBAPI_DBIC_DEBUG};
-    $self->set( $self->set->search_rs(undef, { $prefetch_or_join => $prefetch }))
-        if scalar @$prefetch;
+    my $join_args;
+    if ($self->param('fields') || $self->param('join')){
+        $join_args = {
+            join     => $prefetch,
+            collapse => 1,
+        };
+    } else {
+        $join_args = {
+            prefetch => $prefetch,
+        };
+    }
+
+    Dwarn $join_args if $ENV{WEBAPI_DBIC_DEBUG};
+    $self->set( $self->set->search_rs(undef, $join_args)) if scalar @$prefetch;
 
     return;
 }

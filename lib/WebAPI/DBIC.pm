@@ -480,6 +480,13 @@ Also see L</prefetch>.
 
 =head2 GET Item - Optional Parameters
 
+=head3 join
+
+The Join parameter behaves in the same way as the prefetch parameter excepting in one important
+fashion; use of the join command will only return the primary resource or the specific fields
+requested. It should primarily be used for filtering or sorting the primary resource on a
+secondary joined resource. see L</prefetch> for information on the format of the join command.
+
 =head3 prefetch
 
 Prefetch is a mechanism in DBIx::Class by which related resultsets can be returned

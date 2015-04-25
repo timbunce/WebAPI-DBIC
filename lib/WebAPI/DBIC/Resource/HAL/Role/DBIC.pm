@@ -12,13 +12,11 @@ use JSON::MaybeXS qw(JSON);
 
 use Moo::Role;
 
-
 requires 'get_url_for_item_relationship';
 requires 'render_item_as_plain_hash';
 requires 'path_for_item';
 requires 'add_params_to_url';
 requires 'prefetch';
-
 
 sub render_item_as_hal_hash {
     my ($self, $item) = @_;
@@ -53,13 +51,19 @@ sub render_item_as_hal_hash {
     return $data;
 }
 
-
 sub _render_prefetch {
     my ($self, $item, $data, $prefetch) = @_;
 
     while (my ($rel, $sub_rel) = each %{$prefetch}){
         next if $rel eq 'self';
 
+        # Prevent joins calling the DB for no cached
+        # relations in the join statement
+        if ($self->param('join')){
+            next unless
+                defined $item->{related_resultsets}{$rel} &&
+                defined $item->{related_resultsets}{$rel}->get_cache;
+        }
         my $subitem = $item->$rel();
 
         # XXX perhaps render_item_as_hal_hash but requires cloned WM, eg without prefetch
@@ -69,20 +73,17 @@ sub _render_prefetch {
         # See http://blog.stateless.co/post/13296666138/json-linking-with-hal
         if (not defined $subitem) {
             $data->{_embedded}{$rel} = undef; # show an explicit null from a prefetch
-        }
-        elsif ($subitem->isa('DBIx::Class::ResultSet')) { # one-to-many rel
+        } elsif ($subitem->isa('DBIx::Class::ResultSet')){ # one-to-many rel
             my $rel_set_resource = $self->web_machine_resource(
                 set         => $subitem,
                 prefetch    => ref $sub_rel eq 'ARRAY' ? $sub_rel : [$sub_rel],
             );
             $data->{_embedded}{$rel} = $rel_set_resource->render_set_as_list_of_hal($subitem);
-        }
-        else {
+        } else {
             $data->{_embedded}{$rel} = $self->render_item_as_plain_hash($subitem);
         }
     }
 }
-
 
 sub render_set_as_list_of_hal {
     my ($self, $set, $render_method) = @_;
@@ -92,7 +93,6 @@ sub render_set_as_list_of_hal {
 
     return $set_data;
 }
-
 
 sub render_set_as_hal {
     my ($self, $set) = @_;
@@ -122,7 +122,6 @@ sub render_set_as_hal {
 
     return $data;
 }
-
 
 sub _hal_page_links {
     my ($self, $set, $base, $page_items, $total_items) = @_;
@@ -160,6 +159,5 @@ sub _hal_page_links {
 
     return @link_kvs;
 }
-
 
 1;

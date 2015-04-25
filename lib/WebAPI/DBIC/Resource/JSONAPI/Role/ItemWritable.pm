@@ -11,11 +11,8 @@ use Devel::Dwarn;
 
 use Moo::Role;
 
-
 requires 'decode_json';
 requires 'request';
-
-requires '_pre_update_resource_method';
 
 
 around '_build_content_types_accepted' => sub {
@@ -26,17 +23,14 @@ around '_build_content_types_accepted' => sub {
     return $types;
 };
 
-
 sub from_jsonapi_json {
     my $self = shift;
-    $self->_pre_update_resource_method( "_do_update_embedded_resources_jsonapi" );
     my $data = $self->decode_json( $self->request->content );
     $self->update_resource($data, is_put_replace => 0);
     return;
 }
 
-
-sub _do_update_embedded_resources_jsonapi {
+before '_do_update_resource' => sub {
     my ($self, $item, $jsonapi, $result_class) = @_;
 
     my $links    = delete $jsonapi->{_links};
@@ -83,7 +77,6 @@ sub _do_update_embedded_resources_jsonapi {
     }
 
     return;
-}
-
+};
 
 1;
