@@ -56,14 +56,41 @@ has content_types_provided => (
 );
 
 sub _build_content_types_provided {
-    return [ {
-        'application/vnd.wapid+json' => sub {
-            my $self = shift;
-            require WebAPI::DBIC::Serializer::WAPID;
-            $self->serializer(WebAPI::DBIC::Serializer::WAPID->new(resource => $self));
-            return $self->to_json_as_plain;
+    return [
+        {
+            'application/vnd.wapid+json' => sub {
+                my $self = shift;
+                require WebAPI::DBIC::Serializer::WAPID;
+                $self->serializer(WebAPI::DBIC::Serializer::WAPID->new(resource => $self));
+                return $self->serializer->item_to_json($self->item);
+            },
         },
-    } ];
+        {
+            'application/json' => sub {
+                my $self = shift;
+                require WebAPI::DBIC::Serializer::ActiveModel;
+                $self->serializer(WebAPI::DBIC::Serializer::ActiveModel->new(resource => $self));
+                return $self->serializer->item_to_json($self->item);
+            },
+        },
+        {
+            'application/hal+json' => sub {
+                my $self = shift;
+                require WebAPI::DBIC::Serializer::HAL;
+                $self->serializer(WebAPI::DBIC::Serializer::HAL->new(resource => $self));
+                return $self->serializer->item_to_json($self->item);
+            }
+        },
+        {
+            'application/vnd.api+json' => sub {
+                my $self = shift;
+                require WebAPI::DBIC::Serializer::JSONAPI;
+                $self->serializer(WebAPI::DBIC::Serializer::JSONAPI->new(resource => $self));
+                return $self->serializer->item_to_json($self->item);
+            },
+        },
+
+    ];
 }
 
 sub to_json_as_plain { return $_[0]->encode_json($_[0]->serializer->render_item_as_plain_hash($_[0]->item)) }

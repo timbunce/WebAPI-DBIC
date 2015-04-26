@@ -18,6 +18,10 @@ use Devel::Dwarn;
 use JSON::MaybeXS qw(JSON);
 
 
+sub content_types_accepted {
+    return ( [ 'application/vnd.api+json' => 'set_from_json' ] );
+}
+
 sub set_to_json {
     my $self = shift;
     my $set = shift;

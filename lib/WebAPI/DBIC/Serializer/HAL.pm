@@ -19,6 +19,10 @@ use Devel::Dwarn;
 use JSON::MaybeXS qw(JSON);
 
 
+sub content_types_accepted {
+    return ( [ 'application/hal+json' => 'set_from_json' ]);
+}
+
 sub set_to_json   {
     my $self = shift;
     my $set = shift;
@@ -39,7 +43,7 @@ sub item_from_json {
     my $self = shift;
     my $data = $self->decode_json( shift );
 
-    $self->resource->update_resource($data, is_put_replace => 0);
+    $self->update_resource($data, is_put_replace => 0);
 
     return;
 }
@@ -285,7 +289,7 @@ sub pre_update_resource_method {
 
         # update this subitem (and any resources embedded in it)
         my $subitem = $item->$rel();
-        $subitem = $self->resource->_do_update_resource($subitem, $rel_hal, $rel_info->{source});
+        $subitem = $self->_do_update_resource($subitem, $rel_hal, $rel_info->{source});
 
         # copy the keys of the subitem up to the item we're about to update
         warn "$result_class $rel: propagating keys: @{[ %fk_map ]}\n"

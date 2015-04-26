@@ -17,6 +17,10 @@ extends 'WebAPI::DBIC::Serializer::Base';
 with 'WebAPI::DBIC::Role::JsonEncoder';
 
 
+sub content_types_accepted {
+    return ( [ 'application/json' => 'set_from_json' ]);
+}
+
 sub activemodel_type {
     my ($self) = @_;
     return $self->type_namer->type_name_for_resultset($self->set);
