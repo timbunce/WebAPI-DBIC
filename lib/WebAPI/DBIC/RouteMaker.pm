@@ -26,6 +26,67 @@ has resource_class_for_set         => (is => 'ro', default => 'WebAPI::DBIC::Res
 has resource_class_for_set_invoke  => (is => 'ro', default => 'WebAPI::DBIC::Resource::GenericSetInvoke');
 has resource_default_args          => (is => 'ro', default => sub { {} });
 
+sub _mk_content_type_handler {
+    my ($serializer_class, $pair) = @_;
+
+    my ($content_type, $method) = @$pair;
+    my $handler_sub = sub {
+        my $self = shift;
+        warn sprintf "%s %s content-type %s handled by %s %s\n",
+            $self->request->method, $self->request->path, $content_type, $serializer_class, $method
+            if $ENV{WEBAPI_DBIC_DEBUG};
+        my $serializer = $serializer_class->new(resource => $self);
+        $self->serializer($serializer);
+        return $serializer->$method();
+    };
+    return { $content_type => $handler_sub };
+}
+
+sub _mk_content_type_handlers {
+    my ($serializer_classes, $content_types_method) = @_;
+
+    my @handlers;
+    for my $serializer_class (@$serializer_classes) {
+
+        use Module::Runtime qw(require_module); # XXX
+        require_module($serializer_class);
+
+        for my $content_type_pair ($serializer_class->$content_types_method) {
+            push @handlers, _mk_content_type_handler($serializer_class, $content_type_pair);
+        }
+    }
+    return \@handlers;
+}
+
+has serializer_classes => (
+    is => 'ro',
+    default => sub { [ qw(
+        WebAPI::DBIC::Serializer::WAPID
+        WebAPI::DBIC::Serializer::ActiveModel
+        WebAPI::DBIC::Serializer::HAL
+        WebAPI::DBIC::Serializer::JSONAPI
+    ) ] },
+);
+
+has content_types_accepted => (
+    is => 'lazy',
+);
+
+sub _build_content_types_accepted {
+    my $self = shift;
+    return _mk_content_type_handlers($self->serializer_classes, 'content_types_accepted');
+}
+
+has content_types_provided => (
+    is => 'lazy',
+);
+
+sub _build_content_types_provided {
+    my $self = shift;
+    return _mk_content_type_handlers($self->serializer_classes, 'content_types_provided');
+}
+
+
 has type_namer => (
     is => 'ro',
     default => sub {
@@ -90,6 +151,8 @@ sub make_routes_for_item {
         resource_class => $self->resource_class_for_item,
         resource_args  => {
             %{ $self->resource_default_args },
+            content_types_accepted => $self->content_types_accepted,
+            content_types_provided => $self->content_types_provided,
             set => $set,
             type_namer => $self->type_namer,
         },
@@ -105,6 +168,8 @@ sub make_routes_for_item {
         resource_class => $self->resource_class_for_item_invoke,
         resource_args  => {
             %{ $self->resource_default_args },
+            content_types_accepted => $self->content_types_accepted,
+            content_types_provided => $self->content_types_provided,
             set => $set,
             type_namer => $self->type_namer,
         },
@@ -125,6 +190,8 @@ sub make_routes_for_set {
         resource_class => $self->resource_class_for_set,
         resource_args  => {
             %{ $self->resource_default_args },
+            content_types_accepted => $self->content_types_accepted,
+            content_types_provided => $self->content_types_provided,
             set => $set,
             type_namer => $self->type_namer,
         },
@@ -140,6 +207,8 @@ sub make_routes_for_set {
         resource_class => $self->resource_class_for_set_invoke,
         resource_args  => {
             %{ $self->resource_default_args },
+            content_types_accepted => $self->content_types_accepted,
+            content_types_provided => $self->content_types_provided,
             set => $set,
             type_namer => $self->type_namer,
         },
@@ -155,6 +224,8 @@ sub make_root_route {
         resource_class => 'WebAPI::DBIC::Resource::GenericRoot',
         resource_args  => {
             %{ $self->resource_default_args },
+            #content_types_accepted => $self->content_types_accepted,
+            #content_types_provided => $self->content_types_provided,
             type_namer => $self->type_namer,
         },
     );

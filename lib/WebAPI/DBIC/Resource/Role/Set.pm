@@ -21,49 +21,38 @@ requires 'serializer';
 
 
 has content_types_provided => (
-    is => 'lazy',
+    is => 'ro',
+    required => 1,
 );
-
-sub _build_content_types_provided {
-    return [
-    {
-        'application/vnd.wapid+json' => sub {
-            my $self = shift;
-            require WebAPI::DBIC::Serializer::WAPID;
-            $self->serializer(WebAPI::DBIC::Serializer::WAPID->new(resource => $self));
-            return $self->serializer->set_to_json($self->set);
-        },
-    },
-    {
-        'application/json' => sub {
-            my $self = shift;
-            require WebAPI::DBIC::Serializer::ActiveModel;
-            $self->serializer(WebAPI::DBIC::Serializer::ActiveModel->new(resource => $self));
-            return $self->serializer->set_to_json($self->set);
-        },
-    },
-    {
-        'application/hal+json' => sub {
-            my $self = shift;
-            require WebAPI::DBIC::Serializer::HAL;
-            $self->serializer(WebAPI::DBIC::Serializer::HAL->new(resource => $self));
-            return $self->serializer->set_to_json($self->set);
-        },
-    },
-    {
-        'application/vnd.api+json' => sub {
-            my $self = shift;
-            require WebAPI::DBIC::Serializer::JSONAPI;
-            $self->serializer(WebAPI::DBIC::Serializer::JSONAPI->new(resource => $self));
-            return $self->serializer->set_to_json($self->set);
-        }
-    },
-
-    ];
-}
 
 sub to_plain_json { return $_[0]->encode_json($_[0]->serializer->render_set_as_plain($_[0]->set)) }
 
-sub allowed_methods { return [ qw(GET HEAD) ] }
+sub allowed_methods {
+    my $self = shift;
+    return [ qw(GET HEAD PUT POST) ] if $self->writable;
+    return [ qw(GET HEAD) ];
+}
+
+
+# ====== Writable ======
+
+has item => ( # for POST to create
+    is => 'rw',
+);
+
+has content_types_accepted => (
+    is => 'ro',
+    required => 1,
+);
+
+sub post_is_create { return 1 }
+
+sub create_path_after_handler { return 1 }
+
+sub create_path {
+    my $self = shift;
+    return $self->path_for_item($self->item);
+}
+
 
 1;

@@ -18,7 +18,11 @@ with 'WebAPI::DBIC::Role::JsonEncoder';
 
 
 sub content_types_accepted {
-    return ( [ 'application/json' => 'set_from_json' ]);
+    return ( [ 'application/json' => 'accept_from_json' ]);
+}
+
+sub content_types_provided {
+    return ( [ 'application/json' => 'provide_to_json' ]);
 }
 
 sub activemodel_type {
@@ -34,14 +38,14 @@ sub activemodel_type_for_class {
 
 sub set_to_json {
     my $self = shift;
-    my $set = shift;
+    my $set = shift || $self->resource->set;
     return $self->encode_json( $self->render_activemodel_response($set) );
 }
 
 
 sub item_to_json {
     my $self = shift;
-    my $item = shift;
+    my $item = shift || $self->resource->item;
 
     # narrow the set to just contain the specified item
     # XXX this narrowing ought to be moved elsewhere

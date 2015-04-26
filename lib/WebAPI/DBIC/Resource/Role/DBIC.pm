@@ -63,6 +63,8 @@ sub web_machine_resource {
     my $resource = $resource_class->new(
         request  => $self->request,
         response => $self->request->new_response,
+        content_types_accepted => $self->content_types_accepted,
+        content_types_provided => $self->content_types_provided,
         throwable => $self->throwable,
         prefetch  => [], # don't propagate prefetch by default
         set => undef,

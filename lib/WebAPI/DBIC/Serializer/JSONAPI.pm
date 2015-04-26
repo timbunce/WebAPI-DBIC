@@ -19,12 +19,17 @@ use JSON::MaybeXS qw(JSON);
 
 
 sub content_types_accepted {
-    return ( [ 'application/vnd.api+json' => 'set_from_json' ] );
+    return ( [ 'application/vnd.api+json' => 'accept_from_json' ] );
 }
+
+sub content_types_provided {
+    return ( [ 'application/vnd.api+json' => 'provide_to_json' ]);
+}
+
 
 sub set_to_json {
     my $self = shift;
-    my $set = shift;
+    my $set = shift || $self->resource->set;
 
     return $self->encode_json( $self->render_jsonapi_response($set) );
 }
@@ -32,7 +37,7 @@ sub set_to_json {
 
 sub item_to_json {
     my $self = shift;
-    my $item = shift;
+    my $item = shift || $self->resource->item;
 
     # narrow the set to just contain the specified item
     # XXX this narrowing ought to be moved elsewhere
@@ -51,7 +56,7 @@ sub item_to_json {
 
 sub item_from_json {
     my $self = shift;
-    my $data = $self->decode_json( shift );
+    my $data = $self->decode_json( shift || $self->request->content );
 
     $self->update_resource($data, is_put_replace => 0);
 
@@ -61,7 +66,7 @@ sub item_from_json {
 
 sub set_from_json {
     my $self = shift;
-    my $data = $self->decode_json( shift );
+    my $data = $self->decode_json( shift || $self->request->content );
 
     my $item = $self->create_resources_from_data( $data );
 

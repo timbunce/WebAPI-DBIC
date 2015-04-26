@@ -20,12 +20,16 @@ use JSON::MaybeXS qw(JSON);
 
 
 sub content_types_accepted {
-    return ( [ 'application/hal+json' => 'set_from_json' ]);
+    return ( [ 'application/hal+json' => 'accept_from_json' ]);
+}
+
+sub content_types_provided {
+    return ( [ 'application/hal+json' => 'provide_to_json' ]);
 }
 
 sub set_to_json   {
     my $self = shift;
-    my $set = shift;
+    my $set = shift || $self->resource->set;
 
     return $self->encode_json($self->render_set_as_data($set));
 }
@@ -33,7 +37,7 @@ sub set_to_json   {
 
 sub item_to_json {
     my $self = shift;
-    my $item = shift;
+    my $item = shift || $self->resource->item;
 
     return $self->resource->encode_json($self->render_item_as_data($item))
 }
@@ -41,7 +45,7 @@ sub item_to_json {
 
 sub item_from_json {
     my $self = shift;
-    my $data = $self->decode_json( shift );
+    my $data = $self->decode_json( shift || $self->resource->request->content );
 
     $self->update_resource($data, is_put_replace => 0);
 
@@ -51,7 +55,7 @@ sub item_from_json {
 
 sub set_from_json {
     my $self = shift;
-    my $data = $self->decode_json( shift );
+    my $data = $self->decode_json( shift || $self->resource->request->content );
 
     my $item = $self->create_resources_from_data( $data );
 

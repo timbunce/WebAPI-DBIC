@@ -9,6 +9,7 @@ WebAPI::DBIC::Serializer::Base - what will I become?
 use Moo;
 
 use Carp;
+use Scalar::Util qw(blessed);
 
 
 has resource => (
@@ -32,22 +33,32 @@ has resource => (
     )],
 );
 
-sub BUILD {
-    warn "Using ".ref(shift) if $ENV{WEBAPI_DBIC_DEBUG};
+
+sub provide_to_json {
+    my $self = shift;
+    return $self->item_to_json($self->resource->item) if $self->resource->can('id');
+    return $self->set_to_json($self->resource->set);
 }
 
-
 sub set_to_json   {
-    my ($self, $set) = @_;
+    my $self = shift;
+    my $set = shift;
     return $self->encode_json($self->render_set_as_plain($set));
 }
 
-
 sub item_to_json {
-    my ($self, $item) = @_;
+    my $self = shift;
+    my $item = shift;
     return $self->resource->encode_json($self->render_item_as_plain_hash($item))
 }
 
+
+sub accept_from_json {
+    my $self = shift;
+    my $content = $self->resource->request->content;
+    return $self->item_from_json($content) if $self->resource->can('id');
+    return $self->set_from_json($content)
+}
 
 sub set_from_json { # insert into set
     my $self = shift;
@@ -56,7 +67,6 @@ sub set_from_json { # insert into set
     my $item = $self->create_resources_from_data( $data );
     return $self->resource->item($item);
 }
-
 
 sub item_from_json { # update
     my $self = shift;
@@ -73,7 +83,7 @@ sub item_from_json { # update
 # https://metacpan.org/module/DBIx::Class::InflateColumn
 sub render_item_as_plain_hash {
     my ($self, $item) = @_;
-    Carp::confess "undef item" unless defined $item;
+    Carp::confess("bad item: $item") unless blessed $item;
     my $data = { $item->get_columns }; # XXX ?
     # XXX inflation, DateTimes, etc.
     return $data;
