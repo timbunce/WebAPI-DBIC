@@ -35,9 +35,8 @@ sub _mk_content_type_handler {
         warn sprintf "%s %s content-type %s handled by %s %s\n",
             $self->request->method, $self->request->path, $content_type, $serializer_class, $method
             if $ENV{WEBAPI_DBIC_DEBUG};
-        my $serializer = $serializer_class->new(resource => $self);
-        $self->serializer($serializer);
-        return $serializer->$method();
+        $self->serializer( $serializer_class->new(resource => $self) );
+        return $self->$method();
     };
     return { $content_type => $handler_sub };
 }

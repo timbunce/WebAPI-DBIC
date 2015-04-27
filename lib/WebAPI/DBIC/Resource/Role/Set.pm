@@ -34,6 +34,12 @@ sub allowed_methods {
 }
 
 
+sub provide_to_json { # called via content_types_provided callback
+    my $self = shift;
+    return $self->serializer->set_to_json($self->set);
+}
+
+
 # ====== Writable ======
 
 has item => ( # for POST to create
@@ -44,6 +50,12 @@ has content_types_accepted => (
     is => 'ro',
     required => 1,
 );
+
+
+sub accept_from_json { # called via content_types_accepted callback
+    my $self = shift;
+    return $self->serializer->set_from_json( $self->request->content );
+}
 
 sub post_is_create { return 1 }
 

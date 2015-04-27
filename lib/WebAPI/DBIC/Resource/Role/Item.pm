@@ -67,6 +67,12 @@ sub allowed_methods {
 }
 
 
+sub provide_to_json { # called via content_types_provided callback
+    my $self = shift;
+    return $self->serializer->item_to_json($self->item);
+}
+
+
 # ====== Writable =======
 
 # By default the DBIx::Class::Row update() call will only update the
@@ -85,6 +91,12 @@ has content_types_accepted => (
     is => 'ro',
     required => 1,
 );
+
+
+sub accept_from_json { # called via content_types_accepted callback
+    my $self = shift;
+    return $self->serializer->item_from_json( $self->request->content );
+}
 
 
 sub delete_resource { return $_[0]->item->delete }

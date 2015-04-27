@@ -34,12 +34,6 @@ has resource => (
 );
 
 
-sub provide_to_json {
-    my $self = shift;
-    return $self->item_to_json($self->resource->item) if $self->resource->can('id');
-    return $self->set_to_json($self->resource->set);
-}
-
 sub set_to_json   {
     my $self = shift;
     my $set = shift;
@@ -52,13 +46,6 @@ sub item_to_json {
     return $self->resource->encode_json($self->render_item_as_plain_hash($item))
 }
 
-
-sub accept_from_json {
-    my $self = shift;
-    my $content = $self->resource->request->content;
-    return $self->item_from_json($content) if $self->resource->can('id');
-    return $self->set_from_json($content)
-}
 
 sub set_from_json { # insert into set
     my $self = shift;
