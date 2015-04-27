@@ -71,8 +71,11 @@ sub _do_update_resource {
 
     # provide a hook for richer behaviour, eg HAL
     my $_pre_update_resource_method = $self->_pre_update_resource_method;
-    $self->$_pre_update_resource_method($item, $hal, $result_class)
-        if $_pre_update_resource_method;
+    if ($_pre_update_resource_method) {
+        # This _pre_update_resource_method hack should not be needed now we have serializers
+        warn "Fixme: $_pre_update_resource_method($item, $hal, $result_class)";
+        $self->$_pre_update_resource_method($item, $hal, $result_class);
+    }
 
     # By default the DBIx::Class::Row update() call below will only update the
     # columns where %$hal contains different values to the ones in $item
