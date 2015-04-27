@@ -39,7 +39,7 @@ sub item_to_json {
     my $self = shift;
     my $item = shift || $self->resource->item;
 
-    return $self->resource->encode_json($self->render_item_as_data($item))
+    return $self->encode_json($self->render_item_as_data($item))
 }
 
 
@@ -306,6 +306,51 @@ sub pre_update_resource_method {
     }
 
     return;
+}
+
+
+# ====== Root ======
+
+
+sub root_to_json {
+    my $self = shift;
+
+    my $router = $self->resource->router;
+    my $path = $self->resource->request->env->{REQUEST_URI}; # "/clients/v1/";
+
+    # we get here when the HAL Browser requests the root JSON
+    my %links = (self => { href => $path } );
+    foreach my $route (@{$router->routes})  {
+        my @parts;
+        my %attr;
+
+        for my $c (@{ $route->components }) {
+            if ($route->is_component_variable($c)) {
+                my $name = $route->get_component_name($c);
+                push @parts, "{/$name}";
+                $attr{templated} = JSON->true;
+            } else {
+                push @parts, "$c";
+            }
+        }
+        next unless @parts;
+
+        my $title;
+        if (exists $route->defaults->{result_class}) {
+            $title = join(" ", (split /::/, $route->defaults->{result_class})[-3,-1]);
+        } else {
+            ($title) = split( /\?/, $route->path);
+        }
+
+        my $url = $path . join("", @parts);
+        $links{join("", @parts)} = {
+            href => $url,
+            title => $title,
+            %attr
+        };
+    }
+
+    return $self->encode_json({ _links => \%links, });
 }
 
 

@@ -28,4 +28,35 @@ sub _create_embedded_resources_from_data {
     return $self->set->result_source->schema->resultset($result_class)->create($data);
 }
 
+
+sub root_to_json { # informal JSON description, XXX liable to change
+    my $self = shift;
+
+    my $request = $self->resource->request;
+    my $path = $request->env->{REQUEST_URI}; # "/clients/v1/";
+    my %links;
+    foreach my $route (@{$self->resource->router->routes})  {
+        my @parts;
+
+        for my $c (@{ $route->components }) {
+            if ($route->is_component_variable($c)) {
+                push @parts, ":".$route->get_component_name($c);
+            } else {
+                push @parts, "$c";
+            }
+        }
+        next unless @parts;
+
+        my $url = $path . join("/", @parts);
+        die "Duplicate path: $url" if $links{$url};
+        my $title = join(" ", (split /::/, $route->defaults->{result_class})[-3,-1]);
+        $links{$url} = $title;
+    }
+
+    return $self->encode_json({
+        routes => \%links,
+    });
+}
+
+
 1;

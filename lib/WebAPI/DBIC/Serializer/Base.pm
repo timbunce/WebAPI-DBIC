@@ -43,7 +43,7 @@ sub set_to_json   {
 sub item_to_json {
     my $self = shift;
     my $item = shift;
-    return $self->resource->encode_json($self->render_item_as_plain_hash($item))
+    return $self->encode_json($self->render_item_as_plain_hash($item))
 }
 
 

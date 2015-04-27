@@ -8,8 +8,6 @@ WebAPI::DBIC::Resource::Role::Root - methods to handle requests for the root res
 
 Handles GET and HEAD requests for requests representing the root resource, e.g. C</>.
 
-Supports the C<application/json> content type.
-
 =cut
 
 use Moo::Role;
@@ -18,22 +16,36 @@ use Moo::Role;
 requires 'encode_json';
 
 
-has content_types_provided => (
-    is => 'lazy',
+has content_types_accepted => (
+    is => 'ro',
+    required => 1,
 );
 
-sub _build_content_types_provided {
+has content_types_provided => (
+    is => 'ro',
+    required => 1,
+);
+
+
+around content_types_provided => sub {
+    my $orig = shift;
+    my $self = shift;
     return [
-        { 'application/vnd.wapid+json' => 'to_plain_json' },
-        { 'text/html' => 'to_html' }, # provide redirect to HAL browser
-    ]
-}
+        @{ $orig->($self, @_) },
+        { 'text/html' => 'root_to_html' } # provide redirect to HAL browser XXX hack
+    ];
+};
 
 
 sub allowed_methods { return [ qw(GET HEAD) ] }
 
+sub provide_to_json { # called via content_types_provided callback
+    my $self = shift;
+    return $self->serializer->root_to_json();
+}
 
-sub to_html {
+
+sub root_to_html {
     my $self = shift;
     my $env = $self->request->env;
     my $router = $env->{'plack.router'};
@@ -44,7 +56,7 @@ sub to_html {
 }
 
 
-sub to_plain_json {
+sub root_to_json {
     return $_[0]->encode_json($_[0]->render_root_as_plain());
 }
 
@@ -55,7 +67,7 @@ sub render_root_as_plain { # informal JSON description, XXX liable to change
     my $request = $self->request;
     my $path = $request->env->{REQUEST_URI}; # "/clients/v1/";
     my %links;
-    foreach my $route (@{$self->router->routes})  {
+    foreach my $route (@{$self->resource->router->routes})  {
         my @parts;
 
         for my $c (@{ $route->components }) {

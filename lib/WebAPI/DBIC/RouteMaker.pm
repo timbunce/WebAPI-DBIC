@@ -223,8 +223,8 @@ sub make_root_route {
         resource_class => 'WebAPI::DBIC::Resource::GenericRoot',
         resource_args  => {
             %{ $self->resource_default_args },
-            #content_types_accepted => $self->content_types_accepted,
-            #content_types_provided => $self->content_types_provided,
+            content_types_accepted => $self->content_types_accepted,
+            content_types_provided => $self->content_types_provided,
             type_namer => $self->type_namer,
         },
     );

@@ -58,7 +58,7 @@ sub item_to_json {
     # set has been narrowed to the item, so we can render the item as if a set
     # (which is what we need to do for JSON API, which doesn't really have an 'item')
 
-    return $self->resource->encode_json( $self->render_activemodel_response($self->set) );
+    return $self->encode_json( $self->render_activemodel_response($self->set) );
 }
 
 
