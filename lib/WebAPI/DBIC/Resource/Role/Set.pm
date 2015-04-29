@@ -17,28 +17,54 @@ use Moo::Role;
 
 
 requires 'encode_json';
-requires 'render_item_as_plain_hash';
+requires 'serializer';
 
 
 has content_types_provided => (
-    is => 'lazy',
+    is => 'ro',
+    required => 1,
 );
 
-sub _build_content_types_provided {
-    return [ { 'application/vnd.wapid+json' => 'to_plain_json'} ]
+sub to_plain_json { return $_[0]->encode_json($_[0]->serializer->render_set_as_plain($_[0]->set)) }
+
+sub allowed_methods {
+    my $self = shift;
+    return [ qw(GET HEAD PUT POST) ] if $self->writable;
+    return [ qw(GET HEAD) ];
 }
 
-sub to_plain_json { return $_[0]->encode_json($_[0]->render_set_as_plain($_[0]->set)) }
 
-sub allowed_methods { return [ qw(GET HEAD) ] }
-
-# Avoid complaints about $set:
-## no critic (NamingConventions::ProhibitAmbiguousNames)
-
-sub render_set_as_plain {
-    my ($self, $set) = @_;
-    my $set_data = [ map { $self->render_item_as_plain_hash($_) } $set->all ];
-    return $set_data;
+sub provide_to_json { # called via content_types_provided callback
+    my $self = shift;
+    return $self->serializer->set_to_json($self->set);
 }
+
+
+# ====== Writable ======
+
+has item => ( # for POST to create
+    is => 'rw',
+);
+
+has content_types_accepted => (
+    is => 'ro',
+    required => 1,
+);
+
+
+sub accept_from_json { # called via content_types_accepted callback
+    my $self = shift;
+    return $self->serializer->set_from_json( $self->request->content );
+}
+
+sub post_is_create { return 1 }
+
+sub create_path_after_handler { return 1 }
+
+sub create_path {
+    my $self = shift;
+    return $self->path_for_item($self->item);
+}
+
 
 1;

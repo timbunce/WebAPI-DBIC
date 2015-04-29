@@ -2,7 +2,7 @@ package WebAPI::DBIC::Role::JsonEncoder;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::Role::JsonEncoder - provides encode_json and decode_json methods
+WebAPI::DBIC::Role::JsonEncoder - provides encode_json and decode_json methods
 
 =cut
 

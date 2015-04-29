@@ -33,17 +33,6 @@ has prefetch => (
 );
 
 
-# XXX perhaps shouldn't be a role, just functions, or perhaps a separate rendering object
-# default render for DBIx::Class item
-# https://metacpan.org/module/DBIx::Class::Manual::ResultClass
-# https://metacpan.org/module/DBIx::Class::InflateColumn
-sub render_item_as_plain_hash {
-    my ($self, $item) = @_;
-    my $data = { $item->get_columns }; # XXX ?
-    # DateTimes
-    return $data;
-}
-
 
 sub path_for_item {
     my ($self, $item) = @_;
@@ -74,12 +63,19 @@ sub web_machine_resource {
     my $resource = $resource_class->new(
         request  => $self->request,
         response => $self->request->new_response,
+        content_types_accepted => $self->content_types_accepted,
+        content_types_provided => $self->content_types_provided,
         throwable => $self->throwable,
         prefetch  => [], # don't propagate prefetch by default
         set => undef,
         #  XXX others? which and why? generalize
         %resource_args
     );
+
+    if ($self->serializer) {
+        my $serializer = $self->serializer->new(resource => $resource); # XXX clone then set resource?
+        $resource->serializer($serializer);
+    }
 
     return $resource;
 }
@@ -96,18 +92,7 @@ sub render_item_into_body {
         $item_resource = $self->web_machine_resource( %resource_args );
     }
 
-    # XXX temporary hack
-    my $body;
-    if ($self->request->headers->header('Accept') =~ /hal\+json/) {
-        $body = $item_resource->to_json_as_hal;
-    }
-    elsif ($self->request->headers->header('Accept') =~ m{application/json}) {
-        $body = $item_resource->to_json_as_activemodel;
-    }
-    else {
-        $body = $item_resource->to_json_as_plain;
-    }
-
+    my $body = $item_resource->serializer->item_to_json($item_resource->item);
     $self->response->body($body);
 
     return;

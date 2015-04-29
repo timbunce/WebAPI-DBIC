@@ -1,25 +1,77 @@
-package WebAPI::DBIC::Resource::JSONAPI::Role::DBIC;
+package WebAPI::DBIC::Serializer::JSONAPI;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::JSONAPI::Role::DBIC - a role with core JSON API methods for DBIx::Class resources
+WebAPI::DBIC::Serializer::JSONAPI - what will I become?
 
 =cut
+
+use Moo;
+
+extends 'WebAPI::DBIC::Serializer::Base';
+
+with 'WebAPI::DBIC::Role::JsonEncoder';
+
 
 use Carp qw(croak confess);
 use Devel::Dwarn;
 use JSON::MaybeXS qw(JSON);
 
-use Moo::Role;
+
+sub content_types_accepted {
+    return ( [ 'application/vnd.api+json' => 'accept_from_json' ] );
+}
+
+sub content_types_provided {
+    return ( [ 'application/vnd.api+json' => 'provide_to_json' ]);
+}
 
 
-requires 'get_url_for_item_relationship';
-requires 'render_item_as_plain_hash';
-requires 'path_for_item';
-requires 'add_params_to_url';
-requires 'prefetch';
-requires 'type_namer';
+sub set_to_json {
+    my $self = shift;
+    my $set = shift || $self->resource->set;
 
+    return $self->encode_json( $self->render_jsonapi_response($set) );
+}
+
+
+sub item_to_json {
+    my $self = shift;
+    my $item = shift || $self->resource->item;
+
+    # narrow the set to just contain the specified item
+    # XXX this narrowing ought to be moved elsewhere
+    # seems like a bad idea to be a side effect of this method
+    my @id_cols = $self->set->result_source->unique_constraint_columns( $self->resource->id_unique_constraint_name );
+    @id_cols = map { $self->set->current_source_alias.".$_" } @id_cols;
+    my %id_search; @id_search{ @id_cols } = @{ $self->resource->id };
+    $self->set( $self->set->search_rs(\%id_search) ); # narrow the set
+
+    # set has been narrowed to the item, so we can render the item as if a set
+    # (which is what we need to do for JSON API, which doesn't really have an 'item')
+
+    return $self->encode_json( $self->render_jsonapi_response($self->set) );
+}
+
+
+sub item_from_json {
+    my $self = shift;
+    my $data = $self->decode_json( shift || $self->request->content );
+
+    $self->update_resource($data, is_put_replace => 0);
+
+    return;
+}
+
+
+sub set_from_json {
+    my $self = shift;
+    my $data = $self->decode_json( shift || $self->request->content );
+
+    my $item = $self->create_resources_from_data( $data );
+
+    return $self->item($item);
+}
 
 
 sub jsonapi_type {
@@ -105,9 +157,7 @@ sub render_jsonapi_prefetch_rel {
 
 
 sub render_jsonapi_response { # return top-level document hashref
-    my ($self) = @_;
-
-    my $set = $self->set;
+    my ($self, $set) = @_;
 
     my $top_links = {};
     my $compound_links = {};
@@ -252,5 +302,106 @@ sub _jsonapi_page_links {
     return @link_kvs;
 }
 
+
+# === Methods for Writable resources
+
+
+# recurse to create resources in $jsonapi->{_embedded}
+#   and update coresponding attributes in $jsonapi
+# then create $jsonapi itself
+sub _create_embedded_resources_from_data {
+    my ($self, $jsonapi, $result_class) = @_;
+
+    my $links    = delete $jsonapi->{_links};
+    my $meta     = delete $jsonapi->{_meta};
+    my $embedded = delete $jsonapi->{_embedded} || {};
+
+    for my $rel (keys %$embedded) {
+
+        my $rel_info = $result_class->relationship_info($rel)
+            or die "$result_class doesn't have a '$rel' relation\n";
+        die "$result_class _embedded $rel isn't a 'single' relationship\n"
+            if $rel_info->{attrs}{accessor} ne 'single';
+
+        my $rel_jsonapi = $embedded->{$rel};
+        die "_embedded $rel data is not a hash\n"
+            if ref $rel_jsonapi ne 'HASH';
+
+        # work out what keys to copy from the subitem we're about to create
+        my %fk_map;
+        my $cond = $rel_info->{cond};
+        for my $sub_field (keys %$cond) {
+            my $our_field = $cond->{$sub_field};
+            $our_field =~ s/^self\.//x    or confess "panic $rel $our_field";
+            $sub_field =~ s/^foreign\.//x or confess "panic $rel $sub_field";
+            $fk_map{$our_field} = $sub_field;
+
+            die "$result_class already contains a value for '$our_field'\n"
+                if defined $jsonapi->{$our_field}; # null is ok
+        }
+
+        # create this subitem (and any resources embedded in it)
+        my $subitem = $self->_create_embedded_resources_from_jsonapi($rel_jsonapi, $rel_info->{source});
+
+        # copy the keys of the subitem up to the item we're about to create
+        warn "$result_class $rel: propagating keys: @{[ %fk_map ]}\n"
+            if $ENV{WEBAPI_DBIC_DEBUG};
+        while ( my ($ourfield, $subfield) = each %fk_map) {
+            $jsonapi->{$ourfield} = $subitem->$subfield();
+        }
+    }
+
+    return $self->set->result_source->schema->resultset($result_class)->create($jsonapi);
+}
+
+
+sub pre_update_resource_method {
+    my ($self, $item, $jsonapi, $result_class) = @_;
+
+    my $links    = delete $jsonapi->{_links};
+    my $meta     = delete $jsonapi->{_meta};
+    my $embedded = delete $jsonapi->{_embedded} || {};
+
+    for my $rel (keys %$embedded) {
+
+        my $rel_info = $result_class->relationship_info($rel)
+            or die "$result_class doesn't have a '$rel' relation\n";
+        die "$result_class _embedded $rel isn't a 'single' relationship\n"
+            if $rel_info->{attrs}{accessor} ne 'single';
+
+        my $rel_jsonapi = $embedded->{$rel};
+        die "_embedded $rel data is not a hash\n"
+            if ref $rel_jsonapi ne 'HASH';
+
+        # work out what keys to copy from the subitem we're about to update
+        # XXX this isn't required unless updating key fields - optimize
+        my %fk_map;
+        my $cond = $rel_info->{cond};
+        for my $sub_field (keys %$cond) {
+            my $our_field = $cond->{$sub_field};
+            $our_field =~ s/^self\.//x    or confess "panic $rel $our_field";
+            $sub_field =~ s/^foreign\.//x or confess "panic $rel $sub_field";
+            $fk_map{$our_field} = $sub_field;
+
+            die "$result_class already contains a value for '$our_field'\n"
+                if defined $jsonapi->{$our_field}; # null is ok
+        }
+
+        # update this subitem (and any resources embedded in it)
+        my $subitem = $item->$rel();
+        $subitem = $self->resource->_do_update_resource($subitem, $rel_jsonapi, $rel_info->{source});
+
+        # copy the keys of the subitem up to the item we're about to update
+        warn "$result_class $rel: propagating keys: @{[ %fk_map ]}\n"
+            if $ENV{WEBAPI_DBIC_DEBUG};
+        while ( my ($ourfield, $subfield) = each %fk_map) {
+            $jsonapi->{$ourfield} = $subitem->$subfield();
+        }
+
+        # XXX perhaps save $subitem to optimise prefetch handling?
+    }
+
+    return;
+}
 
 1;

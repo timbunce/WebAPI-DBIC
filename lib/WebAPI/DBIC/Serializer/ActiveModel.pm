@@ -1,8 +1,8 @@
-package WebAPI::DBIC::Resource::ActiveModel::Role::DBIC;
+package WebAPI::DBIC::Serializer::ActiveModel;
 
 =head1 NAME
 
-WebAPI::DBIC::Resource::ActiveModel::Role::DBIC - a role with core methods for DBIx::Class resources
+WebAPI::DBIC::Serializer::ActiveModel
 
 =cut
 
@@ -10,17 +10,20 @@ use Carp qw(croak confess);
 use Devel::Dwarn;
 use JSON::MaybeXS qw(JSON);
 
-use Moo::Role;
+use Moo;
+
+extends 'WebAPI::DBIC::Serializer::Base';
+
+with 'WebAPI::DBIC::Role::JsonEncoder';
 
 
-requires 'get_url_for_item_relationship';
-requires 'render_item_as_plain_hash';
-requires 'path_for_item';
-requires 'add_params_to_url';
-requires 'prefetch';
-requires 'type_namer';
+sub content_types_accepted {
+    return ( [ 'application/json' => 'accept_from_json' ]);
+}
 
-
+sub content_types_provided {
+    return ( [ 'application/json' => 'provide_to_json' ]);
+}
 
 sub activemodel_type {
     my ($self) = @_;
@@ -33,13 +36,67 @@ sub activemodel_type_for_class {
 }
 
 
+sub set_to_json {
+    my $self = shift;
+    my $set = shift || $self->resource->set;
+    return $self->encode_json( $self->render_activemodel_response($set) );
+}
+
+
+sub item_to_json {
+    my $self = shift;
+    my $item = shift || $self->resource->item;
+
+    # narrow the set to just contain the specified item
+    # XXX this narrowing ought to be moved elsewhere
+    # it's a bad idea to be a side effect of to_json_as_activemodel
+    my @id_cols = $self->set->result_source->unique_constraint_columns( $self->resource->id_unique_constraint_name );
+    @id_cols = map { $self->set->current_source_alias.".$_" } @id_cols;
+    my %id_search; @id_search{ @id_cols } = @{ $self->resource->id };
+    $self->set( $self->set->search_rs(\%id_search) ); # narrow the set
+
+    # set has been narrowed to the item, so we can render the item as if a set
+    # (which is what we need to do for JSON API, which doesn't really have an 'item')
+
+    return $self->encode_json( $self->render_activemodel_response($self->set) );
+}
+
+
+sub item_from_json {
+    my $self = shift;
+    my $data = $self->decode_json( shift );
+
+    croak "The ActiveModel Resource does not support updating multiple rows in a single call."
+        if(scalar(keys(%{ $data })) > 1);
+    my ($result_key, $updated_item) = each(%{ $data });
+
+    $self->update_resource($updated_item, is_put_replace => 0);
+
+    return;
+}
+
+
+sub set_from_json {
+    my $self = shift;
+    my $data = $self->decode_json( shift );
+
+    my $item = $self->create_resources_from_data( $data );
+
+    return $self->resource->item($item);
+}
 
 
 sub render_activemodel_prefetch_rel {
     my ($self, $set, $parent_relname, $relname, $rel_sets, $item_edit_rel_hooks) = @_;
 
     my $parent_class = $set->result_class;
-    my $child_class = $parent_class->relationship_info($relname)->{class} || die "panic";
+    my $relinfo = $parent_class->relationship_info($relname);
+    if (not $relinfo) {
+        warn "$parent_class doesn't have a relation called $relname\n"
+            unless our $warn_once->{"$parent_class $relname"}++;
+        return;
+    }
+    my $child_class = $relinfo->{class} || die "panic";
 
     my @idcolumns = $child_class->unique_constraint_columns('primary'); # XXX wrong
     if (@idcolumns > 1) { # eg many-to-many that doesn't have a separate id
@@ -108,9 +165,8 @@ sub render_activemodel_prefetch_rel {
 
 
 sub render_activemodel_response { # return top-level document hashref
-    my ($self) = @_;
+    my ($self, $set) = @_;
 
-    my $set = $self->set;
     my $prefetch = $self->prefetch;
 
     my $rel_sets = {};
@@ -186,7 +242,27 @@ sub render_row_as_activemodel_resource_object {
 }
 
 
+# The other resources do this conditionally based on whether $self->prefetch contains self,
+# but this required significant acrobatics to get working in Ember, and always returning new
+# object data is not harmful, so do this by default.
+sub create_should_prefetch_self {
+    return 1;
+}
 
+
+sub _create_embedded_resources_from_data {
+    my ($self, $activemodel, $result_class) = @_;
+
+    # There can only be one.
+    # If ever Ember supports creating multiple related objects in a single call,
+    # (or multiple rows/instances of the same object in a single call)
+    # this will have to change.
+    croak "The ActiveModel media-type does not support creating multiple rows in a single call (@{[ %$activemodel ]})"
+        if(scalar(keys(%{ $activemodel })) > 1);
+    my ($result_key, $new_item) = each(%{ $activemodel });
+
+    return $self->set->result_source->schema->resultset($result_class)->create($new_item);
+}
 
 
 1;
