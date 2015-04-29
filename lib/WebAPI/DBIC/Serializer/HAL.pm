@@ -2,7 +2,35 @@ package WebAPI::DBIC::Serializer::HAL;
 
 =head1 NAME
 
-WebAPI::DBIC::Serializer::HAL
+WebAPI::DBIC::Serializer::HAL - HAL content-type support for WebAPI::DBIC
+
+=head2 Media Type
+
+This serializer supports to the C<application/hal+json> media type.
+
+=head2 HAL - Hypertext Application Language
+
+The Hypertext Application Language hypermedia type (or HAL for short)
+is a simple JSON format that gives a consistent and easy way to hyperlink
+between resources in your API.
+
+Adopting HAL makes the API explorable, and its documentation easily
+discoverable from within the API itself.  In short, it will make your API
+easier to work with and therefore more attractive to client developers.
+
+A pure-JavaScript "HAL Browser" application is included in the WebAPI::DBIC
+distribution via the L<Alien::Web::HalBrowser> module.
+
+APIs that adopt HAL can be easily served and consumed using open source
+libraries available for most major programming languages. It's also simple
+enough that you can just deal with it as you would any other JSON.
+
+See L<http://stateless.co/hal_specification.html>
+for more details of the specification.
+
+=head3 Implementation Limitations
+
+WebAPI::DBIC doesn't yet offer direct support for documentation resources.
 
 =cut
 

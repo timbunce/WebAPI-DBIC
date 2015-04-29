@@ -2,7 +2,21 @@ package WebAPI::DBIC::Serializer::ActiveModel;
 
 =head1 NAME
 
-WebAPI::DBIC::Serializer::ActiveModel
+WebAPI::DBIC::Serializer::ActiveModel - ActiveModel support for WebAPI::DBIC
+
+=head2 Media Type
+
+This serializer supports to the C<application/json> media type.
+(This is a very common 'default' media type for web data services.)
+
+=head2 ActiveModel
+
+Designed to match the behaviour of the active_model_serializers Ruby gem
+and thus be directly usable as a backend for frameworks compatible with it,
+including Ember.
+
+See L<http://emberjs.com/api/data/classes/DS.ActiveModelAdapter.html>
+for more information.
 
 =cut
 
