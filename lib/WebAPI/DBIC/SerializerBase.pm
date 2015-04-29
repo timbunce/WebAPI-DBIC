@@ -169,21 +169,21 @@ sub traverse_prefetch {
 # ====== Item Writable ======
 
 sub _do_update_resource {
-    my ($self, $item, $hal, $result_class) = @_;
+    my ($self, $item, $data, $result_class) = @_;
 
-    $self->pre_update_resource_method($item, $hal, $result_class) # XXX wip
+    $self->pre_update_resource_method($item, $data, $result_class) # XXX wip
         if $self->can('pre_update_resource_method');
 
     # By default the DBIx::Class::Row update() call below will only update the
-    # columns where %$hal contains different values to the ones in $item
+    # columns where %$data contains different values to the ones in $item
     # This is usually a useful optimization but not always. So we provide
     # a way to disable it on individual resources.
     if ($self->resource->skip_dirty_check) {
-        $item->make_column_dirty($_) for keys %$hal;
+        $item->make_column_dirty($_) for keys %$data;
     }
 
     # Note that update() calls set_inflated_columns()
-    $item->update($hal);
+    $item->update($data);
 
     # XXX discard_changes causes a refetch of the record for prefetch
     # perhaps worth trying to avoid the discard if not required
@@ -194,7 +194,7 @@ sub _do_update_resource {
 
 
 sub update_resource {
-    my ($self, $hal, %opts) = @_;
+    my ($self, $data, %opts) = @_;
     my $is_put_replace = delete $opts{is_put_replace};
     croak "update_resource: invalid options: @{[ keys %opts ]}"
         if %opts;
@@ -222,23 +222,19 @@ sub update_resource {
             # XXX we ought to check that they match the URL since a PUT is
             # required to store the entity "under the supplied Request-URI".
             # XXX throw proper exception
-            defined $hal->{$_} or die "missing PK '$_'\n"
+            defined $data->{$_} or die "missing PK '$_'\n"
                 for $self->set->result_source->primary_columns;
 
             my $old_item = $self->resource->item; # XXX might already be gone since the find()
             $old_item->delete if $old_item; # XXX might already be gone since the find()
 
-            my $links    = delete $hal->{_links};
-            my $meta     = delete $hal->{_meta};
-            my $embedded = delete $hal->{_embedded} && die "_embedded not supported here (yet?)\n";
-
-            $item = $self->set->create($hal); # handles deflation
+            $item = $self->set->create($data); # handles deflation
 
             $self->response->header('Location' => $self->path_for_item($item))
                 unless $old_item; # set Location and thus 201 if Created not modified
         }
         else {
-            $item = $self->_do_update_resource($self->resource->item, $hal, $self->resource->item->result_class);
+            $item = $self->_do_update_resource($self->resource->item, $data, $self->resource->item->result_class);
         }
 
         $self->resource->item($item);
@@ -251,24 +247,6 @@ sub update_resource {
         $schema->txn_rollback if $self->param('rollback'); # XXX
     });
     return;
-}
-
-
-# ====== Set Writable ======
-
-sub create_resource {
-    my ($self, $data) = @_;
-
-    my $item = $self->set->create($data);
-
-    # resync with what's (now) in the db to pick up defaulted fields etc
-    $item->discard_changes();
-
-    # called here because create_path() is too late for Web::Machine
-    $self->render_item_into_body(item => $item)
-        if grep {defined $_->{self}} @{$self->prefetch||[]};
-
-    return $item;
 }
 
 
