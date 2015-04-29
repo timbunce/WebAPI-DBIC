@@ -26,7 +26,7 @@ use JSON::MaybeXS qw(JSON);
 
 use Moo;
 
-extends 'WebAPI::DBIC::Serializer::Base';
+extends 'WebAPI::DBIC::SerializerBase';
 
 with 'WebAPI::DBIC::Role::JsonEncoder';
 

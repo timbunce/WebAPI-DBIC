@@ -1,8 +1,8 @@
-package WebAPI::DBIC::Serializer::Base;
+package WebAPI::DBIC::SerializerBase;
 
 =head1 NAME
 
-WebAPI::DBIC::Serializer::Base - what will I become?
+WebAPI::DBIC::SerializerBase - Base class for media-type serializers
 
 =cut
 

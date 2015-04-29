@@ -8,7 +8,7 @@ WebAPI::DBIC::Serializer::WAPID - Serializer for WebAPI::DBIC's own test media t
 
 use Moo;
 
-extends 'WebAPI::DBIC::Serializer::Base';
+extends 'WebAPI::DBIC::SerializerBase';
 
 with 'WebAPI::DBIC::Role::JsonEncoder';
 

@@ -36,7 +36,7 @@ WebAPI::DBIC doesn't yet offer direct support for documentation resources.
 
 use Moo;
 
-extends 'WebAPI::DBIC::Serializer::Base';
+extends 'WebAPI::DBIC::SerializerBase';
 
 with 'WebAPI::DBIC::Role::JsonEncoder';
 

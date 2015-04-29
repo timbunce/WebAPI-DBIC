@@ -27,7 +27,7 @@ but has it's own set of issues. I'd recommend using L<WebAPI::DBIC::Resource::Ac
 
 use Moo;
 
-extends 'WebAPI::DBIC::Serializer::Base';
+extends 'WebAPI::DBIC::SerializerBase';
 
 with 'WebAPI::DBIC::Role::JsonEncoder';
 
