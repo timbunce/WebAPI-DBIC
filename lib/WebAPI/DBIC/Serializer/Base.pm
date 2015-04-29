@@ -171,14 +171,8 @@ sub traverse_prefetch {
 sub _do_update_resource {
     my ($self, $item, $hal, $result_class) = @_;
 
-    # hook for richer behaviour, eg HAL
-    if (my $_pre_update_resource_method = $self->resource->_pre_update_resource_method) {
-        $self->resource->$_pre_update_resource_method($item, $hal, $result_class);
-    }
-    elsif (1) {
-        $self->pre_update_resource_method($item, $hal, $result_class) # XXX wip
-            if $self->can('pre_update_resource_method');
-    }
+    $self->pre_update_resource_method($item, $hal, $result_class) # XXX wip
+        if $self->can('pre_update_resource_method');
 
     # By default the DBIx::Class::Row update() call below will only update the
     # columns where %$hal contains different values to the ones in $item

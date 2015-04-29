@@ -83,10 +83,6 @@ has skip_dirty_check => (
     is => 'rw',
 );
 
-has _pre_update_resource_method => (
-    is => 'rw',
-);
-
 has content_types_accepted => (
     is => 'ro',
     required => 1,
