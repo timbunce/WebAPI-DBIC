@@ -67,7 +67,7 @@ sub allowed_methods {
 }
 
 
-sub provide_to_json { # called via content_types_provided callback
+sub provide_to_response_content_type { # called via content_types_provided callback
     my $self = shift;
     return $self->serializer->item_to_json($self->item);
 }
@@ -89,7 +89,7 @@ has content_types_accepted => (
 );
 
 
-sub accept_from_json { # called via content_types_accepted callback
+sub accept_from_request_content_type { # called via content_types_accepted callback
     my $self = shift;
     return $self->serializer->item_from_json( $self->request->content );
 }

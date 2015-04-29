@@ -38,11 +38,11 @@ use JSON::MaybeXS qw(JSON);
 
 
 sub content_types_accepted {
-    return ( [ 'application/vnd.api+json' => 'accept_from_json' ] );
+    return ( [ 'application/vnd.api+json' => {} ] );
 }
 
 sub content_types_provided {
-    return ( [ 'application/vnd.api+json' => 'provide_to_json' ]);
+    return ( [ 'application/vnd.api+json' => {} ]);
 }
 
 

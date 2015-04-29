@@ -48,11 +48,11 @@ use JSON::MaybeXS qw(JSON);
 
 
 sub content_types_accepted {
-    return ( [ 'application/hal+json' => 'accept_from_json' ]);
+    return ( [ 'application/hal+json' => {} ]);
 }
 
 sub content_types_provided {
-    return ( [ 'application/hal+json' => 'provide_to_json' ]);
+    return ( [ 'application/hal+json' => {} ]);
 }
 
 sub set_to_json   {

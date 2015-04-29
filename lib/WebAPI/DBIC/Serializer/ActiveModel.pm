@@ -32,21 +32,11 @@ with 'WebAPI::DBIC::Role::JsonEncoder';
 
 
 sub content_types_accepted {
-    return ( [ 'application/json' => 'accept_from_json' ]);
+    return ( [ 'application/json' => {} ]);
 }
 
 sub content_types_provided {
-    return ( [ 'application/json' => 'provide_to_json' ]);
-}
-
-sub activemodel_type {
-    my ($self) = @_;
-    return $self->type_namer->type_name_for_resultset($self->set);
-}
-
-sub activemodel_type_for_class {
-    my ($self, $class) = @_;
-    return $self->type_namer->type_name_for_result_class($class);
+    return ( [ 'application/json' => {} ]);
 }
 
 
@@ -100,7 +90,18 @@ sub set_from_json {
 }
 
 
-sub render_activemodel_prefetch_rel {
+sub activemodel_type {
+    my ($self) = @_;
+    return $self->type_namer->type_name_for_resultset($self->set);
+}
+
+sub activemodel_type_for_class {
+    my ($self, $class) = @_;
+    return $self->type_namer->type_name_for_result_class($class);
+}
+
+
+sub render_prefetch_rel {
     my ($self, $set, $parent_relname, $relname, $rel_sets, $item_edit_rel_hooks) = @_;
 
     my $parent_class = $set->result_class;
@@ -139,7 +140,7 @@ sub render_activemodel_prefetch_rel {
             while (my $subrow = $subitem->next) {
                 my $id = $subrow->id;
                 push @$rel_ids, $id;
-                my $rel_object = $self->render_row_as_activemodel_resource_object($subrow, undef, sub {
+                my $rel_object = $self->render_row_as_resource_object($subrow, undef, sub {
                     my ($activemodel_obj, $row) = @_;
                     $_->($activemodel_obj, $row) for values %{$item_edit_rel_hooks->{$relname}};
                 });
@@ -151,7 +152,7 @@ sub render_activemodel_prefetch_rel {
         }
         elsif ($subitem->isa('DBIx::Class::Row')) { # one-to-one rel
             $rel_ids = $subitem->id;
-            my $rel_object = $self->render_row_as_activemodel_resource_object($subitem, undef, sub {
+            my $rel_object = $self->render_row_as_resource_object($subitem, undef, sub {
                 my ($activemodel_obj, $row) = @_;
                 $_->($activemodel_obj, $row) for values %{$item_edit_rel_hooks->{$relname}};
             });
@@ -189,11 +190,11 @@ sub render_activemodel_response { # return top-level document hashref
     $self->traverse_prefetch($set, [ 'top' ], $prefetch, sub {
         my ($self, $set, $parent_rel, $prefetch) = @_;
         #warn "$self: $set, $parent_rel, $prefetch\n";
-        $self->render_activemodel_prefetch_rel($set, $parent_rel->[-1], $prefetch, $rel_sets, $item_edit_rel_hooks)
+        $self->render_prefetch_rel($set, $parent_rel->[-1], $prefetch, $rel_sets, $item_edit_rel_hooks)
     });
 
     my $result_class = $set->result_class;
-    my $set_data = $self->render_set_as_array_of_activemodel_resource_objects($set, undef, sub {
+    my $set_data = $self->render_set_as_array_of_resource_objects($set, undef, sub {
         my ($activemodel_obj, $row) = @_;
         $_->($activemodel_obj, $row) for values %{$item_edit_rel_hooks->{'top'}};
     });
@@ -234,18 +235,18 @@ sub render_item_as_activemodel_hash {
 }
 
 
-sub render_set_as_array_of_activemodel_resource_objects {
+sub render_set_as_array_of_resource_objects {
     my ($self, $set, $render_method, $edit_hook) = @_;
 
     my @activemodel_objs;
     while (my $row = $set->next) {
-        push @activemodel_objs, $self->render_row_as_activemodel_resource_object($row, $render_method, $edit_hook);
+        push @activemodel_objs, $self->render_row_as_resource_object($row, $render_method, $edit_hook);
     }
 
     return \@activemodel_objs;
 }
 
-sub render_row_as_activemodel_resource_object {
+sub render_row_as_resource_object {
     my ($self, $row, $render_method, $edit_hook) = @_;
     $render_method ||= 'render_item_as_plain_hash';
 

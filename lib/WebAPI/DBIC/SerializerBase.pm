@@ -6,6 +6,8 @@ WebAPI::DBIC::SerializerBase - Base class for media-type serializers
 
 =cut
 
+# XXX ideally this shouldn't assume JSON as XML etc might be supported in future
+
 use Moo;
 
 use Carp;

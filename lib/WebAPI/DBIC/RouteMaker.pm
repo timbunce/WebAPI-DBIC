@@ -8,7 +8,7 @@ WebAPI::DBIC::RouteMaker - Make routes for resultsets
 
 use Moo;
 
-use Module::Runtime qw(use_module);
+use Module::Runtime qw(require_module);
 use Sub::Util qw(subname);
 use Scalar::Util qw(blessed);
 use Carp qw(croak confess);
@@ -27,31 +27,32 @@ has resource_class_for_set_invoke  => (is => 'ro', default => 'WebAPI::DBIC::Res
 has resource_default_args          => (is => 'ro', default => sub { {} });
 
 sub _mk_content_type_handler {
-    my ($serializer_class, $pair) = @_;
+    my ($serializer_class, $content_type, $serializer_args, $handler_method) = @_;
 
-    my ($content_type, $method) = @$pair;
     my $handler_sub = sub {
         my $self = shift;
-        warn sprintf "%s %s content-type %s handled by %s %s\n",
-            $self->request->method, $self->request->path, $content_type, $serializer_class, $method
+        warn sprintf "%s %s content-type %s handled by %s(%s)\n",
+                $self->request->method, $self->request->path, $content_type,
+                $serializer_class, join(", ", %$serializer_args)
             if $ENV{WEBAPI_DBIC_DEBUG};
-        $self->serializer( $serializer_class->new(resource => $self) );
-        return $self->$method();
+        $self->serializer( $serializer_class->new(%$serializer_args, resource => $self) );
+        return $self->$handler_method();
     };
+
     return { $content_type => $handler_sub };
 }
 
 sub _mk_content_type_handlers {
-    my ($serializer_classes, $content_types_method) = @_;
+    my ($serializer_classes, $content_types_method, $handler_method) = @_;
 
     my @handlers;
     for my $serializer_class (@$serializer_classes) {
 
-        use Module::Runtime qw(require_module); # XXX
         require_module($serializer_class);
 
-        for my $content_type_pair ($serializer_class->$content_types_method) {
-            push @handlers, _mk_content_type_handler($serializer_class, $content_type_pair);
+        for ($serializer_class->$content_types_method) {
+            my ($content_type, $serializer_args) = @$_;
+            push @handlers, _mk_content_type_handler($serializer_class, $content_type, $serializer_args, $handler_method);
         }
     }
     return \@handlers;
@@ -73,7 +74,11 @@ has content_types_accepted => (
 
 sub _build_content_types_accepted {
     my $self = shift;
-    return _mk_content_type_handlers($self->serializer_classes, 'content_types_accepted');
+    return _mk_content_type_handlers(
+        $self->serializer_classes,
+        'content_types_accepted',
+        'accept_from_request_content_type'
+    );
 }
 
 has content_types_provided => (
@@ -82,7 +87,11 @@ has content_types_provided => (
 
 sub _build_content_types_provided {
     my $self = shift;
-    return _mk_content_type_handlers($self->serializer_classes, 'content_types_provided');
+    return _mk_content_type_handlers(
+        $self->serializer_classes,
+        'content_types_provided',
+        'provide_to_response_content_type'
+    );
 }
 
 
@@ -128,7 +137,7 @@ sub make_routes_for_item {
     $opts ||= {};
     my $methods = $opts->{invokable_methods};
 
-    use_module $self->resource_class_for_item;
+    require_module($self->resource_class_for_item);
     my $id_unique_constraint_name = $self->resource_class_for_item->id_unique_constraint_name;
     my $key_fields = { $set->result_source->unique_constraints }->{ $id_unique_constraint_name };
 

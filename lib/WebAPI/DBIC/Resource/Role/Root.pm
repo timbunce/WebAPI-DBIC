@@ -39,7 +39,7 @@ around content_types_provided => sub {
 
 sub allowed_methods { return [ qw(GET HEAD) ] }
 
-sub provide_to_json { # called via content_types_provided callback
+sub provide_to_response_content_type { # called via content_types_provided callback
     my $self = shift;
     return $self->serializer->root_to_json();
 }

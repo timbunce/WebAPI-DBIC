@@ -13,11 +13,11 @@ extends 'WebAPI::DBIC::SerializerBase';
 with 'WebAPI::DBIC::Role::JsonEncoder';
 
 sub content_types_accepted {
-    return ( [ 'application/vnd.wapid+json' => 'accept_from_json' ] );
+    return ( [ 'application/vnd.wapid+json' => {} ] );
 }
 
 sub content_types_provided {
-    return ( [ 'application/vnd.wapid+json' => 'provide_to_json' ]);
+    return ( [ 'application/vnd.wapid+json' => {} ]);
 }
 
 
