@@ -47,9 +47,7 @@ sub provide_to_json { # called via content_types_provided callback
 
 sub root_to_html {
     my $self = shift;
-    my $env = $self->request->env;
-    my $router = $env->{'plack.router'};
-    my $path   = $env->{REQUEST_URI}; # "/clients/v1/";
+    my $path   = $self->request->env->{REQUEST_URI}; # "/clients/v1/";
     # XXX this location should not be hard-coded
     $self->response->header(Location => "browser/browser.html#$path");
     return \302;
@@ -57,37 +55,9 @@ sub root_to_html {
 
 
 sub root_to_json {
-    return $_[0]->encode_json($_[0]->render_root_as_plain());
+    my $self = shift;
+    die ref($self)." hasn't defined a root_to_json method";
 }
 
-
-sub render_root_as_plain { # informal JSON description, XXX liable to change
-    my ($self) = @_;
-
-    my $request = $self->request;
-    my $path = $request->env->{REQUEST_URI}; # "/clients/v1/";
-    my %links;
-    foreach my $route (@{$self->resource->router->routes})  {
-        my @parts;
-
-        for my $c (@{ $route->components }) {
-            if ($route->is_component_variable($c)) {
-                push @parts, ":".$route->get_component_name($c);
-            } else {
-                push @parts, "$c";
-            }
-        }
-        next unless @parts;
-
-        my $url = $path . join("/", @parts);
-        die "Duplicate path: $url" if $links{$url};
-        my $title = join(" ", (split /::/, $route->defaults->{result_class})[-3,-1]);
-        $links{$url} = $title;
-    }
-
-    return {
-        routes => \%links,
-    };
-}
 
 1;
