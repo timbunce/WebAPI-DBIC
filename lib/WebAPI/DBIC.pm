@@ -52,7 +52,7 @@ WebAPI::DBIC so you can be browsing your new API in seconds.
 The HTTP C<Content-Type> and C<Accept> headers are used to specify
 the 'media type' of a request, and the desired response. In the case of JSON
 types, the media type defines not only that the content is a JSON data structure,
-but the semantics (meaning) of the the structure.
+but the semantics (meaning) of the structure.
 
 A single application can support requests and responses in multiple media
 types, using the headers to negotiate the right behaviour for each request.
@@ -110,7 +110,7 @@ See L<https://github.com/basho/webmachine/wiki> for more information.
 Web::Machine provides the logic to handle a HTTP request for a I<single resource>.
 With WebAPI::DBIC those resources typically represent a DBIx::Class result set,
 a row, or a method invocation on a row or result set. They are implemented as a subclass of
-L<Web::Machine::Resource> that consumes a some set of WebAPI::DBIC roles which add
+L<Web::Machine::Resource> that consumes a set of WebAPI::DBIC roles which add
 the desired functionality to the resource.
 
 
@@ -124,7 +124,7 @@ are included in the outgoing responses.
 Path::Router supports full reversability: the value produced by a path match
 can be passed back in and you will get the same path you originally put in.
 This removes ambiguity and reduces mis-routings. This is important for
-WebAPI::DBIC because, for each resource returned, it automatically add HAL
+WebAPI::DBIC because, for each resource returned, it automatically adds HAL
 C<_links> containing the URLs of the related resources, as defined by the
 DBIx::Class schema. This is what makes the API discoverable and browseable.
 
@@ -154,7 +154,7 @@ Then try it out with your own schema:
     $ plackup -Ilib webapi-dbic-any.psgi
     ... open a web browser on port 5000 to browse your new API
 
-The API is read-only by default. To enable PUT, POST, DELETE etc, set the
+The API is read-only by default. To enable PUT, POST, DELETE etc., set the
 C<WEBAPI_DBIC_WRITABLE> environment variable.
 
 =head1 MODULES
@@ -169,7 +169,7 @@ L<WebAPI::DBIC::Resource::Role::Set> is responsible for accepting GET and HEAD
 requests for set resources (collections) and returning the results as JSON.
 
 L<WebAPI::DBIC::Resource::Role::SetWritable> is responsible for accepting POST
-request for set resources. It handles the recursive creation of related records.
+requests for set resources. It handles the recursive creation of related records.
 Related records can be nested to any depth and are created from the bottom up
 within a transaction.
 
@@ -286,7 +286,7 @@ change in the near future so isn't documented much yet.
 WebAPI::DBIC aims to be a fairly 'transparent' layer between your
 L<DBIx::Class> schema and the JSON that's generated and received.
 
-So it's the responibility of your schema to return data in the format you want
+So it's the responsibility of your schema to return data in the format you want
 in your generated URLs and JSON, and to accept data in the format that arrives
 in requests from clients.
 
@@ -515,10 +515,10 @@ The following examples assume a Schema setup similar to the following:
     __PACKAGE__->belongs_to('artist' => 'MyApp::Schema::Result::Artist', 'artistid');
 
 
-=head4 comma seperated lists
+=head4 comma separated lists
 
 Where all related data for individual directly related resultsets are desired
-then a comma seperated list can be provided to the the prefetch parameter
+then a comma separated list can be provided to the the prefetch parameter
 
     artist/1?prefetch=producer,albums
 
@@ -561,7 +561,7 @@ This would produce the same results as above:
 
     artist/1?prefetch~json={["producer","cd_artists",{"cds":"album_artist"}]}
 
-would producer the following JSON+HAL:
+would produce the following JSON+HAL:
 
     {
         artistid: 1,
@@ -599,8 +599,8 @@ would producer the following JSON+HAL:
         }
     }
 
-NOTE: many_to_many relationships can't be supported as they are not true relationships
-the related data should be prefetched using the has_many relationship and their join
+NOTE: many_to_many relationships can't be supported as they are not true relationships.
+The related data should be prefetched using the has_many relationship and their join
 table as in the above example.
 
 =head4 where on prefetch
@@ -631,7 +631,7 @@ For more information on PREFETCHING and JOINS see L<DBIx::Class::Resultset#PREFE
 NOTE: DBIx::Class does not support the returning of related data if the relationship
 accessor for that data matches a column on the requested Set or Item but the fields
 parameter does not include that column. You must explicitly request fields if prefetching
-a relation with the same name
+a relation with the same name.
 
 Using the above example. If the artist has a producer column/field then the following is
 invalid:
@@ -729,7 +729,7 @@ Filtering with query params
 
     ?me.color=red&me.state=running
 
-The me.*= values can be JSON data structures if the field name is sufixed with
+The me.*= values can be JSON data structures if the field name is suffixed with
 ~json, for example:
 
     ?me.color~json=["red","blue"]    # would actually be URL encoded
@@ -877,7 +877,7 @@ For example, given a POST to /albums containing:
 The artist resource would be created first and its primary key would be
 used to set the artist_id field before that was created.
 
-This process works recursively for any number of level and any number of
+This process works recursively for any number of levels and any number of
 relations at each level.
 
 =head2 Errors
