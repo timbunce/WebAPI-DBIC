@@ -275,7 +275,7 @@ and L<WebAPI::DBIC::Resource::GenericItem>:
 
 A few other classes are provided:
 
-L<WebAPI::DBIC::Util.pm> provides a few general utilities.
+L<WebAPI::DBIC::Util> provides a few general utilities.
 
 L<WebAPI::DBIC::WebApp> - this is the main app class and is most likely to
 change in the near future so isn't documented much yet.
