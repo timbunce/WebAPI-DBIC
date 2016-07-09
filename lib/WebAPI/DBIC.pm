@@ -355,7 +355,23 @@ I<I'd welcome any information you could contribute here.>
 
 =head2 Mojolicious
 
-I<I'd welcome any information you could contribute here.>
+  # load DBIx::Class schema
+  use MyApp::Schema;
+  
+  sub startup {
+      my $self = shift;
+      
+      my $schema = MyApp::Schema->connect('DBI:SQLite:test.db');
+  
+      # create base route for api
+      my $route = $self->routes->route('/api/v0');
+      
+      # integrate WebAPI::DBIC via Mojolicious::Plugin::WebAPI
+      $self->plugin('WebAPI' => {
+          schema => $schema,
+          route  => $route,
+      });
+  }
 
 =head2 ...
 
