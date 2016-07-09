@@ -47,6 +47,6 @@ __END__
 =head1 DESCRIPTION
 
 This is just a basic utility module used internally by L<WebAPI::DBIC>.
-There is no real user servicable parts in here.
+There is no real user serviceable parts in here.
 
 =cut

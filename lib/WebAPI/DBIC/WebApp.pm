@@ -85,7 +85,7 @@ which is a short-hand way of writing this:
         $route_maker->make_routes_for_item($cd_path, $cd_resultset), # /cd/:id
     ]
 
-which is a short-hand way of writing something much longer with explict calls
+which is a short-hand way of writing something much longer with explicit calls
 to create the fully specified L<WebAPI::DBIC::Route> objects.
 
 The I<default> URL path prefix is determined by the C<type_namer> from the

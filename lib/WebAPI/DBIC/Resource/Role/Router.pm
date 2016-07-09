@@ -27,7 +27,7 @@ use Moo::Role;
 Uses the router to find a url that matches the given parameter hash.
 Returns undef if there's no match.
 
-The Plack request env hash is used to get the router ('C<plack.router>')
+The Plack request C<env> hash is used to get the router ('C<plack.router>')
 and the script url prefix ('C<SCRIPT_NAME>').
 
 When called in scalar context the absolute url is returned. This is the

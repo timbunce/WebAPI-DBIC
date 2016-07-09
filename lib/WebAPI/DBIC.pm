@@ -121,7 +121,7 @@ namespace. It's used to route incoming requests to the appropriate Web::Machine
 instance. It's also used in reverse to construct links to other resources that
 are included in the outgoing responses.
 
-Path::Router supports full reversability: the value produced by a path match
+Path::Router supports full reversibility: the value produced by a path match
 can be passed back in and you will get the same path you originally put in.
 This removes ambiguity and reduces mis-routings. This is important for
 WebAPI::DBIC because, for each resource returned, it automatically adds HAL
@@ -395,13 +395,13 @@ and further help from Fitz Elliott, WebAPI::DBIC might still be a closed source
 internal project.
 
 
-=head1 OVERVIEW OF REPRESENTIONS AND ACTIONS
+=head1 OVERVIEW OF REPRESENTATIONS AND ACTIONS
 
 The docs below are from old internal documentation. They're a bit rought and
 will be reworked and found a better home. They're here for now because they are
 useful to give a sense of how the API works and what it supports.
 
-=head2 GENERIC ENTITY REPRESENTIONS
+=head2 GENERIC ENTITY REPRESENTATIONS
 
 Here we define the default behavior for GET, PUT, DELETE and POST methods on
 item and set resources.
@@ -678,7 +678,7 @@ returns
         }
     }
 
-The _embedded object contains a key matching the resource name whoose
+The _embedded object contains a key matching the resource name whose
 value is an array of those resources, in HAL format. It may seem unusual that
 the response isn't simply an array of the resources, but you can think of the
 'set' as a 'virtual' entity that I<contains nothing itself> but just acts as a
@@ -899,8 +899,8 @@ reporting (I recall there's one that has adopted HAL).
 
 To enable the execution of functionality not covered by the general HTTP
 mechanisms described above, it's possible to define resources that represent
-arbitary methods. These methods are executed by a POST request to the
-correponding resource. The body of the request contains the parameters to the
+arbitrary methods. These methods are executed by a POST request to the
+corresponding resource. The body of the request contains the parameters to the
 method.
 
 Currently a method can only be invoked on an item resource. The resource for
@@ -932,7 +932,7 @@ The method is called in a scalar context.
 
 If the method returns a DBIx::Class::Row object it is returned as a JSON hash.
 
-If the method returns a DBIx::Class ResultSet object it is returned as a JSON
+If the method returns a DBIx::Class::ResultSet object it is returned as a JSON
 array containing a hash for every row in the result set. There is no paging.
 
 If the method returns any other kind of value it it returned as a JSON hash
